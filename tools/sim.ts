@@ -33,13 +33,15 @@ if (command !== 'fight') {
 }
 
 const content = loadContent({ fixtures: true });
-const deck = parseDeck(arg('deck', 'strike*5,defend*4,bash')!);
+const classId = (arg('class', 'paladin') as HeroSetup['classId']);
+const cls = content.classes[classId];
+if (!cls) throw new Error(`unknown class ${classId}`);
+const deck = arg('deck') ? parseDeck(arg('deck')!) : cls.starter.map((cardId) => ({ cardId }));
 const enemies = arg('enemies', 'dummy-brute')!.split(',');
 const games = Number(arg('games', '1000'));
 const seed = arg('seed', 'sim')!;
-const classId = (arg('class', 'paladin') as HeroSetup['classId']);
-const companion = arg('companion') as HeroSetup['companion'];
-const maxHp = Number(arg('hp', '80'));
+const companion = (arg('companion') as HeroSetup['companion']) ?? cls.companion;
+const maxHp = Number(arg('hp', String(cls.hp)));
 
 const t0 = performance.now();
 let wins = 0;

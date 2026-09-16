@@ -115,7 +115,7 @@ function tickStartOfTurn(state: CombatState, content: Content, id: string): void
   if (!target) return;
   const poison = getStatus(target.statuses, 'poison');
   if (poison > 0) {
-    loseHp(state, target, poison);
+    loseHp(state, content, target, poison);
     setStatusTo(state, target, 'poison', poison - 1);
   }
   const burn = getStatus(target.statuses, 'burn');
@@ -132,7 +132,7 @@ export function playCard(state: CombatState, content: Content, uid: number, targ
   if (reason) return { ok: false, reason };
   const inst = state.piles.hand.find((c) => c.uid === uid)!;
   const card = cardOf(content, inst);
-  const cost = costOf(state, inst, card);
+  const cost = costOf(state, inst, card, content, targetId);
   const x = card.cost === 'X' ? state.hero.energy : undefined;
   gainEnergy(state, -cost);
 

@@ -25,7 +25,7 @@ const STATUS_NAMES: Record<StatusId, string> = {
   strength: 'Strength', dexterity: 'Dexterity', vulnerable: 'Vulnerable', weak: 'Weak', frail: 'Frail',
   poison: 'Poison', burn: 'Burn', chill: 'Chill', frozen: 'Frozen', mark: 'Mark', thorns: 'Thorns',
   regen: 'Regen', artifact: 'Artifact', platedArmor: 'Plated Armor', metallicize: 'Metallicize',
-  intangible: 'Intangible', images: 'Images', stun: 'Stun', wait: 'Wait', ritual: 'Ritual', enrage: 'Enrage',
+  intangible: 'Intangible', images: 'Images', stun: 'Stun', wait: 'Wait', ritual: 'Ritual', enrage: 'Enrage', bomb: 'Bomb',
 };
 
 const STATUS_ADJ: Partial<Record<StatusId, string>> = {
@@ -96,28 +96,34 @@ function sentences(effects: Effect[], live: LiveContext | undefined, ctx: Effect
   return out;
 }
 
-function num(printed: Amount, live: LiveContext | undefined, ctx: EffectContext | undefined, modify?: (v: number) => number): Segment[] {
+/**
+ * A printed number, or a scaled one. A scaled amount renders as its base with
+ * a trailing note ("+2 per Charge") that `sentence` places after the unit; with
+ * a live state it renders as the computed value instead.
+ */
+function num(printed: Amount, live: LiveContext | undefined, ctx: EffectContext | undefined, modify?: (v: number) => number): { segs: Segment[]; note: string } {
   if (typeof printed === 'number') {
     const value = live && ctx ? (modify ? modify(printed) : printed) : printed;
-    return [{ text: String(value), num: { value, base: printed } }];
+    return { segs: [{ text: String(value), num: { value, base: printed } }], note: '' };
   }
-  // Scaled amount. With no live state, show the formula; with one, the number and the formula.
   const label = PER_LABEL[printed.per];
-  const perText = printed.mult === 1 ? `+1 per ${label}` : `+${printed.mult} per ${label}`;
-  if (printed.base === 0) {
-    const mult = printed.mult === 1 ? '' : `${printed.mult}× `;
-    const what = printed.per === 'spent' ? 'point spent' : label;
-    if (live && ctx) {
-      const v = modify ? modify(evalAmount(live.state, printed, ctx)) : evalAmount(live.state, printed, ctx);
-      return [{ text: String(v), num: { value: v, base: 0 } }, { text: ` (${mult}${what})` }];
-    }
-    return [{ text: `${mult}${what === 'point spent' ? 'the points spent' : printed.per === 'block' ? 'your block' : what}` }];
-  }
   if (live && ctx) {
     const v = modify ? modify(evalAmount(live.state, printed, ctx)) : evalAmount(live.state, printed, ctx);
-    return [{ text: String(v), num: { value: v, base: printed.base } }];
+    return { segs: [{ text: String(v), num: { value: v, base: printed.base } }], note: '' };
   }
-  return [{ text: `${printed.base}`, num: { value: printed.base, base: printed.base } }, { text: `, ${perText}` }];
+  if (printed.base === 0) {
+    const mult = printed.mult === 1 ? '' : `${printed.mult}× `;
+    const what = printed.per === 'spent' ? 'the points spent' : printed.per === 'block' ? 'your block' : label;
+    return { segs: [{ text: `${mult}${what}` }], note: 'equal' };
+  }
+  return { segs: [{ text: `${printed.base}`, num: { value: printed.base, base: printed.base } }], note: `, +${printed.mult} per ${label}` };
+}
+
+/** "Deal N damage." with the scaled note in the right place. */
+function unit(verb: string, printed: Amount, live: LiveContext | undefined, ctx: EffectContext | undefined, what: string, tail: string, modify?: (v: number) => number): Segment[] {
+  const n = num(printed, live, ctx, modify);
+  if (n.note === 'equal') return [{ text: `${verb} ${what} equal to ` }, ...n.segs, { text: `${tail}.` }];
+  return [{ text: `${verb} ` }, ...n.segs, { text: ` ${what}${tail}${n.note}.` }];
 }
 
 function targetPhrase(t: Target | undefined, fallback: Target): string {
@@ -140,42 +146,43 @@ function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext 
             return d;
           }
         : undefined;
-      if (ef.target === 'hero' || ef.target === 'self') return [{ text: 'Take ' }, ...num(ef.amount, live, ctx), { text: ' damage.' }];
+      if (ef.target === 'hero' || ef.target === 'self') return unit('Take', ef.amount, live, ctx, 'damage', '');
       const times = ef.times && ef.times > 1 ? ` ${ef.times} times` : '';
-      return [{ text: 'Deal ' }, ...num(ef.amount, live, ctx, modify), { text: ` damage${targetPhrase(ef.target, 'target')}${times}.` }];
+      return unit('Deal', ef.amount, live, ctx, 'damage', `${targetPhrase(ef.target, 'target')}${times}`, modify);
     }
     case 'block': {
       const modify = live && ctx && style.attackerIsHero ? (v: number) => calcBlock(v, live.state.hero.statuses) : undefined;
-      return [{ text: 'Gain ' }, ...num(ef.amount, live, ctx, modify), { text: ' block.' }];
+      return unit('Gain', ef.amount, live, ctx, 'block', '', modify);
     }
     case 'status': {
       const name = STATUS_NAMES[ef.status];
       if (ef.target === 'hero' || ef.target === 'self') {
         if (typeof ef.amount === 'number' && ef.amount < 0) return [{ text: `Lose ${-ef.amount} ${name}.` }];
-        return [{ text: 'Gain ' }, ...num(ef.amount, live, ctx), { text: ` ${name}.` }];
+        return unit('Gain', ef.amount, live, ctx, name, '');
       }
-      return [{ text: 'Apply ' }, ...num(ef.amount, live, ctx), { text: ` ${name}${targetPhrase(ef.target, 'target')}.` }];
+      return unit('Apply', ef.amount, live, ctx, name, targetPhrase(ef.target, 'target'));
     }
     case 'removeStatus': {
       const who = ef.target === 'hero' || ef.target === 'self' ? 'your' : ef.target === 'all' ? "every enemy's" : "the target's";
       const what = ef.status === 'debuffs' ? 'debuffs' : ef.status === 'buffs' ? 'buffs' : STATUS_NAMES[ef.status];
       return [{ text: `Remove ${who} ${what}.` }];
     }
-    case 'draw': return [{ text: 'Draw ' }, ...num(ef.amount, live, ctx), { text: '.' }];
-    case 'energy': return [{ text: 'Gain ' }, ...num(ef.amount, live, ctx), { text: ' energy.' }];
+    case 'draw': return [{ text: 'Draw ' }, ...num(ef.amount, live, ctx).segs, { text: '.' }];
+    case 'energy': return unit('Gain', ef.amount, live, ctx, 'energy', '');
     case 'heal': {
-      if (ef.target && ef.target !== 'hero' && ef.target !== 'self') return [{ text: 'Heal the target ' }, ...num(ef.amount, live, ctx), { text: '.' }];
-      return [{ text: 'Heal ' }, ...num(ef.amount, live, ctx), { text: '.' }];
+      if (ef.target && ef.target !== 'hero' && ef.target !== 'self') return [{ text: 'Heal the target ' }, ...num(ef.amount, live, ctx).segs, { text: '.' }];
+      return [{ text: 'Heal ' }, ...num(ef.amount, live, ctx).segs, { text: '.' }];
     }
     case 'gold': {
       if (typeof ef.amount === 'number' && ef.amount < 0) return [{ text: `Lose ${-ef.amount} gold.` }];
-      return [{ text: 'Gain ' }, ...num(ef.amount, live, ctx), { text: ' gold.' }];
+      return unit('Gain', ef.amount, live, ctx, 'gold', '');
     }
-    case 'resource': return [{ text: '+' }, ...num(ef.amount, live, ctx), { text: ` ${RESOURCE_LABEL[ef.name]}.` }];
+    case 'resource': return [{ text: '+' }, ...num(ef.amount, live, ctx).segs, { text: ` ${RESOURCE_LABEL[ef.name]}.` }];
     case 'spend': {
       const inner = sentences(ef.then, live, ctx ? { ...ctx, spent: live?.state.hero.resources[ef.name] } : undefined, { ...style, spending: true });
       if (inner.length) inner[0]!.text = inner[0]!.text[0]!.toLowerCase() + inner[0]!.text.slice(1);
-      return [{ text: `Spend all ${RESOURCE_LABEL[ef.name]}: ` }, ...inner];
+      const label = ef.name === 'charge' ? 'Charges' : RESOURCE_LABEL[ef.name];
+      return [{ text: `Spend all ${label}: ` }, ...inner];
     }
     case 'exhaust':
     case 'discard': {

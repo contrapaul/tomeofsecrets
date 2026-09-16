@@ -1,0 +1,1080 @@
+[
+  {
+    "id": "hammer-blow",
+    "name": "Hammer Blow",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 6,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "raise-shield",
+    "name": "Raise Shield",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 5
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8
+        }
+      ]
+    }
+  },
+  {
+    "id": "crusader-strike",
+    "name": "Crusader Strike",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 6,
+        "target": "target"
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "target"
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "shield-of-the-righteous",
+    "name": "Shield of the Righteous",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 7
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 10
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "judgment",
+    "name": "Judgment",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 7,
+        "target": "target"
+      },
+      {
+        "do": "if",
+        "when": {
+          "resourceAtLeast": "holyPower",
+          "amount": 3
+        },
+        "then": [
+          {
+            "do": "status",
+            "status": "vulnerable",
+            "amount": 1,
+            "target": "target"
+          }
+        ]
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "target"
+        },
+        {
+          "do": "if",
+          "when": {
+            "resourceAtLeast": "holyPower",
+            "amount": 3
+          },
+          "then": [
+            {
+              "do": "status",
+              "status": "vulnerable",
+              "amount": 1,
+              "target": "target"
+            }
+          ]
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "hammer-of-the-righteous",
+    "name": "Hammer of the Righteous",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "all"
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "all"
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "zealous-blow",
+    "name": "Zealous Blow",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "target",
+        "times": 2
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "target",
+          "times": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "holy-shock",
+    "name": "Holy Shock",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "target"
+      },
+      {
+        "do": "if",
+        "when": {
+          "resourceAtLeast": "holyPower",
+          "amount": 3
+        },
+        "then": [
+          {
+            "do": "heal",
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "target"
+        },
+        {
+          "do": "if",
+          "when": {
+            "resourceAtLeast": "holyPower",
+            "amount": 3
+          },
+          "then": [
+            {
+              "do": "heal",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "flash-of-light",
+    "name": "Flash of Light",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "heal",
+        "amount": 4
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "heal",
+          "amount": 6
+        }
+      ]
+    }
+  },
+  {
+    "id": "consecration",
+    "name": "Consecration",
+    "class": "paladin",
+    "type": "power",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "endTurn",
+        "effects": [
+          {
+            "do": "damage",
+            "amount": 3,
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "endTurn",
+          "effects": [
+            {
+              "do": "damage",
+              "amount": 4,
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "devotion",
+    "name": "Devotion",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 8
+      },
+      {
+        "do": "if",
+        "when": {
+          "resourceAtLeast": "holyPower",
+          "amount": 3
+        },
+        "then": [
+          {
+            "do": "block",
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 11
+        },
+        {
+          "do": "if",
+          "when": {
+            "resourceAtLeast": "holyPower",
+            "amount": 3
+          },
+          "then": [
+            {
+              "do": "block",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "word-of-glory",
+    "name": "Word of Glory",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "spend",
+        "name": "holyPower",
+        "then": [
+          {
+            "do": "block",
+            "amount": {
+              "base": 4,
+              "per": "spent",
+              "mult": 3
+            }
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "spend",
+          "name": "holyPower",
+          "then": [
+            {
+              "do": "block",
+              "amount": {
+                "base": 6,
+                "per": "spent",
+                "mult": 4
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "templars-verdict",
+    "name": "Templar's Verdict",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "spend",
+        "name": "holyPower",
+        "then": [
+          {
+            "do": "damage",
+            "amount": {
+              "base": 5,
+              "per": "spent",
+              "mult": 4
+            },
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "spend",
+          "name": "holyPower",
+          "then": [
+            {
+              "do": "damage",
+              "amount": {
+                "base": 7,
+                "per": "spent",
+                "mult": 5
+              },
+              "target": "target"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "retribution",
+    "name": "Retribution",
+    "class": "paladin",
+    "type": "power",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "status",
+        "status": "thorns",
+        "amount": 2,
+        "target": "hero"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "thorns",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  {
+    "id": "divine-steed",
+    "name": "Divine Steed",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 0,
+    "target": "none",
+    "effects": [
+      {
+        "do": "draw",
+        "amount": 2
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "keywords": []
+    }
+  },
+  {
+    "id": "rebuke",
+    "name": "Rebuke",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "status",
+        "status": "weak",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bulwark",
+    "name": "Bulwark",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 2,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 14
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 18
+        }
+      ]
+    }
+  },
+  {
+    "id": "blade-of-justice",
+    "name": "Blade of Justice",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 9,
+        "target": "target"
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 2
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "target"
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "divine-storm",
+    "name": "Divine Storm",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "spend",
+        "name": "holyPower",
+        "then": [
+          {
+            "do": "damage",
+            "amount": {
+              "base": 3,
+              "per": "spent",
+              "mult": 3
+            },
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "spend",
+          "name": "holyPower",
+          "then": [
+            {
+              "do": "damage",
+              "amount": {
+                "base": 4,
+                "per": "spent",
+                "mult": 4
+              },
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "avengers-shield",
+    "name": "Avenger's Shield",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "resourceAtLeast": "holyPower",
+          "amount": 3
+        },
+        "then": [
+          {
+            "do": "damage",
+            "amount": 7,
+            "target": "all"
+          },
+          {
+            "do": "status",
+            "status": "weak",
+            "amount": 1,
+            "target": "all"
+          }
+        ],
+        "else": [
+          {
+            "do": "damage",
+            "amount": 7,
+            "target": "target"
+          },
+          {
+            "do": "status",
+            "status": "weak",
+            "amount": 1,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "text": "Deal 7 damage and apply 1 Weak. If you have 3+ Holy Power, this hits ALL enemies.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "resourceAtLeast": "holyPower",
+            "amount": 3
+          },
+          "then": [
+            {
+              "do": "damage",
+              "amount": 9,
+              "target": "all"
+            },
+            {
+              "do": "status",
+              "status": "weak",
+              "amount": 1,
+              "target": "all"
+            }
+          ],
+          "else": [
+            {
+              "do": "damage",
+              "amount": 9,
+              "target": "target"
+            },
+            {
+              "do": "status",
+              "status": "weak",
+              "amount": 1,
+              "target": "target"
+            }
+          ]
+        }
+      ],
+      "text": "Deal 9 damage and apply 1 Weak. If you have 3+ Holy Power, this hits ALL enemies."
+    }
+  },
+  {
+    "id": "holy-wrath",
+    "name": "Holy Wrath",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": {
+          "base": 0,
+          "per": "block",
+          "mult": 1
+        },
+        "target": "target"
+      }
+    ],
+    "text": "Deal damage equal to your block.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": {
+            "base": 3,
+            "per": "block",
+            "mult": 1
+          },
+          "target": "target"
+        }
+      ],
+      "text": "Deal 3 damage plus your block."
+    }
+  },
+  {
+    "id": "righteous-fury",
+    "name": "Righteous Fury",
+    "class": "paladin",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "onResourceGain",
+        "effects": [
+          {
+            "do": "block",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "onResourceGain",
+          "effects": [
+            {
+              "do": "block",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "blessing-of-might",
+    "name": "Blessing of Might",
+    "class": "paladin",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "status",
+        "status": "strength",
+        "amount": 2,
+        "target": "hero"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  {
+    "id": "hammer-of-wrath",
+    "name": "Hammer of Wrath",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 14,
+        "target": "target"
+      }
+    ],
+    "text": "Deal 14 damage. Costs 0 if the target is below half HP.",
+    "costIf": {
+      "when": {
+        "targetBelowHp": 0.5
+      },
+      "cost": 0
+    },
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 18,
+          "target": "target"
+        }
+      ],
+      "text": "Deal 18 damage. Costs 0 if the target is below half HP."
+    }
+  },
+  {
+    "id": "hand-of-protection",
+    "name": "Hand of Protection",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 12
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 16
+        }
+      ]
+    }
+  },
+  {
+    "id": "shield-bash",
+    "name": "Shield Bash",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "target"
+      },
+      {
+        "do": "block",
+        "amount": 5
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "target"
+        },
+        {
+          "do": "block",
+          "amount": 7
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "divine-plea",
+    "name": "Divine Plea",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 2
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "aura-of-light",
+    "name": "Aura of Light",
+    "class": "paladin",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "startTurn",
+        "effects": [
+          {
+            "do": "block",
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "startTurn",
+          "effects": [
+            {
+              "do": "block",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "wake-of-ashes",
+    "name": "Wake of Ashes",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "rare",
+    "cost": 2,
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 12,
+        "target": "all"
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 3
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 16,
+          "target": "all"
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "divine-shield",
+    "name": "Divine Shield",
+    "class": "paladin",
+    "type": "skill",
+    "rarity": "rare",
+    "cost": 2,
+    "target": "none",
+    "effects": [
+      {
+        "do": "status",
+        "status": "intangible",
+        "amount": 2,
+        "target": "hero"
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "cost": 1
+    }
+  }
+]

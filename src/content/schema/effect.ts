@@ -9,13 +9,13 @@ import { z } from 'zod';
 export const STATUS_IDS = [
   'strength', 'dexterity', 'vulnerable', 'weak', 'frail', 'poison', 'burn', 'chill', 'frozen',
   'mark', 'thorns', 'regen', 'artifact', 'platedArmor', 'metallicize', 'intangible', 'images',
-  'stun', 'wait', 'ritual', 'enrage',
+  'stun', 'wait', 'ritual', 'enrage', 'bomb',
 ] as const;
 export const StatusId = z.enum(STATUS_IDS);
 export type StatusId = z.infer<typeof StatusId>;
 
 /** Buffs and debuffs, for Artifact and for "remove your debuffs". */
-export const DEBUFFS: readonly StatusId[] = ['vulnerable', 'weak', 'frail', 'poison', 'burn', 'chill', 'frozen', 'mark', 'stun', 'wait'];
+export const DEBUFFS: readonly StatusId[] = ['vulnerable', 'weak', 'frail', 'poison', 'burn', 'chill', 'frozen', 'mark', 'stun', 'wait', 'bomb'];
 export const BUFFS: readonly StatusId[] = ['strength', 'dexterity', 'thorns', 'regen', 'artifact', 'platedArmor', 'metallicize', 'intangible', 'images', 'ritual', 'enrage'];
 
 export const ENEMY_TAGS = ['beast', 'undead', 'spirit', 'demon', 'construct', 'ooze', 'plant', 'humanoid'] as const;
@@ -79,7 +79,7 @@ export type Effect =
   | { do: 'discard'; from: 'hand' | 'random' | 'choose'; count?: number }
   | { do: 'addCard'; card: string; to: 'hand' | 'discard' | 'draw'; upgraded?: boolean; count?: number }
   | { do: 'trap'; trigger: TrapTrigger; effects: Effect[] }
-  | { do: 'companion'; action: 'act' | 'enrage' | 'unstun'; bonus?: number }
+  | { do: 'companion'; action: 'act' | 'enrage' | 'unstun' | 'feed'; bonus?: number }
   | { do: 'power'; trigger: PowerTrigger; effects: Effect[]; name?: string }
   | { do: 'if'; when: Condition; then: Effect[]; else?: Effect[] }
   | { do: 'summon'; enemy: string; count?: number; max?: number }
@@ -102,7 +102,7 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
     z.strictObject({ do: z.literal('discard'), from: z.enum(['hand', 'random', 'choose']), count: z.int().min(1).optional() }),
     z.strictObject({ do: z.literal('addCard'), card: z.string(), to: z.enum(['hand', 'discard', 'draw']), upgraded: z.boolean().optional(), count: z.int().min(1).optional() }),
     z.strictObject({ do: z.literal('trap'), trigger: TrapTrigger, effects: z.array(Effect) }),
-    z.strictObject({ do: z.literal('companion'), action: z.enum(['act', 'enrage', 'unstun']), bonus: z.int().optional() }),
+    z.strictObject({ do: z.literal('companion'), action: z.enum(['act', 'enrage', 'unstun', 'feed']), bonus: z.int().optional() }),
     z.strictObject({ do: z.literal('power'), trigger: PowerTrigger, effects: z.array(Effect), name: z.string().optional() }),
     z.strictObject({ do: z.literal('if'), when: Condition, then: z.array(Effect), else: z.array(Effect).optional() }),
     z.strictObject({ do: z.literal('summon'), enemy: z.string(), count: z.int().min(1).optional(), max: z.int().min(1).optional() }),

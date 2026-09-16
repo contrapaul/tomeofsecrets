@@ -90,7 +90,7 @@ export function dealDamage(state: CombatState, content: Content, targetId: strin
     dealDamage(state, content, attackerId, thorns, { source: { kind: 'system' }, attack: false });
   }
 
-  if (killed) die(state, target);
+  if (killed) die(state, content, target);
   return { dealt, blocked, hpDamage, negated: false };
 }
 
@@ -100,13 +100,20 @@ function sourceId(source: EffectContext['source']): string | undefined {
   return undefined;
 }
 
-function die(state: CombatState, target: Combatant): void {
+function die(state: CombatState, content: Content, target: Combatant): void {
   if (isEnemy(target)) {
     if (!target.alive) return;
     target.alive = false;
     target.intent = null;
     state.events.push({ t: 'die', target: target.id });
     state.hero.flags.enemyDiedThisTurn = true;
+    // Living Bomb: the blast hits everyone else.
+    const bomb = getStatus(target.statuses, 'bomb');
+    if (bomb > 0) {
+      for (const other of state.enemies) {
+        if (other.alive && other.id !== target.id) dealDamage(state, content, other.id, bomb, { source: { kind: 'system' }, attack: false });
+      }
+    }
     return;
   }
   // The hero. A once-per-fight revive (Divine Intervention, Phoenix Feather).
@@ -122,13 +129,13 @@ function die(state: CombatState, target: Combatant): void {
 }
 
 /** Direct HP loss that ignores block: Poison. */
-export function loseHp(state: CombatState, target: Combatant, amount: number): void {
+export function loseHp(state: CombatState, content: Content, target: Combatant, amount: number): void {
   if (amount <= 0) return;
   if (isEnemy(target) && !target.alive) return;
   target.hp = Math.max(0, target.hp - amount);
   const killed = target.hp <= 0;
   state.events.push({ t: 'damage', target: idOf(target), amount, blocked: 0, hp: target.hp, killed });
-  if (killed) die(state, target);
+  if (killed) die(state, content, target);
 }
 
 export function heal(state: CombatState, target: Combatant, amount: number): number {

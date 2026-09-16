@@ -1,4 +1,4 @@
-import type { Card, ClassId, Enemy, IntentKind, PowerTrigger, ResourceName, StatusId, TrapTrigger } from '../../content/schema';
+import type { Card, ClassDef, ClassId, Enemy, IntentKind, PowerTrigger, ResourceName, StatusId, TrapTrigger } from '../../content/schema';
 import type { Effect } from '../../content/schema';
 import type { Streams } from '../rng';
 import type { CombatEvent } from '../events';
@@ -154,6 +154,7 @@ export interface CombatState {
 export interface Content {
   cards: Record<string, Card>;
   enemies: Record<string, Enemy>;
+  classes?: Record<string, ClassDef>;
 }
 
 export interface HeroSetup {

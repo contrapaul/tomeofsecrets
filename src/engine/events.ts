@@ -24,7 +24,7 @@ export type CombatEvent =
   | { t: 'enemyAct'; enemy: string; move: string; skipped?: 'stun' | 'frozen' | 'wait' | 'countered' }
   | { t: 'summon'; enemy: string; enemyId: string }
   | { t: 'trap'; uid: number; cardId: string; state: 'armed' | 'fired' | 'replaced' }
-  | { t: 'companion'; action: 'act' | 'enrage' | 'stun' | 'unstun' }
+  | { t: 'companion'; action: 'act' | 'enrage' | 'stun' | 'unstun' | 'feed' }
   | { t: 'power'; uid: number; cardId: string; state: 'added' | 'fired' | 'removed' }
   | { t: 'phase'; enemy: string; phase: number }
   | { t: 'prompt'; kind: 'discard' | 'exhaust'; count: number }

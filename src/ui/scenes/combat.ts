@@ -11,9 +11,12 @@ import { CardView, type CardDisplay } from '../cards/CardView';
 import { DragController } from '../cards/DragController';
 import { HandLayout } from '../cards/HandLayout';
 import { PileView } from '../cards/PileView';
+import { CompanionView } from '../combat/CompanionView';
 import { EnemyView } from '../combat/EnemyView';
 import { Playback, type World } from '../combat/Playback';
 import { PlayerPanel } from '../combat/PlayerPanel';
+import { ResourceWidget } from '../combat/ResourceWidget';
+import { TrapRow } from '../combat/TrapRow';
 import { backdrop } from '../kit/backdrop';
 import { Button } from '../kit/button';
 import { KEYWORD_INFO } from '../kit/glossary';
@@ -77,6 +80,9 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   };
   const enemies = new Map<string, EnemyView>();
   let player: PlayerPanel;
+  let resource: ResourceWidget | null = null;
+  let companion: CompanionView | null = null;
+  let traps: TrapRow;
   let piles: World['piles'];
   let playback: Playback;
   let drag: DragController;
@@ -442,6 +448,21 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       player.energyOrb.position.set(-130, 230);
       layers.ui.addChild(player);
 
+      const classDef = content.classes?.[state.hero.classId];
+      if (classDef?.resource) {
+        resource = new ResourceWidget(classDef.resource, tooltip);
+        resource.set(state.hero.resources[classDef.resource]);
+        player.resourceSlot.addChild(resource);
+      }
+      traps = new TrapRow(content, tooltip);
+      traps.position.set(0, 300);
+      player.addChild(traps);
+      if (state.hero.companion) {
+        companion = new CompanionView(state.hero.companion, tooltip, layers.fx);
+        companion.position.set(LAYOUT.player.x + 250, LAYOUT.player.y + 220);
+        layers.ui.addChild(companion);
+      }
+
       piles = { draw: new PileView('draw', PALETTE.gold), discard: new PileView('discard', PALETTE.blood), exhaust: new PileView('exhaust', PALETTE.type.status) };
       piles.draw.position.set(LAYOUT.draw.x, LAYOUT.draw.y);
       piles.discard.position.set(LAYOUT.discard.x, LAYOUT.discard.y);
@@ -493,6 +514,9 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         floating: layers.floating,
         fx: layers.fx,
         player,
+        resource,
+        companion,
+        traps,
         enemies,
         piles,
         makeCardView,

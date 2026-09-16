@@ -14,9 +14,10 @@ dialogue format, schemas, art spec). This file is the roadmap. Update the checkb
 and the status line as work lands so a new session can pick up without re-reading the
 conversation.
 
-**Status:** Phases 0–2 built; Phase 2 has three acceptance lines waiting on a school
-MacBook and a first-time player (see the phase). Live at https://tome.contrapaul.com;
-`#/dev/fight` is playable there. Phase 3 (classes) is next. Last updated 2026-09-17.
+**Status:** Phases 0–3 built. Phase 2 has two acceptance lines waiting on a school
+MacBook and a first-time player. Live at https://tome.contrapaul.com; `#/dev/fight`
+plays any class with its real starter. Phase 4 (art pipeline) is next. Last updated
+2026-09-17.
 
 ---
 
@@ -310,29 +311,35 @@ Acceptance:
 - [ ] A first-time player plays a fight with no explanation beyond intents and
       tooltips. **Needs a person.** Paul first, then a student at Checkpoint 1.
 
-### Phase 3: Three classes, first pass
+### Phase 3: Three classes, first pass — Done 2026-09-17
 
 Goal: Paladin, Tracker and Mage play differently in `#/dev/fight`, with their first-pass
 cards and their resource on screen.
 
-- [ ] Class resources in engine: **Holy Power** (0–5, gain and spend, persists within a
-      fight), **Companion** (acts at end of your turn; Stunned/Enraged states; chosen at
-      run start), **Traps** (armed, max 2, trigger on enemy attack / buff / turn start),
-      **Marks** (consumed per hit), **Burn**, **Chill → Frozen**, **Arcane Charges**
-      (0–4), **Images**. Tests for each.
-- [ ] Resource widgets: Holy Power pips, Companion portrait with its intent, Trap row,
-      Charge gems with school tint.
-- [ ] Cards: starters plus every card marked **1st** in `design.md` §4 (25–30 per
-      class) plus the first 8 neutrals. Upgrades for all. Placeholder art: procedural
-      frames tinted by class and type with the name in the art slot.
-- [ ] Six test dummies that exercise multi-hit, buff, debuff, block, swarm and split.
-- [ ] Sim plays each class against the dummies; numbers recorded in Handoff notes.
+- [x] Class resources in engine: **Holy Power**, **Companion** (act, Stun, Enrage,
+      Feed), **Traps** (max 2, replace oldest), **Marks** (+3 per hit, Trueshot +2/+4),
+      **Burn**, **Chill → Frozen / Shatter**, **Arcane Charges**, **Images**, plus
+      **Bomb** (Living Bomb) and **Viper's Kiss**. Tests through the real cards in
+      `classes.test.ts`.
+- [x] Resource widgets: Holy Power pips, Charge gems, Companion with its action line
+      and Stunned/Enraged state, Trap row under the hero. All driven by events.
+- [x] Cards: `content/cards/{paladin,tracker,mage}.json` — 30 / 30 / 32 cards, every
+      **1st**-marked card from `design.md` §4, all with upgrades. Text generated for
+      most; overrides where the sentence read badly. `#/dev/cards?class=mage` browses.
+- [x] `content/classes.json`: HP, starter deck, companion, resource. Loaded and
+      cross-checked by `loadContent`.
+- [x] Six test dummies exercise multi-hit, buff, debuff, block, swarm and split.
+- [x] Sim baseline (starters only, 500 games each, seed `sim`): every class beats every
+      normal dummy at 100% with 2–17 HP lost; the 120-HP boss dummy beats the Paladin
+      (20% win) and the Mage (0%) while the Tracker wins 92% — the Wolf's free 5 a
+      turn is a lot in a 10-card deck. Revisit at Phase 7.
 
 Acceptance:
-- Each class's identity is legible in one fight: Paladin builds and spends Holy Power,
-  the Tracker's companion and traps act, the Mage stacks Burn, Chill and Charges.
-- Every card's generated text is right in hand with live modifiers.
-- `lint:content` clean; every card has an upgrade; tests pass.
+- [x] Each class's identity is legible in one fight (verified in the browser: pips
+      fill, traps arm and fire on an attack, Charges light and scale Arcane Blast).
+- [x] Every card's generated text is right in hand with live modifiers ("Spend all
+      Holy Power: gain 13 block" at 3 pips).
+- [x] `lint:content` (the content test) clean; every card has an upgrade; 97 tests.
 
 ### Phase 4: Art pipeline and contributor kit
 
@@ -636,6 +643,21 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
 - The router now keys on path + query, so `#/dev/fight?seed=x` remounts on a
   seed change (the Again button relies on it).
 - Dev knobs: `window.__tome.combat` exposes `state`, `busy`, `hand` in dev builds.
+
+### After Phase 3 (2026-09-17)
+
+- Class cards were generated once from a scratch script and then committed as
+  plain JSON; **the JSON is the source**, edit it directly.
+- New engine pieces this phase: `costIf` on a card (Hammer of Wrath), the
+  `feed` companion action, the `bomb` status (its blast is in `mutate.ts:die`),
+  Trueshot/Viper's Kiss as flags read in `effects.ts`, and `costOf` now takes the
+  content and a target so conditional costs can look at the enemy.
+- Text generation phrases scaled amounts as "Deal 6 damage, +2 per Charge." and
+  "Deal damage equal to your block."; check `text.test.ts` before changing wording.
+- Widgets live in `src/ui/combat/{ResourceWidget,CompanionView,TrapRow}.ts` and mount
+  from `combatScene` based on `content.classes[classId]`.
+- `npm run sim -- fight --class mage --enemies dummy-boss` now defaults to the class
+  starter and companion; `--deck` still overrides.
 
 - `hero.flags` carries relic-style switches the engine already honours (`aegis`,
   `hourglass`, `quillOfHaste`, `aspectOfTheHawk`, `bestialWrath`, `trueshot`,

@@ -1,0 +1,907 @@
+[
+  {
+    "id": "arrow",
+    "name": "Arrow",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 6,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "brace",
+    "name": "Brace",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 5
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8
+        }
+      ]
+    }
+  },
+  {
+    "id": "hunters-mark",
+    "name": "Hunter's Mark",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "status",
+        "status": "mark",
+        "amount": 3,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "cost": 0
+    }
+  },
+  {
+    "id": "sic-em",
+    "name": "Sic 'Em",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "companion",
+        "action": "act"
+      }
+    ],
+    "upgrade": {
+      "cost": 0
+    }
+  },
+  {
+    "id": "steady-shot",
+    "name": "Steady Shot",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 6,
+        "target": "target"
+      },
+      {
+        "do": "draw",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "target"
+        },
+        {
+          "do": "draw",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "multi-shot",
+    "name": "Multi-Shot",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "all"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "all"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rapid-fire",
+    "name": "Rapid Fire",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 3,
+        "target": "target",
+        "times": 3
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "target",
+          "times": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "serpent-sting",
+    "name": "Serpent Sting",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "poison",
+        "amount": 3,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "poison",
+          "amount": 5,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "raptor-strike",
+    "name": "Raptor Strike",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 9,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "wing-clip",
+    "name": "Wing Clip",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "weak",
+        "amount": 1,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 2,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "disengage",
+    "name": "Disengage",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 0,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 4
+      },
+      {
+        "do": "draw",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 6
+        },
+        {
+          "do": "draw",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "camouflage",
+    "name": "Camouflage",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 7
+      },
+      {
+        "do": "if",
+        "when": {
+          "playedNoAttack": true
+        },
+        "then": [
+          {
+            "do": "block",
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 10
+        },
+        {
+          "do": "if",
+          "when": {
+            "playedNoAttack": true
+          },
+          "then": [
+            {
+              "do": "block",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "tracking",
+    "name": "Tracking",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 0,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "status",
+        "status": "mark",
+        "amount": 1,
+        "target": "target"
+      },
+      {
+        "do": "draw",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "mark",
+          "amount": 2,
+          "target": "target"
+        },
+        {
+          "do": "draw",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "snake-trap",
+    "name": "Snake Trap",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "trap",
+        "trigger": "enemyAttack",
+        "effects": [
+          {
+            "do": "status",
+            "status": "poison",
+            "amount": 4,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "trap",
+          "trigger": "enemyAttack",
+          "effects": [
+            {
+              "do": "status",
+              "status": "poison",
+              "amount": 6,
+              "target": "target"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "tar-trap",
+    "name": "Tar Trap",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "trap",
+        "trigger": "enemyAttack",
+        "effects": [
+          {
+            "do": "status",
+            "status": "weak",
+            "amount": 2,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "trap",
+          "trigger": "enemyAttack",
+          "effects": [
+            {
+              "do": "status",
+              "status": "weak",
+              "amount": 3,
+              "target": "target"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "feed",
+    "name": "Feed",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "companion",
+        "action": "feed",
+        "bonus": 2
+      }
+    ],
+    "text": "Your Companion deals 2 more damage this fight.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "companion",
+          "action": "feed",
+          "bonus": 3
+        }
+      ],
+      "text": "Your Companion deals 3 more damage this fight."
+    }
+  },
+  {
+    "id": "flare",
+    "name": "Flare",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "status",
+        "status": "vulnerable",
+        "amount": 1,
+        "target": "all"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "vulnerable",
+          "amount": 2,
+          "target": "all"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aimed-shot",
+    "name": "Aimed Shot",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 14,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 18,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "arcane-shot",
+    "name": "Arcane Shot",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "targetHas": "mark"
+        },
+        "then": [
+          {
+            "do": "draw",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "do": "damage",
+        "amount": 8,
+        "target": "target"
+      }
+    ],
+    "text": "Deal 8 damage. If the target is Marked, draw 1.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "targetHas": "mark"
+          },
+          "then": [
+            {
+              "do": "draw",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "do": "damage",
+          "amount": 11,
+          "target": "target"
+        }
+      ],
+      "text": "Deal 11 damage. If the target is Marked, draw 1."
+    }
+  },
+  {
+    "id": "kill-command",
+    "name": "Kill Command",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "companion",
+        "action": "act",
+        "bonus": 4
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "companion",
+          "action": "act",
+          "bonus": 7
+        }
+      ]
+    }
+  },
+  {
+    "id": "bestial-wrath",
+    "name": "Bestial Wrath",
+    "class": "tracker",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "flag",
+        "name": "bestialWrath"
+      }
+    ],
+    "text": "Your Companion also acts at the start of your turn.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "flag",
+          "name": "bestialWrath"
+        },
+        {
+          "do": "power",
+          "trigger": "startTurn",
+          "effects": [
+            {
+              "do": "companion",
+              "action": "enrage"
+            }
+          ]
+        }
+      ],
+      "text": "Your Companion also acts at the start of your turn, Enraged."
+    }
+  },
+  {
+    "id": "explosive-trap",
+    "name": "Explosive Trap",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "trap",
+        "trigger": "enemyAttack",
+        "effects": [
+          {
+            "do": "damage",
+            "amount": 8,
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "trap",
+          "trigger": "enemyAttack",
+          "effects": [
+            {
+              "do": "damage",
+              "amount": 12,
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "freezing-trap",
+    "name": "Freezing Trap",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "none",
+    "effects": [
+      {
+        "do": "trap",
+        "trigger": "enemyAttack",
+        "effects": [
+          {
+            "do": "flag",
+            "name": "negateNextAttack"
+          }
+        ]
+      }
+    ],
+    "text": "Armed: when an enemy attacks you, that attack deals 0.",
+    "upgrade": {
+      "cost": 1
+    }
+  },
+  {
+    "id": "trueshot",
+    "name": "Trueshot",
+    "class": "tracker",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "flag",
+        "name": "trueshot"
+      }
+    ],
+    "text": "Attacks against Marked enemies deal 2 more.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "flag",
+          "name": "trueshotPlus"
+        }
+      ],
+      "text": "Attacks against Marked enemies deal 4 more."
+    }
+  },
+  {
+    "id": "vipers-kiss",
+    "name": "Viper's Kiss",
+    "class": "tracker",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "flag",
+        "name": "vipersKiss"
+      }
+    ],
+    "text": "Poison you apply is increased by 1.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "flag",
+          "name": "vipersKissPlus"
+        }
+      ],
+      "text": "Poison you apply is increased by 2."
+    }
+  },
+  {
+    "id": "aspect-of-the-hawk",
+    "name": "Aspect of the Hawk",
+    "class": "tracker",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "none",
+    "effects": [
+      {
+        "do": "flag",
+        "name": "aspectOfTheHawk"
+      }
+    ],
+    "text": "Draw 1 extra card each turn.",
+    "upgrade": {
+      "cost": 1
+    }
+  },
+  {
+    "id": "volley",
+    "name": "Volley",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 2,
+        "target": "random",
+        "times": 6
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 2,
+          "target": "random",
+          "times": 8
+        }
+      ]
+    }
+  },
+  {
+    "id": "growl",
+    "name": "Growl",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 6
+      },
+      {
+        "do": "companion",
+        "action": "enrage"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 9
+        },
+        {
+          "do": "companion",
+          "action": "enrage"
+        }
+      ]
+    }
+  },
+  {
+    "id": "kill-shot",
+    "name": "Kill Shot",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "rare",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 20,
+        "target": "target"
+      }
+    ],
+    "text": "Deal 20 damage. Only playable on a target below half HP.",
+    "playableIf": "targetBelowHalf",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 28,
+          "target": "target"
+        }
+      ],
+      "text": "Deal 28 damage. Only playable on a target below half HP."
+    }
+  },
+  {
+    "id": "steel-trap",
+    "name": "Steel Trap",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "rare",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "trap",
+        "trigger": "enemyAttack",
+        "effects": [
+          {
+            "do": "damage",
+            "amount": 15,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "trap",
+          "trigger": "enemyAttack",
+          "effects": [
+            {
+              "do": "damage",
+              "amount": 22,
+              "target": "target"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

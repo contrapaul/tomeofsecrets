@@ -1,5 +1,9 @@
-import { CardSet, EnemySet, type Card, type Enemy } from './schema';
+import { CardSet, ClassSet, EnemySet, type Card, type ClassDef, type Enemy } from './schema';
+import paladin from './cards/paladin.json';
+import tracker from './cards/tracker.json';
+import mage from './cards/mage.json';
 import neutral from './cards/neutral.json';
+import classes from './classes.json';
 import status from './cards/status.json';
 import curses from './cards/curses.json';
 import testCards from './test/cards.json';
@@ -8,6 +12,7 @@ import testEnemies from './test/enemies.json';
 export interface ContentRegistry {
   cards: Record<string, Card>;
   enemies: Record<string, Enemy>;
+  classes: Record<string, ClassDef>;
 }
 
 function index<T extends { id: string }>(items: T[], what: string): Record<string, T> {
@@ -26,6 +31,9 @@ function index<T extends { id: string }>(items: T[], what: string): Record<strin
  */
 export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry {
   const cardFiles: [string, unknown][] = [
+    ['cards/paladin.json', paladin],
+    ['cards/tracker.json', tracker],
+    ['cards/mage.json', mage],
     ['cards/neutral.json', neutral],
     ['cards/status.json', status],
     ['cards/curses.json', curses],
@@ -47,5 +55,9 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
     if (!r.success) throw new Error(`${file}: ${r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
     enemies.push(...r.data);
   }
-  return { cards: index(cards, 'card'), enemies: index(enemies, 'enemy') };
+  const cls = ClassSet.safeParse(classes);
+  if (!cls.success) throw new Error(`classes.json: ${cls.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
+  const registry = { cards: index(cards, 'card'), enemies: index(enemies, 'enemy'), classes: index(cls.data, 'class') };
+  for (const c of cls.data) for (const id of c.starter) if (!registry.cards[id]) throw new Error(`class ${c.id} starter references unknown card ${id}`);
+  return registry;
 }

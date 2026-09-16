@@ -42,7 +42,7 @@ describe('card text', () => {
     expect(t('twin-strike')).toBe('Deal 5 damage 2 times.');
     expect(t('missiles')).toBe('Deal 3 damage to a random enemy 3 times.');
     expect(t('inflame')).toBe('Gain 2 Strength.');
-    expect(t('test-verdict')).toBe('Spend all Holy Power: deal 5, +4 per point damage.');
+    expect(t('test-verdict')).toBe('Spend all Holy Power: deal 5 damage, +4 per point.');
     expect(t('test-generator')).toBe('Deal 6 damage. +1 Holy Power.');
     expect(t('test-trap')).toBe('Armed: when an enemy attacks you, deal 8 damage to ALL enemies.');
     expect(t('test-power')).toBe('At the end of your turn, deal 3 damage to ALL enemies.');

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CardTag, Effect } from './effect';
+import { CardTag, Condition, Effect } from './effect';
 
 export const CLASS_IDS = ['paladin', 'tracker', 'mage'] as const;
 export const ClassId = z.enum(CLASS_IDS);
@@ -46,6 +46,8 @@ export const Card = CardBase.extend({
   artist: z.string().optional(),
   /** Only playable under this condition: e.g. Kill Shot, Ambush. */
   playableIf: z.union([z.literal('targetBelowHalf'), z.literal('firstCardThisTurn')]).optional(),
+  /** A different cost when the condition holds (Hammer of Wrath: 0 below half HP). */
+  costIf: z.strictObject({ when: Condition, cost: z.int().min(0) }).optional(),
   /** Curses and statuses mostly: fires when the card is drawn (Smudge, Redlined). */
   onDraw: z.array(Effect).optional(),
   /** Fires if the card is still in hand at end of turn (Doubt, Clumsy, Pride). */

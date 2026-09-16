@@ -23,6 +23,7 @@ export const STATUS_INFO: Record<StatusId, { name: string; text: string }> = {
   wait: { name: 'Waiting', text: 'Its next action is postponed one turn.' },
   ritual: { name: 'Ritual', text: 'Gains this much Strength at the end of its turn.' },
   enrage: { name: 'Enrage', text: 'Gains this much Strength whenever you play a Skill.' },
+  bomb: { name: 'Bomb', text: 'When this enemy dies, every other enemy takes this much damage.' },
 };
 
 export const KEYWORD_INFO: Record<string, string> = {

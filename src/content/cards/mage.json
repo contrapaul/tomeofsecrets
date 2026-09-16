@@ -1,0 +1,1289 @@
+[
+  {
+    "id": "arcane-bolt",
+    "name": "Arcane Bolt",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ice-barrier",
+    "name": "Ice Barrier",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "block",
+        "amount": 5
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8
+        }
+      ]
+    }
+  },
+  {
+    "id": "scorch",
+    "name": "Scorch",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "burn",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "frostbolt",
+    "name": "Frostbolt",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "chill",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "chill",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "arcane-intellect",
+    "name": "Arcane Intellect",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "draw",
+        "amount": 2
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "draw",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "fire-blast",
+    "name": "Fire Blast",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 0,
+    "target": "enemy",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "target"
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "keywords": []
+    }
+  },
+  {
+    "id": "fireball",
+    "name": "Fireball",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 2,
+    "target": "enemy",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 10,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "burn",
+        "amount": 3,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 14,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 4,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "frost-nova",
+    "name": "Frost Nova",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "status",
+        "status": "chill",
+        "amount": 2,
+        "target": "all"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "chill",
+          "amount": 3,
+          "target": "all"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ice-lance",
+    "name": "Ice Lance",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "targetHas": "chill"
+        },
+        "then": [
+          {
+            "do": "damage",
+            "amount": 12,
+            "target": "target"
+          }
+        ],
+        "else": [
+          {
+            "do": "damage",
+            "amount": 4,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "text": "Deal 4 damage; 12 if the target is Chilled.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "targetHas": "chill"
+          },
+          "then": [
+            {
+              "do": "damage",
+              "amount": 15,
+              "target": "target"
+            }
+          ],
+          "else": [
+            {
+              "do": "damage",
+              "amount": 5,
+              "target": "target"
+            }
+          ]
+        }
+      ],
+      "text": "Deal 5 damage; 15 if the target is Chilled."
+    }
+  },
+  {
+    "id": "arcane-missiles",
+    "name": "Arcane Missiles",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 3,
+        "target": "random",
+        "times": 3
+      },
+      {
+        "do": "resource",
+        "name": "charge",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "random",
+          "times": 3
+        },
+        {
+          "do": "resource",
+          "name": "charge",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "arcane-blast",
+    "name": "Arcane Blast",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": {
+          "base": 6,
+          "per": "charge",
+          "mult": 2
+        },
+        "target": "target"
+      },
+      {
+        "do": "resource",
+        "name": "charge",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": {
+            "base": 8,
+            "per": "charge",
+            "mult": 3
+          },
+          "target": "target"
+        },
+        {
+          "do": "resource",
+          "name": "charge",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "arcane-explosion",
+    "name": "Arcane Explosion",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "all"
+      },
+      {
+        "do": "resource",
+        "name": "charge",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "all"
+        },
+        {
+          "do": "resource",
+          "name": "charge",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "mana-shield",
+    "name": "Mana Shield",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "block",
+        "amount": {
+          "base": 6,
+          "per": "charge",
+          "mult": 2
+        }
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": {
+            "base": 8,
+            "per": "charge",
+            "mult": 3
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "blink",
+    "name": "Blink",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "block",
+        "amount": 5
+      },
+      {
+        "do": "draw",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8
+        },
+        {
+          "do": "draw",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "flamestrike",
+    "name": "Flamestrike",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 2,
+    "target": "none",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 7,
+        "target": "all"
+      },
+      {
+        "do": "status",
+        "status": "burn",
+        "amount": 1,
+        "target": "all"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "all"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 2,
+          "target": "all"
+        }
+      ]
+    }
+  },
+  {
+    "id": "slow",
+    "name": "Slow",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "status",
+        "status": "weak",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "frost-armor",
+    "name": "Frost Armor",
+    "class": "mage",
+    "type": "power",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "onEnemyAttack",
+        "effects": [
+          {
+            "do": "status",
+            "status": "chill",
+            "amount": 1,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "text": "Whenever an enemy attacks you, it gains 1 Chill.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "onEnemyAttack",
+          "effects": [
+            {
+              "do": "status",
+              "status": "chill",
+              "amount": 2,
+              "target": "target"
+            }
+          ]
+        }
+      ],
+      "text": "Whenever an enemy attacks you, it gains 2 Chill."
+    }
+  },
+  {
+    "id": "ignite",
+    "name": "Ignite",
+    "class": "mage",
+    "type": "power",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "onFireAttack",
+        "effects": [
+          {
+            "do": "status",
+            "status": "burn",
+            "amount": 1,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "onFireAttack",
+          "effects": [
+            {
+              "do": "status",
+              "status": "burn",
+              "amount": 2,
+              "target": "target"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "living-bomb",
+    "name": "Living Bomb",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "status",
+        "status": "burn",
+        "amount": 4,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "bomb",
+        "amount": 10,
+        "target": "target"
+      }
+    ],
+    "text": "Apply 4 Burn. When the target dies, deal 10 damage to ALL other enemies.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 6,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "bomb",
+          "amount": 14,
+          "target": "target"
+        }
+      ],
+      "text": "Apply 6 Burn. When the target dies, deal 14 damage to ALL other enemies."
+    }
+  },
+  {
+    "id": "combustion",
+    "name": "Combustion",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": {
+          "base": 0,
+          "per": "targetBurn",
+          "mult": 3
+        },
+        "target": "target"
+      },
+      {
+        "do": "removeStatus",
+        "status": "burn",
+        "target": "target"
+      }
+    ],
+    "text": "Deal damage equal to 3× the target's Burn, then remove it.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": {
+            "base": 0,
+            "per": "targetBurn",
+            "mult": 4
+          },
+          "target": "target"
+        },
+        {
+          "do": "removeStatus",
+          "status": "burn",
+          "target": "target"
+        }
+      ],
+      "text": "Deal damage equal to 4× the target's Burn, then remove it."
+    }
+  },
+  {
+    "id": "pyroblast",
+    "name": "Pyroblast",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 3,
+    "target": "enemy",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 28,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 36,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "blizzard",
+    "name": "Blizzard",
+    "class": "mage",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "none",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "startTurn",
+        "effects": [
+          {
+            "do": "damage",
+            "amount": 4,
+            "target": "all"
+          },
+          {
+            "do": "status",
+            "status": "chill",
+            "amount": 1,
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "startTurn",
+          "effects": [
+            {
+              "do": "damage",
+              "amount": 6,
+              "target": "all"
+            },
+            {
+              "do": "status",
+              "status": "chill",
+              "amount": 1,
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "shatter",
+    "name": "Shatter",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "targetHas": "frozen"
+        },
+        "then": [
+          {
+            "do": "damage",
+            "amount": 20,
+            "target": "target"
+          }
+        ],
+        "else": [
+          {
+            "do": "damage",
+            "amount": {
+              "base": 0,
+              "per": "targetChill",
+              "mult": 3
+            },
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "text": "Deal damage equal to 3× the target's Chill; 20 if it is Frozen.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "targetHas": "frozen"
+          },
+          "then": [
+            {
+              "do": "damage",
+              "amount": 28,
+              "target": "target"
+            }
+          ],
+          "else": [
+            {
+              "do": "damage",
+              "amount": {
+                "base": 0,
+                "per": "targetChill",
+                "mult": 4
+              },
+              "target": "target"
+            }
+          ]
+        }
+      ],
+      "text": "Deal damage equal to 4× the target's Chill; 28 if it is Frozen."
+    }
+  },
+  {
+    "id": "glacial-spike",
+    "name": "Glacial Spike",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "enemy",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "targetHas": "frozen"
+        },
+        "then": [
+          {
+            "do": "damage",
+            "amount": 30,
+            "target": "target"
+          }
+        ],
+        "else": [
+          {
+            "do": "damage",
+            "amount": 18,
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "text": "Deal 18 damage; 30 if the target is Frozen.",
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "targetHas": "frozen"
+          },
+          "then": [
+            {
+              "do": "damage",
+              "amount": 40,
+              "target": "target"
+            }
+          ],
+          "else": [
+            {
+              "do": "damage",
+              "amount": 24,
+              "target": "target"
+            }
+          ]
+        }
+      ],
+      "text": "Deal 24 damage; 40 if the target is Frozen."
+    }
+  },
+  {
+    "id": "frozen-orb",
+    "name": "Frozen Orb",
+    "class": "mage",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "startTurn",
+        "effects": [
+          {
+            "do": "status",
+            "status": "chill",
+            "amount": 1,
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "startTurn",
+          "effects": [
+            {
+              "do": "status",
+              "status": "chill",
+              "amount": 2,
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "arcane-barrage",
+    "name": "Arcane Barrage",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "spend",
+        "name": "charge",
+        "then": [
+          {
+            "do": "damage",
+            "amount": {
+              "base": 4,
+              "per": "spent",
+              "mult": 4
+            },
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "spend",
+          "name": "charge",
+          "then": [
+            {
+              "do": "damage",
+              "amount": {
+                "base": 5,
+                "per": "spent",
+                "mult": 5
+              },
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "evocation",
+    "name": "Evocation",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "energy",
+        "amount": 2
+      },
+      {
+        "do": "draw",
+        "amount": 2
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "energy",
+          "amount": 2
+        },
+        {
+          "do": "draw",
+          "amount": 2
+        },
+        {
+          "do": "resource",
+          "name": "charge",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "mirror-image",
+    "name": "Mirror Image",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 2,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "status",
+        "status": "images",
+        "amount": 2,
+        "target": "hero"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "images",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rune-of-power",
+    "name": "Rune of Power",
+    "class": "mage",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "tags": [
+      "arcane"
+    ],
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "startTurn",
+        "effects": [
+          {
+            "do": "resource",
+            "name": "charge",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "startTurn",
+          "effects": [
+            {
+              "do": "resource",
+              "name": "charge",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "frostfire-bolt",
+    "name": "Frostfire Bolt",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "fire",
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 7,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "burn",
+        "amount": 1,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "chill",
+        "amount": 1,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 2,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "chill",
+          "amount": 2,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "meteor",
+    "name": "Meteor",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "rare",
+    "cost": 3,
+    "target": "none",
+    "tags": [
+      "fire"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 26,
+        "target": "all"
+      },
+      {
+        "do": "status",
+        "status": "burn",
+        "amount": 3,
+        "target": "all"
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 34,
+          "target": "all"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 3,
+          "target": "all"
+        }
+      ]
+    }
+  },
+  {
+    "id": "deep-freeze",
+    "name": "Deep Freeze",
+    "class": "mage",
+    "type": "skill",
+    "rarity": "rare",
+    "cost": 2,
+    "target": "enemy",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "status",
+        "status": "chill",
+        "amount": 5,
+        "target": "target"
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "cost": 1
+    }
+  }
+]

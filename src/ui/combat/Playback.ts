@@ -7,8 +7,11 @@ import type { HandLayout } from '../cards/HandLayout';
 import type { PileView } from '../cards/PileView';
 import { floatNumber } from '../fx/numbers';
 import { d, done, spatial } from '../kit/motion';
+import type { CompanionView } from './CompanionView';
 import type { EnemyView } from './EnemyView';
 import type { PlayerPanel } from './PlayerPanel';
+import type { ResourceWidget } from './ResourceWidget';
+import type { TrapRow } from './TrapRow';
 
 /** What playback needs from the scene. */
 export interface World {
@@ -18,6 +21,9 @@ export interface World {
   floating: Container;
   fx: Container;
   player: PlayerPanel;
+  resource: ResourceWidget | null;
+  companion: CompanionView | null;
+  traps: TrapRow;
   enemies: Map<string, EnemyView>;
   piles: { draw: PileView; discard: PileView; exhaust: PileView };
   /** Build a view for a card instance wherever it is in the piles. */
@@ -266,17 +272,40 @@ export class Playback {
       case 'energy':
         w.player.setEnergy(ev.total, w.state.hero.maxEnergy);
         return;
+      case 'resource': {
+        if (w.resource && w.resource.resource === ev.name) w.resource.set(ev.total);
+        if (ev.delta !== 0) await wait(d(0.12));
+        return;
+      }
+      case 'companion': {
+        const c = w.companion;
+        if (!c) return;
+        if (ev.action === 'act') await c.act();
+        else if (ev.action === 'enrage') c.enrage();
+        else if (ev.action === 'stun') c.stun(true);
+        else if (ev.action === 'unstun') c.stun(false);
+        else if (ev.action === 'feed') c.feed(w.state.hero.companion?.bonus ?? 0);
+        if (ev.action !== 'act') await wait(d(0.15));
+        return;
+      }
+      case 'trap': {
+        if (ev.state === 'armed') w.traps.arm(ev.uid, ev.cardId);
+        else if (ev.state === 'fired') await w.traps.fire(ev.uid);
+        else w.traps.remove(ev.uid);
+        if (ev.state === 'armed') await wait(d(0.15));
+        return;
+      }
       case 'gold':
-      case 'resource':
-      case 'trap':
-      case 'companion':
-      case 'power':
-      case 'prompt':
-        // Widgets for these arrive with Phase 3 and 5; a small float keeps them visible now.
-        if (ev.t === 'power' && ev.state === 'fired') return;
-        if (ev.t === 'prompt') return;
-        void floatNumber(w.fx, w.player.x, w.player.y - 80, ev.t === 'resource' ? `${ev.delta > 0 ? '+' : ''}${ev.delta} ${ev.name}` : ev.t === 'gold' ? `${ev.delta > 0 ? '+' : ''}${ev.delta} gold` : ev.t === 'trap' ? `Trap ${ev.state}` : ev.t === 'companion' ? `Companion ${ev.action}` : 'Power', 'status');
+        void floatNumber(w.fx, w.player.x, w.player.y - 80, `${ev.delta > 0 ? '+' : ''}${ev.delta} gold`, 'status');
         await wait(d(0.1));
+        return;
+      case 'power':
+        if (ev.state === 'added') {
+          void floatNumber(w.fx, w.player.x, w.player.y - 80, w.content.cards[ev.cardId]?.name ?? 'Power', 'status');
+          await wait(d(0.15));
+        }
+        return;
+      case 'prompt':
         return;
       case 'die': {
         if (ev.target === 'hero') return;

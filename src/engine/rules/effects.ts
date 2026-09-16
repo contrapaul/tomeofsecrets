@@ -115,7 +115,7 @@ function resolveOne(state: CombatState, content: Content, effect: AnyEffect, ctx
           }
           // Mark: hero-side attacks against a marked enemy hit harder and eat a mark.
           const marked = attack && src !== 'enemy' && isEnemy(target) && getStatus(target.statuses, 'mark') > 0;
-          if (marked) amount += MARK_BONUS + (state.hero.flags.trueshot ? 2 : 0);
+          if (marked) amount += MARK_BONUS + (state.hero.flags.trueshotPlus ? 4 : state.hero.flags.trueshot ? 2 : 0);
           dealDamage(state, content, id, amount, { source: ctx.source, attack, tags: effect.tags });
           if (marked && target.alive) applyStatus(state, content, id, 'mark', -1);
         }
@@ -134,7 +134,9 @@ function resolveOne(state: CombatState, content: Content, effect: AnyEffect, ctx
       break;
     }
     case 'status': {
-      const amount = evalAmount(state, effect.amount, ctx);
+      let amount = evalAmount(state, effect.amount, ctx);
+      const heroSide = ctx.source.kind !== 'enemy' && ctx.source.kind !== 'system';
+      if (effect.status === 'poison' && heroSide && amount > 0) amount += state.hero.flags.vipersKissPlus ? 2 : state.hero.flags.vipersKiss ? 1 : 0;
       for (const id of resolveTargets(state, effect.target, ctx, 'target')) {
         if (id === COMPANION_ID) continue;
         applyStatus(state, content, id, effect.status, amount);
@@ -229,7 +231,10 @@ function resolveOne(state: CombatState, content: Content, effect: AnyEffect, ctx
       const c = state.hero.companion;
       if (!c) break;
       if (effect.action === 'act') enqueue(state, [{ do: '_companionAct', bonus: effect.bonus ?? 0 }], ctx);
-      else if (effect.action === 'enrage') {
+      else if (effect.action === 'feed') {
+        c.bonus += effect.bonus ?? 0;
+        state.events.push({ t: 'companion', action: 'feed' });
+      } else if (effect.action === 'enrage') {
         c.enraged = true;
         state.events.push({ t: 'companion', action: 'enrage' });
       } else if (effect.action === 'unstun' && c.stunned) {

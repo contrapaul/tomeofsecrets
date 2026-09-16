@@ -1,0 +1,29 @@
+[
+  {
+    "id": "paladin",
+    "name": "Paladin",
+    "title": "the Oathbound",
+    "hp": 80,
+    "resource": "holyPower",
+    "starter": ["hammer-blow", "hammer-blow", "hammer-blow", "hammer-blow", "raise-shield", "raise-shield", "raise-shield", "raise-shield", "crusader-strike", "shield-of-the-righteous"],
+    "blurb": "Sturdy and rhythmic. Build Holy Power with generators, spend it on verdicts, turn block into damage."
+  },
+  {
+    "id": "tracker",
+    "name": "Tracker",
+    "title": "the Warden of the Wild",
+    "hp": 70,
+    "companion": "wolf",
+    "starter": ["arrow", "arrow", "arrow", "arrow", "brace", "brace", "brace", "brace", "hunters-mark", "sic-em"],
+    "blurb": "A second body on the field. Mark, then rapid-fire; arm traps and let enemies walk into them."
+  },
+  {
+    "id": "mage",
+    "name": "Mage",
+    "title": "the Arcanist",
+    "hp": 65,
+    "resource": "charge",
+    "starter": ["arcane-bolt", "arcane-bolt", "arcane-bolt", "ice-barrier", "ice-barrier", "ice-barrier", "ice-barrier", "scorch", "frostbolt", "arcane-intellect"],
+    "blurb": "Glass cannon with three schools. Stack Burn, Chill until Frozen, or ride Arcane Charges."
+  }
+]
