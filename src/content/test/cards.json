@@ -1,51 +1,522 @@
 [
-  { "id": "strike", "name": "Strike", "class": "neutral", "type": "attack", "rarity": "starter", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "damage", "amount": 6, "target": "target" }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 9, "target": "target" }] } },
-  { "id": "defend", "name": "Defend", "class": "neutral", "type": "skill", "rarity": "starter", "cost": 1, "target": "none",
-    "effects": [{ "do": "block", "amount": 5 }],
-    "upgrade": { "effects": [{ "do": "block", "amount": 8 }] } },
-  { "id": "bash", "name": "Bash", "class": "neutral", "type": "attack", "rarity": "starter", "cost": 2, "target": "enemy",
-    "effects": [{ "do": "damage", "amount": 8, "target": "target" }, { "do": "status", "status": "vulnerable", "amount": 2, "target": "target" }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 10, "target": "target" }, { "do": "status", "status": "vulnerable", "amount": 3, "target": "target" }] } },
-  { "id": "cleave", "name": "Cleave", "class": "neutral", "type": "attack", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "damage", "amount": 8, "target": "all" }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 11, "target": "all" }] } },
-  { "id": "twin-strike", "name": "Twin Strike", "class": "neutral", "type": "attack", "rarity": "common", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "damage", "amount": 5, "target": "target", "times": 2 }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 7, "target": "target", "times": 2 }] } },
-  { "id": "inflame", "name": "Inflame", "class": "neutral", "type": "power", "rarity": "uncommon", "cost": 1, "target": "none",
-    "effects": [{ "do": "status", "status": "strength", "amount": 2, "target": "hero" }],
-    "upgrade": { "effects": [{ "do": "status", "status": "strength", "amount": 3, "target": "hero" }] } },
-  { "id": "missiles", "name": "Missiles", "class": "neutral", "type": "attack", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "damage", "amount": 3, "target": "random", "times": 3 }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 4, "target": "random", "times": 3 }] } },
-  { "id": "test-verdict", "name": "Test Verdict", "class": "paladin", "type": "attack", "rarity": "common", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "spend", "name": "holyPower", "then": [{ "do": "damage", "amount": { "base": 5, "per": "spent", "mult": 4 }, "target": "target" }] }],
-    "upgrade": { "effects": [{ "do": "spend", "name": "holyPower", "then": [{ "do": "damage", "amount": { "base": 7, "per": "spent", "mult": 5 }, "target": "target" }] }] } },
-  { "id": "test-generator", "name": "Test Generator", "class": "paladin", "type": "attack", "rarity": "common", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "damage", "amount": 6, "target": "target" }, { "do": "resource", "name": "holyPower", "amount": 1 }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 9, "target": "target" }, { "do": "resource", "name": "holyPower", "amount": 1 }] } },
-  { "id": "test-trap", "name": "Test Trap", "class": "tracker", "type": "skill", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "trap", "trigger": "enemyAttack", "effects": [{ "do": "damage", "amount": 8, "target": "all" }] }],
-    "upgrade": { "effects": [{ "do": "trap", "trigger": "enemyAttack", "effects": [{ "do": "damage", "amount": 12, "target": "all" }] }] } },
-  { "id": "test-power", "name": "Test Consecration", "class": "paladin", "type": "power", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "power", "trigger": "endTurn", "effects": [{ "do": "damage", "amount": 3, "target": "all" }] }],
-    "upgrade": { "effects": [{ "do": "power", "trigger": "endTurn", "effects": [{ "do": "damage", "amount": 4, "target": "all" }] }] } },
-  { "id": "test-conditional", "name": "Test Conditional", "class": "neutral", "type": "attack", "rarity": "common", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "damage", "amount": 4, "target": "target" }, { "do": "if", "when": { "targetHas": "vulnerable" }, "then": [{ "do": "draw", "amount": 1 }] }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 6, "target": "target" }, { "do": "if", "when": { "targetHas": "vulnerable" }, "then": [{ "do": "draw", "amount": 2 }] }] } },
-  { "id": "test-exhaust", "name": "Test Exhaust", "class": "neutral", "type": "skill", "rarity": "common", "cost": 0, "target": "none",
-    "effects": [{ "do": "draw", "amount": 2 }], "keywords": ["exhaust"],
-    "upgrade": { "keywords": [] } },
-  { "id": "test-sic", "name": "Test Sic", "class": "tracker", "type": "skill", "rarity": "starter", "cost": 1, "target": "none",
-    "effects": [{ "do": "companion", "action": "act" }],
-    "upgrade": { "cost": 0 } },
-  { "id": "test-frost", "name": "Test Frost", "class": "mage", "type": "attack", "rarity": "common", "cost": 1, "target": "enemy", "tags": ["frost"],
-    "effects": [{ "do": "damage", "amount": 4, "target": "target" }, { "do": "status", "status": "chill", "amount": 2, "target": "target" }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 6, "target": "target" }, { "do": "status", "status": "chill", "amount": 3, "target": "target" }] } },
-  { "id": "test-x", "name": "Test Barrage", "class": "tracker", "type": "attack", "rarity": "rare", "cost": "X", "target": "none",
-    "effects": [{ "do": "damage", "amount": 5, "target": "random", "times": 1 }, { "do": "damage", "amount": { "base": 0, "per": "spent", "mult": 5 }, "target": "random" }],
+  {
+    "id": "strike",
+    "name": "Strike",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 6,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "defend",
+    "name": "Defend",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 5
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8
+        }
+      ]
+    }
+  },
+  {
+    "id": "bash",
+    "name": "Bash",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "starter",
+    "cost": 2,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 8,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "vulnerable",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "vulnerable",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "cleave",
+    "name": "Cleave",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 8,
+        "target": "all"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 11,
+          "target": "all"
+        }
+      ]
+    }
+  },
+  {
+    "id": "twin-strike",
+    "name": "Twin Strike",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "target",
+        "times": 2
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "target",
+          "times": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "inflame",
+    "name": "Inflame",
+    "class": "neutral",
+    "type": "power",
+    "rarity": "uncommon",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "status",
+        "status": "strength",
+        "amount": 2,
+        "target": "hero"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  {
+    "id": "missiles",
+    "name": "Missiles",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 3,
+        "target": "random",
+        "times": 3
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "random",
+          "times": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-verdict",
+    "name": "Test Verdict",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "spend",
+        "name": "holyPower",
+        "then": [
+          {
+            "do": "damage",
+            "amount": {
+              "base": 5,
+              "per": "spent",
+              "mult": 4
+            },
+            "target": "target"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "spend",
+          "name": "holyPower",
+          "then": [
+            {
+              "do": "damage",
+              "amount": {
+                "base": 7,
+                "per": "spent",
+                "mult": 5
+              },
+              "target": "target"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-generator",
+    "name": "Test Generator",
+    "class": "paladin",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 6,
+        "target": "target"
+      },
+      {
+        "do": "resource",
+        "name": "holyPower",
+        "amount": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "target"
+        },
+        {
+          "do": "resource",
+          "name": "holyPower",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-trap",
+    "name": "Test Trap",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "trap",
+        "trigger": "enemyAttack",
+        "effects": [
+          {
+            "do": "damage",
+            "amount": 8,
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "trap",
+          "trigger": "enemyAttack",
+          "effects": [
+            {
+              "do": "damage",
+              "amount": 12,
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-power",
+    "name": "Test Consecration",
+    "class": "paladin",
+    "type": "power",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "power",
+        "trigger": "endTurn",
+        "effects": [
+          {
+            "do": "damage",
+            "amount": 3,
+            "target": "all"
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "power",
+          "trigger": "endTurn",
+          "effects": [
+            {
+              "do": "damage",
+              "amount": 4,
+              "target": "all"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-conditional",
+    "name": "Test Conditional",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "target"
+      },
+      {
+        "do": "if",
+        "when": {
+          "targetHas": "vulnerable"
+        },
+        "then": [
+          {
+            "do": "draw",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "target"
+        },
+        {
+          "do": "if",
+          "when": {
+            "targetHas": "vulnerable"
+          },
+          "then": [
+            {
+              "do": "draw",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-exhaust",
+    "name": "Test Exhaust",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 0,
+    "target": "none",
+    "effects": [
+      {
+        "do": "draw",
+        "amount": 2
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "keywords": []
+    }
+  },
+  {
+    "id": "test-sic",
+    "name": "Test Sic",
+    "class": "tracker",
+    "type": "skill",
+    "rarity": "starter",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "companion",
+        "action": "act"
+      }
+    ],
+    "upgrade": {
+      "cost": 0
+    }
+  },
+  {
+    "id": "test-frost",
+    "name": "Test Frost",
+    "class": "mage",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "tags": [
+      "frost"
+    ],
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 4,
+        "target": "target"
+      },
+      {
+        "do": "status",
+        "status": "chill",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "target"
+        },
+        {
+          "do": "status",
+          "status": "chill",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "test-x",
+    "name": "Test Barrage",
+    "class": "tracker",
+    "type": "attack",
+    "rarity": "rare",
+    "cost": "X",
+    "target": "none",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 5,
+        "target": "random",
+        "times": 1
+      },
+      {
+        "do": "damage",
+        "amount": {
+          "base": 0,
+          "per": "spent",
+          "mult": 5
+        },
+        "target": "random"
+      }
+    ],
     "text": "Deal 5 damage to a random enemy, then 5 more per energy spent.",
-    "upgrade": { "text": "Deal 6 damage to a random enemy, then 6 more per energy spent." } }
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "random",
+          "times": 1
+        },
+        {
+          "do": "damage",
+          "amount": {
+            "base": 0,
+            "per": "spent",
+            "mult": 6
+          },
+          "target": "random"
+        }
+      ],
+      "text": "Deal 6 damage to a random enemy, then 6 more per energy spent."
+    }
+  }
 ]

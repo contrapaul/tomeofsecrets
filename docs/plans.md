@@ -14,8 +14,8 @@ dialogue format, schemas, art spec). This file is the roadmap. Update the checkb
 and the status line as work lands so a new session can pick up without re-reading the
 conversation.
 
-**Status:** Phase 0 done and live at https://tome.contrapaul.com. Phase 1 (rules engine)
-is next. Last updated 2026-09-17.
+**Status:** Phases 0 and 1 done. Live at https://tome.contrapaul.com (Phase 0 build).
+Phase 2 (the table) is next. Last updated 2026-09-17.
 
 ---
 
@@ -229,38 +229,34 @@ Acceptance:
 - 60 fps idle; `#/dev/stats` shows it.
 - `npm run check` passes; `tome.contrapaul.com` serves the title.
 
-### Phase 1: Rules engine (headless)
+### Phase 1: Rules engine (headless) — Done 2026-09-17
 
 Goal: a complete StS-shaped combat with no renderer, proven by tests and a CLI sim.
 Temporary content only: Strike, Defend, six generic cards, three dummy enemies.
 
-- [ ] `engine/rng.ts`: named streams, serialisable positions, determinism tests.
-- [ ] Schemas: `Card`, `Effect`, `Amount`, `Condition`, `Enemy`, `Move`, `Pattern`.
+- [x] `engine/rng.ts`: named streams, serialisable positions, determinism tests.
+- [x] Schemas: `Card`, `Effect`, `Amount`, `Condition`, `Enemy`, `Move`, `Pattern`.
       Zod first, TS types inferred (one source, no drift).
-- [ ] Combat state: hero, energy, piles (draw/hand/discard/exhaust), powers, enemies,
+- [x] Combat state: hero, energy, piles (draw/hand/discard/exhaust), powers, enemies,
       statuses, turn, events, RNG.
-- [ ] Turn flow: start of turn (block expires, energy refills, draw 5, triggers), play
+- [x] Turn flow: start of turn (block expires, energy refills, draw 5, triggers), play
       card (cost, target, legality, resolve, discard/exhaust), end turn (triggers,
       discard unless Retain, companion acts), enemy turn (each enemy resolves its
       intent, statuses tick, next intent chosen), win/loss.
-- [ ] Effects: damage (Strength, Vulnerable, Weak, block, multi-hit, all/random),
+- [x] Effects: damage (Strength, Vulnerable, Weak, block, multi-hit, all/random),
       block (Dexterity, Frail), status apply/remove, draw, energy, heal, exhaust,
       discard, add card, resource gain/spend with scaled amounts, conditionals,
-      `script` and its registry.
-- [ ] Every status in `design.md` §3, table-driven tests.
-- [ ] Enemy intents: `cycle`, `weighted` (no-repeat), `phases` by HP, `script`.
-      The intent preview uses the same computation as resolution.
-- [ ] Generated card text with live numbers; a test renders every card's text.
-- [ ] Event queue: every mutation emits; a scripted fight asserts the event log.
-- [ ] `tools/sim.ts fight --class x --enemies a,b --seed s --games 1000`: heuristic
-      player; prints win rate, average damage taken, turns.
-
-Acceptance:
-- `npm test` covers energy and cost, draw/reshuffle, block expiry, every status,
-  multi-hit with Strength, targeting legality, each intent pattern, win/loss, event
-  emission, determinism (same seed and inputs → identical log).
-- The sim plays 1000 fights in under 5 s.
-- Nothing in `engine/` imports outside `engine/` and `content/`.
+      `script` and its registry. Also traps, powers, companion, summon, flags.
+- [x] Every status in `design.md` §3, table-driven tests.
+- [x] Enemy intents: `cycle`, `weighted` (no-repeat), `phases` by HP, `script`.
+      The intent preview uses the same computation as resolution (tested).
+- [x] Generated card text with live numbers; a test renders every card (both sides
+      of the upgrade) and checks every printed number appears.
+- [x] Event queue: every mutation emits; a scripted fight asserts the event log, and
+      an invariant test replays 15 whole fights checking every visible change has an
+      event.
+- [x] `npm run sim -- fight --deck … --enemies … --games 1000`: heuristic player;
+      prints win rate, hp lost, turns. 1000 fights in ~35 ms.
 
 ### Phase 2: The table. Combat scene and card feel
 
@@ -594,3 +590,34 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   in `wrangler.jsonc` and needs no dashboard step. Right after a deploy the domain can
   return a 500 for a few seconds while it propagates; `/index.html` 307s to `/`.
 - Repo is public under CC0, matching flashstone: https://github.com/contrapaul/tomeofsecrets
+
+### After Phase 1 (2026-09-17)
+
+- 81 tests. `src/engine/rules/index.ts` is the barrel; import from it.
+- **Effects resolve from a work queue** (`state.queue`), front-loaded so nested
+  effects (`if`, `spend`, powers, traps) resolve before their siblings. A `choose`
+  discard/exhaust sets `state.prompt` and the queue waits; `respondPrompt` resumes.
+  The card that is resolving sits in `state.inPlay` until an internal `_finishCard`
+  step moves it, so a save mid-prompt is exact.
+- **Decay timing is StS's:** enemy Vulnerable/Weak/Frail/Chill/Intangible wear off at
+  the end of the enemy's own action; the hero's wear off at the end of the round
+  (after enemies act), and a debuff an enemy applied that round is skipped once
+  (`hero.fresh`). Poison and Burn tick at the start of the holder's turn.
+- **Targets by source:** hero-side `target` is the aimed enemy, `all` every enemy,
+  `random` one enemy; enemy-side `target`/`hero` is the hero, `self` itself, `all`
+  every enemy (a pack buff). Companion, trap and power damage is flat (no Strength);
+  hero and enemy attacks use the full maths. Mark applies to any hero-side attack.
+- Text generation: `describeCard` / `describeResolved` return `Segment[]` with
+  `num: { value, base }` so the UI can colour buffed and debuffed numbers. A card
+  with a `script` effect or an `if` that reads badly sets `text` to override; the test
+  still checks every printed number appears, which is what caught a fixture whose
+  upgrade changed the text but not the effects.
+- Content lives in `src/content/**/*.json`, validated on load by `loadContent()`.
+  `{ fixtures: true }` includes `content/test/` (engine dummies). Real content so far:
+  8 neutrals, 4 status cards, 6 curses.
+- The heuristic player is `src/engine/ai/heuristic.ts`, pure, used by the sim and by
+  the invariant test. It is meant to be consistent, not clever.
+- `hero.flags` carries relic-style switches the engine already honours (`aegis`,
+  `hourglass`, `quillOfHaste`, `aspectOfTheHawk`, `bestialWrath`, `trueshot`,
+  `trappersKit`, `blessedBeads`, `beacon`, `reviveOnce`, `negateNextAttack`,
+  `negateBuff`, `retainHand`, `scholarsCap`). Phase 3 and 5 content sets them.
