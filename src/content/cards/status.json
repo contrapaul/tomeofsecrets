@@ -1,0 +1,11 @@
+[
+  { "id": "torn-page", "name": "Torn Page", "class": "status", "type": "status", "rarity": "status", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable", "ethereal"], "upgrade": {} },
+  { "id": "smudge", "name": "Smudge", "class": "status", "type": "status", "rarity": "status", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable"], "onDraw": [{ "do": "damage", "amount": 1, "target": "hero" }], "upgrade": {},
+    "text": "Unplayable. When drawn, take 1 damage." },
+  { "id": "dazed", "name": "Dazed", "class": "status", "type": "status", "rarity": "status", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable", "ethereal"], "upgrade": {} },
+  { "id": "ink-stain", "name": "Ink Stain", "class": "status", "type": "status", "rarity": "status", "cost": 1, "target": "none",
+    "effects": [], "keywords": ["exhaust"], "upgrade": {}, "text": "Does nothing. Exhaust." }
+]

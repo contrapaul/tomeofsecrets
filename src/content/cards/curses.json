@@ -1,0 +1,19 @@
+[
+  { "id": "doubt", "name": "Doubt", "class": "curse", "type": "curse", "rarity": "curse", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable"], "onEndOfTurnInHand": [{ "do": "status", "status": "weak", "amount": 1, "target": "hero" }], "upgrade": {},
+    "text": "Unplayable. At the end of your turn, gain 1 Weak." },
+  { "id": "clumsy", "name": "Clumsy", "class": "curse", "type": "curse", "rarity": "curse", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable", "ethereal"], "onEndOfTurnInHand": [{ "do": "damage", "amount": 2, "target": "hero" }], "upgrade": {},
+    "text": "Unplayable. Ethereal. At the end of your turn, take 2 damage." },
+  { "id": "injury", "name": "Injury", "class": "curse", "type": "curse", "rarity": "curse", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable"], "upgrade": {} },
+  { "id": "debt", "name": "Debt", "class": "curse", "type": "curse", "rarity": "curse", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable"], "onFightStart": [{ "do": "gold", "amount": -5 }], "upgrade": {},
+    "text": "Unplayable. Lose 5 gold at the start of each fight." },
+  { "id": "pride", "name": "Pride", "class": "curse", "type": "curse", "rarity": "curse", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable", "retain"], "onEndOfTurnInHand": [{ "do": "damage", "amount": 2, "target": "hero" }], "upgrade": {},
+    "text": "Unplayable. Retain. At the end of your turn, take 2 damage." },
+  { "id": "redlined", "name": "Redlined", "class": "curse", "type": "curse", "rarity": "curse", "cost": 0, "target": "none",
+    "effects": [], "keywords": ["unplayable"], "onDraw": [{ "do": "exhaust", "from": "random", "count": 1 }], "upgrade": {},
+    "text": "Unplayable. When drawn, Exhaust a random card from your hand." }
+]
