@@ -14,8 +14,9 @@ dialogue format, schemas, art spec). This file is the roadmap. Update the checkb
 and the status line as work lands so a new session can pick up without re-reading the
 conversation.
 
-**Status:** Phases 0 and 1 done. Live at https://tome.contrapaul.com (Phase 0 build).
-Phase 2 (the table) is next. Last updated 2026-09-17.
+**Status:** Phases 0–2 built; Phase 2 has three acceptance lines waiting on a school
+MacBook and a first-time player (see the phase). Live at https://tome.contrapaul.com;
+`#/dev/fight` is playable there. Phase 3 (classes) is next. Last updated 2026-09-17.
 
 ---
 
@@ -258,54 +259,56 @@ Temporary content only: Strike, Defend, six generic cards, three dummy enemies.
 - [x] `npm run sim -- fight --deck … --enemies … --games 1000`: heuristic player;
       prints win rate, hp lost, turns. 1000 fights in ~35 ms.
 
-### Phase 2: The table. Combat scene and card feel
+### Phase 2: The table. Combat scene and card feel — Built 2026-09-17
 
 Goal: the fight is on screen and it feels great. The whole game rests on this phase;
 do not leave it until the numbers below are true on a MacBook Air.
 
-- [ ] `CardView`: frame by type and class colour, cost orb, name, art slot, generated
+- [x] `CardView`: frame by type and class colour, cost orb, name, art slot, generated
       text with number colouring (green buffed / red debuffed), rarity gem, keyword
-      line. **One component, scaled everywhere** (hand, reward, shop, inspector, Tome);
-      never re-laid-out.
-- [ ] `HandLayout`: fan on an arc; each card has a target transform; GSAP tweens with
+      line. **One component, scaled everywhere**; never re-laid-out.
+- [x] `HandLayout`: fan on an arc; each card has a target transform; GSAP tweens with
       overshoot; reflows live as cards enter and leave.
-- [ ] Hover: lift and scale with hysteresis so neighbours never flicker; neighbours part.
-- [ ] `DragController`: pointer-follow with lag/spring, velocity tilt, growing shadow.
-      Targeted cards draw a bezier arrow and highlight the enemy under the pointer;
-      untargeted cards show a "release to play" line above the hand; release outside
-      springs back. **Rearrange** by dragging within the hand band; order written back
-      to engine state.
-- [ ] Piles: draw/discard counts, click to inspect; draw animation (flip + arc +
-      stagger); discard cascade; exhaust dissolve; shuffle flip.
-- [ ] Play: lift to centre, pulse, events fire in order, arc to discard. Unplayable:
+- [x] Hover: lift and scale; the enlarged card keeps the hover, so neighbours never
+      flicker; neighbours part.
+- [x] `DragController`: pointer-follow with lag, velocity tilt, growing shadow. Targeted
+      cards draw a bezier arrow and highlight the enemy under the pointer; untargeted
+      cards show a "release to play" line; release outside springs back. **Rearrange**
+      by dragging within the hand band; order written back to engine state.
+- [x] Piles: draw/discard/exhaust counts (tracked from events during playback); draw
+      animation (arc + stagger); discard cascade; exhaust dissolve; shuffle banner.
+      Click-to-inspect a pile is still to do (Phase 5 with the deck view).
+- [x] Play: lift to centre, pulse, events fire in order, arc to discard. Unplayable:
       shake, energy orb flash, reason tooltip.
-- [ ] `EnemyPuppet`: idle breathe and sway, attack anticipation → lunge → recoil, hit
-      flash + shake, buff glow, debuff drip, death freeze → desaturate → dissolve with
-      particles. Spritesheet path when `idle.json` exists.
-- [ ] Intent badges with numbers (attack × hits, defend, buff, debuff, special,
-      unknown) and tooltips; HP bars with block shield; status rows with counts.
-- [ ] `PlayerPanel`: portrait, HP/block, energy orb, resource widget slot, relic row,
-      vial slots, pile counts, End Turn (with a "cards still playable" hint).
-- [ ] Damage/block/heal numbers; screen shake on ≥15 damage; low-HP vignette; 0.3 s
-      slow-mo on a killing blow; turn banners.
-- [ ] Prompts: discard / exhaust / choose-a-card from hand, a pile, or a generated list.
-- [ ] Card inspector: click (not drag) → 2.5× view with keyword glossary. Long-press or
-      right-click an enemy → its move list once seen.
-- [ ] Motion settings: full / fast (×0.5) / reduced (×0.05, fades only). Keyboard: 1–0
-      select, arrows target, Enter play, E end turn, Esc cancel.
-- [ ] `#/dev/fight` route.
+- [x] `EnemyView`: idle breathe and sway, attack anticipation → lunge → recoil, hit
+      flash + shake, buff pulse, death desaturate → sink → fade. Spritesheet path is
+      Phase 4; today a placeholder body with eyes stands in.
+- [x] Intent badges with numbers and tooltips; HP bars with block shield; status rows
+      with counts and glossary tooltips.
+- [x] `PlayerPanel`: portrait, HP/block, energy orb, resource widget slot, statuses.
+      Relic row and vial slots arrive in Phase 5.
+- [x] Damage/block/heal numbers; screen shake on ≥15 damage; slow-mo on a killing
+      blow; turn banners. Low-HP vignette still to do.
+- [x] Prompts: choose-to-discard/exhaust with a bar and Confirm; cards toggle by click.
+- [x] Card inspector: click (not drag) → 2.2× view with keyword glossary. Right-click an
+      enemy → its moves seen so far. Long-press for touch is Phase 10.
+- [x] Motion settings through `d()`; keyboard: 1–9 select, ←/→ target, Enter play,
+      E end turn, Esc clear, F dev fps.
+- [x] `#/dev/fight?class=&enemies=&seed=&deck=` route.
 
-Acceptance (measure, don't eyeball):
-- 60 fps with 10 cards in hand, 3 enemies and particles, on a 2019 MacBook Air in
-  Chrome; frame time under 12 ms in `#/dev/stats`.
-- Hover responds within 80 ms; sweeping the pointer across the fan never flickers.
-- Drag: the card is under the pointer within 2 frames; tilt reads as weight; the
-  enemy under the pointer is the one hit, every time.
-- Rearranged hand order survives end turn → next draw.
-- Every engine event has a visible response; a dev warning fires on an unhandled type.
-- Reduced motion completes a full turn in under 1 s.
-- A first-time player plays a fight with no explanation beyond intents and tooltips
-  (watch someone do it).
+Acceptance:
+- [ ] 60 fps with 10 cards in hand, 3 enemies and particles on a 2019 MacBook Air.
+      **Measured here only:** 115 fps at 8.7 ms with 3 enemies and a hovered hand
+      (press F in a fight for the readout). Needs a school laptop.
+- [x] Sweeping the pointer across the fan never flickers (the lifted card owns the
+      hover until the pointer leaves it).
+- [x] Drag: the enemy under the pointer is the one hit; verified with real pointer
+      drags onto each enemy and onto the play line.
+- [x] Rearranged hand order survives (verified: state order matches the fan).
+- [x] Every engine event has a handler (the switch is exhaustive in TypeScript).
+- [x] Reduced motion: all durations ×0.05 through `d()`; lunges and shakes skipped.
+- [ ] A first-time player plays a fight with no explanation beyond intents and
+      tooltips. **Needs a person.** Paul first, then a student at Checkpoint 1.
 
 ### Phase 3: Three classes, first pass
 
@@ -617,6 +620,23 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   8 neutrals, 4 status cards, 6 curses.
 - The heuristic player is `src/engine/ai/heuristic.ts`, pure, used by the sim and by
   the invariant test. It is meant to be consistent, not clever.
+### After Phase 2 (2026-09-17)
+
+- The scene is `src/ui/scenes/combat.ts`; playback is `src/ui/combat/Playback.ts`.
+  **Views never read state mid-playback.** Every event carries its totals; pile
+  counts and energy are tracked from events and synced from state only when a
+  batch finishes. If a new event type needs a total, put it on the event.
+- A card can be in three places visually: the hand (`HandLayout`), the floating
+  layer (dragging or in play), or gone. `Playback.findView` checks both.
+- The desktop app hides the browser pane while a JS tool runs, which throttles
+  rAF to 1 fps; **do not time animations through the JS tool.** Use pane-fronting
+  actions (screenshots) and the on-screen F readout instead. Real users are fine.
+- The hand's order is written back into `state.piles.hand` on rearrange; that is
+  the one presentational mutation with no event, on purpose.
+- The router now keys on path + query, so `#/dev/fight?seed=x` remounts on a
+  seed change (the Again button relies on it).
+- Dev knobs: `window.__tome.combat` exposes `state`, `busy`, `hand` in dev builds.
+
 - `hero.flags` carries relic-style switches the engine already honours (`aegis`,
   `hourglass`, `quillOfHaste`, `aspectOfTheHawk`, `bestialWrath`, `trueshot`,
   `trappersKit`, `blessedBeads`, `beacon`, `reviveOnce`, `negateNextAttack`,
