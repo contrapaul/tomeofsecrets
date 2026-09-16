@@ -1,0 +1,590 @@
+# Tome of Secrets: build plan
+
+Working title. A deckbuilding roguelike in the Slay the Spire family: three classes,
+branching chapter maps, stealable enemy abilities, a persistent Tome of unlocks,
+student-drawn enemies with credits, and a story layer written by Paul.
+
+Location now: `make/tomeofsecrets/` (this file and `design.md`). Nothing in this
+directory is a game. `make` serves raw files with no build step, so the code lives in
+its own repo: **`contrapaul/tomeofsecrets` → `tome.contrapaul.com`**. Phase 0 creates
+it; these two files move to `tomeofsecrets/docs/` and a one-line pointer stays here.
+
+`design.md` is the content bible (rules, classes, cards, enemies, relics, events, meta,
+dialogue format, schemas, art spec). This file is the roadmap. Update the checkboxes
+and the status line as work lands so a new session can pick up without re-reading the
+conversation.
+
+**Status:** Phase 0 built and verified locally; deploy and the mood-sheet approval are
+the two open boxes. Last updated 2026-09-17.
+
+---
+
+## How this file is used
+
+- Each phase ends in something playable and deployed. Never leave `main` with a
+  half-wired build.
+- Each phase has an acceptance list. A phase is done when every line is true in a
+  browser on a school MacBook, not when the code is written.
+- Logic is done when its tests pass. Feel is done when it has been watched at 60 fps.
+- When a phase finishes: tick it, bump the status line, write what the next phase
+  needs under **Handoff notes** at the bottom.
+- Scope creep goes to **Backlog**, not into the current phase.
+- Rules and content live in `design.md`. Changing a number there is fine; changing a
+  rule needs a dated line under **Decisions** here.
+
+---
+
+## Decisions (confirmed 2026-09-16; do not reopen without asking)
+
+| # | Decision |
+|---|---|
+| 1 | **Own repo and subdomain.** `contrapaul/tomeofsecrets`, Cloudflare Pages, `tome.contrapaul.com`. Static site. No server, no accounts. |
+| 2 | **Stack:** PixiJS v8 + TypeScript + Vite + GSAP (fully free since 2025). Vitest, ESLint, a boundary-check script. |
+| 3 | **Fixed 1920×1080 stage, uniformly scaled, letterboxed.** Nothing is responsive. Nothing reflows. No DOM layout; the canvas is the whole page. |
+| 4 | **Art:** HD hand-drawn or painted (scanned or tablet). No pixel art. Enemies are one idle PNG animated procedurally (the "puppet"); Aseprite frame animation is an optional upgrade per enemy. |
+| 5 | **Combat baseline is Slay the Spire.** 3 energy, draw 5, discard at end of turn, block expires, telegraphed intents, 1–3 enemies, one hero. Class resources sit on top (`design.md` §4). |
+| 6 | **Audience** ~Grade 9 on school MacBooks, mouse and trackpad first. A run is 25–35 minutes with mid-run save. Stylised fantasy violence, no gore. |
+| 7 | **Hard on purpose.** Runs are lost often and retried. Progress is visible (best chapter and floor per class, new Tome pages) so a loss still moves something forward. Unlocks widen options; they do not remove the difficulty. Seals raise it from there. |
+| 8 | **Run-start choices beyond class:** an Origin (starter deck and relic variant), a Boon (1 of 3), a Seal (difficulty), and for the Tracker a Companion. |
+| 9 | **Persistence is localStorage plus an exportable save code.** No accounts. Cloud saves are backlog. |
+| 10 | **Paul writes the story.** The dialogue engine, portrait layout and event system are built in Phase 5 so events work; story scenes are layered on in Phase 8 once combat and the run are solid. |
+| 11 | **Students contribute art, later data.** A contributor kit with drop-in preview tools; every enemy and card credits its artist in-game, under the name the student chooses (first name and initial by default). |
+| 12 | **Sound and music: yes,** as their own phase after the game is fun silent. Student compositions welcome. |
+| 13 | **The hook: every enemy has a Secret,** its signature move as a colourless card. Beat an enemy once and its page is written into the Tome; from then on its Secret can appear in rewards. The Tome is the bestiary, the collection and the unlock tree. |
+| 14 | **Names.** Acts are **Chapters**. Relics are **Relics**. Potions are **Vials**. Stolen enemy cards are **Secrets**. The meta currency is **Lore**. Difficulty tiers are **Seals**. The player is a **Seeker**. |
+| 15 | **Chapters are 10 floors plus a boss** (not StS's 15), to hit the run length. Tunable in one constant. |
+
+---
+
+## Architecture (fixed)
+
+### The stage
+
+One Pixi `Application`, `resizeTo: window`, `resolution: devicePixelRatio`,
+`autoDensity: true`. A root container `stage` is the design space, **1920×1080**.
+On every resize:
+
+```
+s = min(innerWidth / 1920, innerHeight / 1080)
+stage.scale.set(s)
+stage.position.set((innerWidth - 1920 * s) / 2, (innerHeight - 1080 * s) / 2)
+```
+
+The bars outside the stage are painted in the scene's letterbox colour. Every scene
+positions everything in design pixels and never reads the window size. Pixi's pointer
+events already map through the transform, so input needs nothing extra. `Text`
+objects re-rasterise at `resolution = devicePixelRatio × s` on resize (throttled) so
+text is crisp at any size. **Measure this in Phase 0 before anything else uses text.**
+
+### Layers and the boundary rule
+
+```
+src/engine/**   pure TypeScript. No pixi, no gsap, no DOM, no window. Runs in vitest and in the sim.
+src/content/**  data (JSON) + zod schemas. Imports nothing from engine or ui.
+src/ui/**       Pixi scenes, components, GSAP. May import engine and content.
+src/app/**      boot, stage, router, assets, save, audio, settings.
+```
+
+`npm run check:boundary` fails the build if `engine/` or `content/` import anything
+from `pixi.js`, `gsap`, `src/ui` or `src/app`. Same idea as the `games` repo; it is
+what keeps the balance sim and the tests honest.
+
+### Repo layout
+
+```
+tomeofsecrets/
+├── index.html                 one canvas, one script tag, font preloads
+├── src/
+│   ├── main.ts                boot: fonts → assets → profile → router
+│   ├── app/                   Stage (16:9 lock), SceneRouter (#/route), Assets, Save, Audio, Settings, Input
+│   ├── engine/
+│   │   ├── rng.ts             seeded PRNG with named streams
+│   │   ├── events.ts          presentation event types and queue
+│   │   ├── rules/             combat: state, turn flow, cards, effects, statuses, targeting,
+│   │   │                      enemy intents, companion, traps, scripts/ (escape hatch registry)
+│   │   ├── run/               run state, map generation, encounters, rewards, shop, camp, vials, relics
+│   │   ├── meta/              profile, Tome, Lore, unlocks, seals, stats
+│   │   └── dialogue/          .dlg parser and runner
+│   ├── content/
+│   │   ├── schema/            zod schemas: card, effect, enemy, relic, event, boon, origin, vial, credits
+│   │   ├── cards/             paladin.json tracker.json mage.json neutral.json secrets.json curses.json status.json
+│   │   ├── enemies/<chapter>/<id>.json
+│   │   ├── encounters/<chapter>.json
+│   │   ├── relics.json vials.json boons.json origins.json seals.json companions.json
+│   │   ├── events/*.dlg  story/*.dlg
+│   │   └── credits.json
+│   ├── ui/
+│   │   ├── scenes/            Title, CharacterSelect, Map, Combat, Reward, Shop, Camp, Event, Treasure,
+│   │   │                      RunEnd, Tome, Settings, Credits, Dev*
+│   │   ├── cards/             CardView, HandLayout, DragController, PileView, CardInspector
+│   │   ├── combat/            EnemyPuppet, PlayerPanel, IntentBadge, StatusRow, DamageNumber,
+│   │   │                      ResourceWidget (per class), TrapRow, CompanionView
+│   │   ├── dialogue/          DialogueBox, Portrait, ChoiceList
+│   │   ├── fx/                particles, flashes, shake, dissolve, timelines
+│   │   └── kit/               Button, Panel, Tooltip, Scroll, Toast, fonts, palette
+│   └── dev/                   dev-only scenes at #/dev/*
+├── public/
+│   ├── art/enemies/<id>/      idle.png [attack.png hurt.png] [idle.json spritesheet] meta.json
+│   ├── art/cards/<id>.webp  art/portraits/<id>.webp  art/ui/  art/backgrounds/<chapter>/
+│   ├── fonts/                 self-hosted woff2
+│   └── audio/                 sfx/ music/
+├── tools/                     sim.ts, lint-content.ts, pack-atlas.ts, import-aseprite.ts
+├── docs/                      plans.md design.md mood.html CONTRIBUTING-ART.md balance.md
+├── .claude/launch.json        dev server on :5174
+└── package.json vite.config.ts tsconfig.json vitest.config.ts eslint.config.js wrangler.toml
+```
+
+### Engine conventions
+
+- **Mutate and emit.** Engine functions mutate state in place and push presentation
+  events (`draw`, `play`, `damage`, `block`, `status`, `die`, `intent`, `turn`,
+  `shuffle`, `exhaust`, `trap`, `companion`, `resource`, …) onto `state.events`. The
+  combat scene drains the queue on a GSAP timeline; input is locked while draining.
+  **Anything that mutates without emitting will not animate.** A test asserts every
+  mutation site emits. (Flashstone pattern; it worked.)
+- **Named RNG streams.** One run seed derives independent streams: `map`,
+  `encounters`, `shuffle`, `enemyMoves`, `rewards`, `events`, `shop`, `misc`. Picking a
+  different card reward never changes the next fight's moves. A run is reproducible
+  from `seed + decisions`.
+- **Cards are data; effects are a small language.** A card is JSON; its behaviour is a
+  list of `Effect`s resolved by one `resolveEffect`. Enemy moves, relics, vials, boons
+  and events use the same effects. **Card text is generated from the effects** with
+  live numbers (Strength, Marks, Charges), so text can never disagree with the rules.
+  A `script` effect is the escape hatch for the few things the language cannot say
+  (Polymorph, boss phases); scripts live in `engine/rules/scripts/` and one registry
+  lists them. If more than ~10% of cards need scripts, extend the language instead.
+- **Content is validated twice:** `npm run lint:content` (zod, cross-references, every
+  enemy has art + credit + Secret, every card has an upgrade) and a vitest that loads
+  every file.
+- **State is a plain object.** No classes with methods in engine state; everything
+  round-trips through `JSON.stringify`. That is what makes save/resume and the sim free.
+
+### Save
+
+| Key | Holds |
+|---|---|
+| `tome.profile.v1` | Tome pages, unlocks, Lore, stats, best runs, flags, credits seen |
+| `tome.run.v1` | The whole current run: seed, decisions, RNG stream positions, deck, relics, vials, map, floor, HP, and mid-fight combat state |
+| `tome.settings.v1` | volume, motion, fast mode, shake, keyboard hints |
+
+Autosave after every engine step. `v1` is a migration version; `app/save.ts` holds
+`migrate(from, data)` steps, append-only. **Save code** = base64url(deflate(JSON)) with
+a checksum, shown in Settings as "Copy save" / "Load save". That is how a student
+moves between machines.
+
+### Dev routes (kept in production, unlisted)
+
+| Route | What |
+|---|---|
+| `#/dev/fight?class=mage&enemies=ink-slime,page-wisp&seed=abc` | Drop straight into a fight |
+| `#/dev/cards?class=paladin` | Card browser: hover, upgrade toggle, filter, text dump |
+| `#/dev/enemy?id=bookwyrm` | Puppet preview, every animation on a loop; **drag a PNG onto the page to preview it as this enemy** |
+| `#/dev/map?seed=abc` | Map generator preview; space regenerates |
+| `#/dev/dialogue?file=events/torn-page` | Run a script with live reload |
+| `#/dev/stats` | FPS, frame time, draw calls, texture memory |
+| `?seed=` on New Run | Play a specific seed |
+
+### Deploy
+
+Cloudflare Pages project `tomeofsecrets`, build `npm run build`, output `dist/`,
+custom domain `tome.contrapaul.com` (CNAME in the contrapaul.com zone).
+`public/_headers` sets long cache on `/assets/*` (hashed) and no-cache on
+`index.html`. No Functions, no bindings. `npm run deploy` = build +
+`wrangler pages deploy dist`.
+
+---
+
+## Phases
+
+Order: **0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10**. Phases 4 and 5 may overlap
+(art tooling vs the run loop). Story (8) and sound (9) are independent of each other.
+Checkpoints are student playtests; the plan does not proceed past one without notes.
+
+### Phase 0: Foundation. The locked stage, deployed
+
+Goal: an empty game that is the right shape, fast, and live at the URL.
+
+- [x] Repo `contrapaul/tomeofsecrets`: Vite + TS + Pixi v8 + GSAP + vitest + ESLint.
+      `npm run check` = typecheck + lint + boundary + test. Copy `CLAUDE.md` from `make`.
+- [x] `docs/`: move `plans.md` and `design.md` here; leave a pointer in `make/tomeofsecrets/`.
+- [x] Stage: 1920×1080 root, uniform scale, centred, letterbox bars, DPR-aware, text
+      re-rasterisation on resize. **Prove text crispness first.** Proven 2026-09-17:
+      `#/dev/text`, text resolution tracks `dpr × scale` both growing and shrinking.
+- [x] Scene router on `location.hash` with an `enter/exit` contract and a fade.
+- [x] Asset loader with per-chapter manifests and a loading screen; fonts via
+      `FontFace` before the first scene. (Bundles are empty until Phase 4.)
+- [ ] Mood sheet `docs/mood.html`: palette (ink, parchment, gold leaf; Paladin
+      gold/ivory, Tracker moss/leather, Mage indigo/violet), card frame per type,
+      fonts (Cinzel + Alegreya + JetBrains Mono, self-hosted OFL), button, panel,
+      tooltip. **Written; awaiting Paul's approval** before Phase 2 uses it.
+- [x] Title scene with a placeholder background and a hidden link to `#/dev/stats`.
+- [x] Settings store with motion (full / fast / reduced) and screen-shake toggles.
+- [ ] Cloudflare Pages project + custom domain; `npm run deploy`. (`.claude/launch.json`
+      on :5174 is done, in this repo and as `tome` in `make`.)
+
+Acceptance:
+- Resize to 4:3, 21:9, phone-narrow, tiny: content scales uniformly, stays centred,
+  letterboxes, nothing moves relative to anything else, no scrollbar ever.
+- Text is crisp at 1280×720 and at 2560×1440 on a Retina display.
+- 60 fps idle; `#/dev/stats` shows it.
+- `npm run check` passes; `tome.contrapaul.com` serves the title.
+
+### Phase 1: Rules engine (headless)
+
+Goal: a complete StS-shaped combat with no renderer, proven by tests and a CLI sim.
+Temporary content only: Strike, Defend, six generic cards, three dummy enemies.
+
+- [ ] `engine/rng.ts`: named streams, serialisable positions, determinism tests.
+- [ ] Schemas: `Card`, `Effect`, `Amount`, `Condition`, `Enemy`, `Move`, `Pattern`.
+      Zod first, TS types inferred (one source, no drift).
+- [ ] Combat state: hero, energy, piles (draw/hand/discard/exhaust), powers, enemies,
+      statuses, turn, events, RNG.
+- [ ] Turn flow: start of turn (block expires, energy refills, draw 5, triggers), play
+      card (cost, target, legality, resolve, discard/exhaust), end turn (triggers,
+      discard unless Retain, companion acts), enemy turn (each enemy resolves its
+      intent, statuses tick, next intent chosen), win/loss.
+- [ ] Effects: damage (Strength, Vulnerable, Weak, block, multi-hit, all/random),
+      block (Dexterity, Frail), status apply/remove, draw, energy, heal, exhaust,
+      discard, add card, resource gain/spend with scaled amounts, conditionals,
+      `script` and its registry.
+- [ ] Every status in `design.md` §3, table-driven tests.
+- [ ] Enemy intents: `cycle`, `weighted` (no-repeat), `phases` by HP, `script`.
+      The intent preview uses the same computation as resolution.
+- [ ] Generated card text with live numbers; a test renders every card's text.
+- [ ] Event queue: every mutation emits; a scripted fight asserts the event log.
+- [ ] `tools/sim.ts fight --class x --enemies a,b --seed s --games 1000`: heuristic
+      player; prints win rate, average damage taken, turns.
+
+Acceptance:
+- `npm test` covers energy and cost, draw/reshuffle, block expiry, every status,
+  multi-hit with Strength, targeting legality, each intent pattern, win/loss, event
+  emission, determinism (same seed and inputs → identical log).
+- The sim plays 1000 fights in under 5 s.
+- Nothing in `engine/` imports outside `engine/` and `content/`.
+
+### Phase 2: The table. Combat scene and card feel
+
+Goal: the fight is on screen and it feels great. The whole game rests on this phase;
+do not leave it until the numbers below are true on a MacBook Air.
+
+- [ ] `CardView`: frame by type and class colour, cost orb, name, art slot, generated
+      text with number colouring (green buffed / red debuffed), rarity gem, keyword
+      line. **One component, scaled everywhere** (hand, reward, shop, inspector, Tome);
+      never re-laid-out.
+- [ ] `HandLayout`: fan on an arc; each card has a target transform; GSAP tweens with
+      overshoot; reflows live as cards enter and leave.
+- [ ] Hover: lift and scale with hysteresis so neighbours never flicker; neighbours part.
+- [ ] `DragController`: pointer-follow with lag/spring, velocity tilt, growing shadow.
+      Targeted cards draw a bezier arrow and highlight the enemy under the pointer;
+      untargeted cards show a "release to play" line above the hand; release outside
+      springs back. **Rearrange** by dragging within the hand band; order written back
+      to engine state.
+- [ ] Piles: draw/discard counts, click to inspect; draw animation (flip + arc +
+      stagger); discard cascade; exhaust dissolve; shuffle flip.
+- [ ] Play: lift to centre, pulse, events fire in order, arc to discard. Unplayable:
+      shake, energy orb flash, reason tooltip.
+- [ ] `EnemyPuppet`: idle breathe and sway, attack anticipation → lunge → recoil, hit
+      flash + shake, buff glow, debuff drip, death freeze → desaturate → dissolve with
+      particles. Spritesheet path when `idle.json` exists.
+- [ ] Intent badges with numbers (attack × hits, defend, buff, debuff, special,
+      unknown) and tooltips; HP bars with block shield; status rows with counts.
+- [ ] `PlayerPanel`: portrait, HP/block, energy orb, resource widget slot, relic row,
+      vial slots, pile counts, End Turn (with a "cards still playable" hint).
+- [ ] Damage/block/heal numbers; screen shake on ≥15 damage; low-HP vignette; 0.3 s
+      slow-mo on a killing blow; turn banners.
+- [ ] Prompts: discard / exhaust / choose-a-card from hand, a pile, or a generated list.
+- [ ] Card inspector: click (not drag) → 2.5× view with keyword glossary. Long-press or
+      right-click an enemy → its move list once seen.
+- [ ] Motion settings: full / fast (×0.5) / reduced (×0.05, fades only). Keyboard: 1–0
+      select, arrows target, Enter play, E end turn, Esc cancel.
+- [ ] `#/dev/fight` route.
+
+Acceptance (measure, don't eyeball):
+- 60 fps with 10 cards in hand, 3 enemies and particles, on a 2019 MacBook Air in
+  Chrome; frame time under 12 ms in `#/dev/stats`.
+- Hover responds within 80 ms; sweeping the pointer across the fan never flickers.
+- Drag: the card is under the pointer within 2 frames; tilt reads as weight; the
+  enemy under the pointer is the one hit, every time.
+- Rearranged hand order survives end turn → next draw.
+- Every engine event has a visible response; a dev warning fires on an unhandled type.
+- Reduced motion completes a full turn in under 1 s.
+- A first-time player plays a fight with no explanation beyond intents and tooltips
+  (watch someone do it).
+
+### Phase 3: Three classes, first pass
+
+Goal: Paladin, Tracker and Mage play differently in `#/dev/fight`, with their first-pass
+cards and their resource on screen.
+
+- [ ] Class resources in engine: **Holy Power** (0–5, gain and spend, persists within a
+      fight), **Companion** (acts at end of your turn; Stunned/Enraged states; chosen at
+      run start), **Traps** (armed, max 2, trigger on enemy attack / buff / turn start),
+      **Marks** (consumed per hit), **Burn**, **Chill → Frozen**, **Arcane Charges**
+      (0–4), **Images**. Tests for each.
+- [ ] Resource widgets: Holy Power pips, Companion portrait with its intent, Trap row,
+      Charge gems with school tint.
+- [ ] Cards: starters plus every card marked **1st** in `design.md` §4 (25–30 per
+      class) plus the first 8 neutrals. Upgrades for all. Placeholder art: procedural
+      frames tinted by class and type with the name in the art slot.
+- [ ] Six test dummies that exercise multi-hit, buff, debuff, block, swarm and split.
+- [ ] Sim plays each class against the dummies; numbers recorded in Handoff notes.
+
+Acceptance:
+- Each class's identity is legible in one fight: Paladin builds and spends Holy Power,
+  the Tracker's companion and traps act, the Mage stacks Burn, Chill and Charges.
+- Every card's generated text is right in hand with live modifiers.
+- `lint:content` clean; every card has an upgrade; tests pass.
+
+### Phase 4: Art pipeline and contributor kit
+
+Goal: a student with a drawing and no code sees it fighting within five minutes, and
+the game credits them.
+
+- [ ] `docs/CONTRIBUTING-ART.md` per `design.md` §11: sizes by size class, transparent
+      background, feet on the baseline, facing left, optional `attack.png` and
+      `hurt.png`, `meta.json` fields, downloadable templates.
+- [ ] `#/dev/enemy`: drop a PNG → every puppet animation on a loop, size-class picker,
+      "Export meta.json".
+- [ ] `tools/import-aseprite.ts`: Aseprite JSON export → Pixi spritesheet;
+      `EnemyPuppet` uses frames when present, puppet when not.
+- [ ] `tools/pack-atlas.ts`: card art and UI into per-chapter atlases; enemies loaded
+      per chapter; WebP.
+- [ ] Credits: `content/credits.json` (id → display name, role, optional link)
+      referenced by `meta.json` and card JSON; `lint:content` fails on an uncredited
+      asset; Credits scene auto-generated; the Tome shows "Drawn by" on every page.
+- [ ] Card art: `art/cards/<id>.webp` picked up automatically; placeholder stays for
+      missing art.
+- [ ] Chapter backgrounds with a two-layer parallax.
+
+Acceptance:
+- Drag a PNG onto `#/dev/enemy` → it idles, lunges, flinches, dies. No reload.
+- New enemy JSON + PNG + credit → appears in a fight and in the Tome with the artist's
+  name. Nothing else to touch.
+- Atlas build under 30 s; Chapter 1's assets under 8 MB on the wire.
+
+### Phase 5: The run. Chapter 1 end to end
+
+Goal: a full Chapter 1 run, saved and resumed, live at the URL. **Checkpoint 1 follows.**
+
+- [ ] Map generation per `design.md` §7: 7 columns × 10 floors + boss, 6 starting
+      paths, node rules, unknown nodes. Deterministic from `rng.map`.
+- [ ] `MapScene`: vertical scroll, node icons, reachable-path highlight, current
+      position, boss preview, tooltips, chapter title.
+- [ ] Encounters: `encounters/chapter1.json` easy / normal / elite / boss pools; the
+      first three fights draw from easy; no repeats.
+- [ ] Chapter 1 roster from `design.md` §6: 9 normals, 3 elites, 3 bosses, engine
+      moves plus placeholder art until student art lands. Boss intro banner.
+- [ ] Rewards: gold, 1-of-3 cards (rarity weights by node type, skip allowed), relic
+      from elites, vial chance; boss reward = 1 of 3 rare relics.
+- [ ] Shop, Camp (Rest / Smith), Treasure, Vials (3 slots, drag to use).
+- [ ] The relics marked "Ch1" in `design.md` §8 (about 23) as data with triggers.
+- [ ] Dialogue engine: `.dlg` parser, runner, effects; `EventScene` with left/right
+      portraits and choices; the first 12 events.
+- [ ] Run state, autosave, resume (including mid-fight); Abandon run with confirm.
+- [ ] Run end: victory/defeat summary (floor, cause of death, most-played cards,
+      damage dealt and taken), seed with "copy seed".
+- [ ] Character select (class only for now; Origin/Boon/Seal arrive in Phase 6), deck
+      preview, starter relic.
+- [ ] First-run tips: three one-line callouts on the first fight (drag to play,
+      intents, end turn). The full tutorial is Phase 10.
+- [ ] `sim run --class x --games 200`: whole chapters with the heuristic player;
+      floor-reached distribution.
+
+Acceptance:
+- Start → map → 10 floors → boss → summary, all three classes, no console errors, no
+  unhandled events.
+- Close the tab mid-fight, reopen: the same hand, the same intents.
+- Same seed and same choices twice → identical run.
+- Target after three runs by a first-timer: floor 6+ reliably; Chapter 1 boss beaten
+  30–40% of the time.
+
+**Checkpoint 1:** 6–10 students, two runs each, school laptops. Record floor reached,
+cause of death, confusion points, and whether they asked to go again. Notes go into
+Handoff notes before Phase 6 starts.
+
+### Phase 6: Secrets, the Tome, and the meta
+
+Goal: a lost run still moves the Tome forward, and the second run has more choices
+than the first.
+
+- [ ] Secrets per `design.md` §5: one colourless card per enemy; first kill writes the
+      page; afterwards Secrets appear in rewards (35% after a normal fight containing
+      that enemy, always after an elite or boss). Distinct "stolen" frame.
+- [ ] Tome scene: **Bestiary** (silhouette until seen; full page after a kill: art,
+      artist, moves, Secret), **Cards** (by class, seen/unseen), **Relics**, **Pages**
+      (the unlock tree), **Stats**, **Credits**.
+- [ ] Lore earned at run end by `design.md` §9; spent on Pages.
+- [ ] Boons (12), Origins (3 per class, 1 unlocked), Seals 1–10, Companions (5).
+- [ ] Character select becomes class → origin → companion (Tracker) → seal → boon.
+- [ ] Save codes: copy/load in Settings with a checksum error message.
+- [ ] Run history: last 20 runs with seed, class, result, floor.
+
+Acceptance:
+- Kill an Ink Slime → its page appears, its Secret is offered later, its artist is credited.
+- Lore accrues on a loss; buying a Page changes the next run's pool; a Boon visibly
+  alters the start.
+- A save code round-trips a profile between two browsers.
+
+### Phase 7: Chapters 2 and 3, the full pool, balance
+
+Goal: the whole game exists and is tuned to be hard but winnable. **Checkpoint 2 follows.**
+
+- [ ] Chapter 2 and 3 rosters (§6): 9 normals, 3 elites, 3 bosses each; backgrounds;
+      encounter pools; chapter transition screen.
+- [ ] Cards to ~60 per class, ~30 neutral, a Secret for every enemy, 6 curses,
+      4 status cards.
+- [ ] Relics to ~40 plus 8 boss relics. Vials to 12. Events to ~40 including
+      chapter-specific ones and the meta-aware "Grave of a Seeker".
+- [ ] Boss relic choice; Chapter 3 boss = victory; ending card per class (placeholder
+      text until Phase 8).
+- [ ] Balance: sim over 2000 runs per class; tune the tables in `design.md` §13 to
+      their targets. Pick-rate and win-rate-when-picked per card in `docs/balance.md`.
+- [ ] Seals tuned: Seal 3 noticeably harder, Seal 10 brutal.
+
+Acceptance:
+- All three chapters clear on all three classes at Seal 0 by the heuristic player at
+  the target rates, and by Paul at a higher rate.
+- No card picked under 2% or winning over 70% when picked; outliers noted or fixed.
+- Every enemy has art (student or placeholder), a credit and a Secret. `lint:content` clean.
+
+**Checkpoint 2:** the same group plus new players, full runs over a week; a form for
+best floor, favourite card, most annoying enemy.
+
+### Phase 8: Story
+
+Goal: Paul's story on top of the run. Everything here is `.dlg` data; engine work only
+if a script needs a new effect.
+
+- [ ] Story hooks fire at: new profile (prologue), run start per class, chapter start,
+      before and after each boss, victory per class, defeat (short, varied), first
+      Secret stolen, first Seal broken.
+- [ ] Named NPCs with portraits (left/right, mood variants), speaker nameplate,
+      typewriter text with skip, choice memory across runs in `profile.flags`.
+- [ ] `#/dev/dialogue` live reload for writing.
+- [ ] Paul's scripts for the hooks above; enemy flavour lines in the Bestiary.
+
+Acceptance: a new profile sees the prologue once; a run has a beginning, three chapter
+beats and an ending; nothing blocks a player who mashes skip.
+
+### Phase 9: Sound and music
+
+- [ ] Audio module: Web Audio, unlock on first pointer, SFX sprite sheet, per-category volume.
+- [ ] SFX: card draw/hover/pick/play/discard/exhaust; hit light/heavy/killing; block;
+      heal; buff/debuff; death; UI; map move; reward; shop; rest; Secret stolen.
+- [ ] Music: title, map, three chapter fight themes, elite and boss variants, Tome.
+      Student compositions via `docs/CONTRIBUTING-AUDIO.md`; credits through `credits.json`.
+- [ ] Settings: master / music / sfx; mute on hidden tab.
+
+Acceptance: sound off loses nothing; sound on, a hit lands. No clipping, no
+double-triggers when animations overlap.
+
+### Phase 10: Polish and ship
+
+- [ ] Tutorial: a scripted first fight ("The Tome teaches") with pointer callouts,
+      skippable, replayable from Settings.
+- [ ] Performance: atlases verified, texture memory under 250 MB, no per-frame
+      allocation in hot paths, Chapter 1 loads under 3 s on school wifi.
+- [ ] Accessibility: colourblind-safe intent shapes, tooltip contrast, full keyboard
+      play, reduced-motion audit, minimum text size audit at 1280×720.
+- [ ] Title art, class select art, chapter cards, run-end art.
+- [ ] Daily seed (date-derived; local best only).
+- [ ] Save migration tests; profile export reminder on first close.
+- [ ] `docs/HOW-TO-PLAY.md` and the in-game "?" glossary.
+- [ ] QA on Chrome and Safari on a school MacBook and on an iPad (touch tolerated, not tuned).
+
+**Checkpoint 3:** open to the whole class; collect the "I got to…" board.
+
+---
+
+## Playtest checkpoints: what to record
+
+| | Who | Measure | Feeds |
+|---|---|---|---|
+| CP1 (after 5) | 6–10 students, 2 runs each | floor reached, death cause, confusion, "again?" | Phase 6 priorities, Chapter 1 numbers |
+| CP2 (after 7) | class, one week | best floor per class, pick rates vs sim, favourite / least favourite | balance tables, Seals |
+| CP3 (after 10) | everyone | crashes, load time, tutorial completion, sound | ship list |
+
+---
+
+## Working agreements (any model, any session)
+
+1. Read `docs/plans.md` (this) then `docs/design.md`. Don't re-litigate **Decisions**.
+2. `npm install && npm run check` before touching anything; fix the baseline first.
+3. Engine is pure. Content is data. UI never computes rules. `check:boundary` enforces it.
+4. Every state mutation emits an event. Every event has a visible response.
+5. Tests define done for engine and content. The browser at the real stage size and
+   60 fps defines done for UI. Verify in the in-app browser; don't ask Paul to check.
+6. Surgical diffs per `CLAUDE.md`. Every changed line traces to a ticked box.
+7. Nothing is responsive. A `window.innerWidth` outside `app/stage.ts` is a bug.
+8. Numbers live in `design.md` tables and `content/*.json`, never in code.
+9. Commit per ticked box; push and deploy per phase.
+
+---
+
+## Phase 0 kickoff (the first session's commands)
+
+```bash
+mkdir -p ~/Documents/GitHub/tomeofsecrets && cd ~/Documents/GitHub/tomeofsecrets
+git init && npm init -y
+npm i pixi.js gsap zod
+npm i -D typescript vite vitest eslint @eslint/js typescript-eslint @types/node wrangler
+mkdir -p src/{app,engine/{rules,run,meta,dialogue},content/schema,ui/{scenes,cards,combat,dialogue,fx,kit},dev} public/{art,fonts,audio} tools docs .claude
+cp ../make/CLAUDE.md . && mv ../make/tomeofsecrets/{plans,design}.md docs/
+```
+
+Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
+`check:boundary`, `check`, `lint:content`, `sim`, `deploy`. Leave a
+`make/tomeofsecrets/README.md` pointing at the new repo.
+
+---
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Pixi text blurs when the stage scales | Re-rasterise `Text` at `dpr × s` on resize; prove it in Phase 0. Fallback: MSDF bitmap fonts for numbers. |
+| Card feel is subjective and slips | Phase 2 acceptance has numbers and a watch-someone test. Don't leave Phase 2 early. |
+| HD art and texture memory on old MacBooks | Per-chapter lazy loading, WebP, atlases, texture counter in `#/dev/stats`, 250 MB ceiling. |
+| The effect language can't say a card | `script` escape hatch with a registry; past ~10% of cards, extend the language. |
+| Difficulty tuned for Paul, not for kids | Sim targets plus checkpoints; Seals give Paul his challenge without touching Seal 0. |
+| Student art arrives late or uneven | Placeholder frames are ship-quality; art is never on the critical path. Size classes and the baseline keep mixed styles readable. |
+| Story blocks gameplay | Story is Phase 8 and pure data; skip is always available. |
+| localStorage wiped on school machines | Save code, a nag on first close, "export profile" in the Tome. |
+
+---
+
+## Backlog (parked)
+
+- Chapter 4 "The Last Page": a true final boss unlocked by three keys found across a run.
+- A fourth class (Warlock / Druid / Rogue).
+- Custom mode: modifiers and mutators; a weekly seeded challenge with a shareable link.
+- Accounts and cloud saves (D1, the Flashstone pattern) if save codes prove annoying.
+- Student-written events via a `.dlg` drop folder with a review step.
+- Achievements page in the Tome.
+- Run replay from seed + decision log.
+- Touch tuning for iPad.
+
+---
+
+## Handoff notes
+
+### After Phase 0 (2026-09-17)
+
+- `npm run check` passes: typecheck, lint, boundary (proven to fire), 14 tests.
+- Toolchain landed at TypeScript 6, Vite 8, Vitest 5, ESLint 10, Pixi 8.20, GSAP 3.15.
+  Zod 4 is installed for Phase 1's schemas.
+- The stage: `src/app/stage.ts`. `Stage.root` is the design space; scenes go through
+  `stage.addScene()` so they sit under `stage.overlay` (curtain, toasts). `fit()` in
+  `src/app/fit.ts` is the pure maths, tested.
+- Text crispness works by registering every `Text` with the stage (`makeText` in
+  `src/ui/kit/text.ts` does it). **Create text through `makeText`, not `new Text`,**
+  or it will blur when the window is resized. Resolution updates are debounced 120 ms.
+- A per-frame `app.screen` vs `innerWidth` check in Stage covers embeds that change
+  the viewport without a `resize` event (the desktop app's browser pane does this).
+- Router: `src/app/router.ts`. Scenes are `{ view, enter, exit, update? }` factories
+  registered by path. Unknown paths bounce to `#/`. The fade curtain swallows input.
+- In dev, `window.__tome = { stage, settings, router }` for poking from the console.
+- `docs/mood.html` is served in dev at `/docs/mood.html`. The palette is duplicated
+  as numbers in `src/ui/kit/palette.ts`; change both.
+- Measured on this Mac: 120 fps, 8.3 ms frames, with 1000 spinning sprites. Not yet
+  measured on a school MacBook Air.

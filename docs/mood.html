@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tome of Secrets — mood sheet</title>
+<style>
+  @font-face { font-family: 'Cinzel'; src: url('../public/fonts/Cinzel.woff2') format('woff2'); font-weight: 400 900; }
+  @font-face { font-family: 'Alegreya'; src: url('../public/fonts/Alegreya.woff2') format('woff2'); font-weight: 400 900; }
+  @font-face { font-family: 'Alegreya'; src: url('../public/fonts/Alegreya-Italic.woff2') format('woff2'); font-weight: 400 900; font-style: italic; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('../public/fonts/JetBrainsMono-Regular.woff2') format('woff2'); }
+
+  :root {
+    --letterbox: #06060a; --ink: #0b0a0f; --ink-light: #1a1724;
+    --parchment: #efe4c8; --parchment-dim: #bfb193;
+    --gold: #d4a83b; --gold-bright: #f2cf6b;
+    --blood: #9b2335; --moss: #5d7a3a; --ember: #e0662b; --frost: #6fb3d9; --arcane: #8b6ad8;
+    --paladin: #d4a83b; --tracker: #6f8f3f; --mage: #6b5fd3;
+    --attack: #a8352f; --skill: #3d7a5e; --power: #3f5fa8; --status: #6b6b6b; --curse: #4a2a5a; --secret: #8a6d2b;
+  }
+  body { margin: 0; background: var(--ink); color: var(--parchment); font-family: Alegreya, Georgia, serif; font-size: 20px; line-height: 1.4; }
+  main { max-width: 1400px; margin: 0 auto; padding: 48px 32px 120px; }
+  h1 { font-family: Cinzel, serif; font-weight: 700; color: var(--gold); letter-spacing: .08em; font-size: 56px; margin: 0 0 8px; }
+  h2 { font-family: Cinzel, serif; font-weight: 700; letter-spacing: .06em; font-size: 26px; margin: 64px 0 20px; color: var(--parchment); border-bottom: 1px solid rgba(212,168,59,.35); padding-bottom: 8px; }
+  .kicker { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--parchment-dim); letter-spacing: .1em; text-transform: uppercase; }
+  p.lede { font-style: italic; color: var(--parchment-dim); margin-top: 0; }
+
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .sw { border-radius: 10px; height: 90px; padding: 10px; display: flex; flex-direction: column; justify-content: flex-end; font-family: 'JetBrains Mono', monospace; font-size: 13px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+  .sw b { font-family: Alegreya; font-size: 16px; }
+
+  .type { display: grid; gap: 10px; }
+  .type .line { display: grid; grid-template-columns: 220px 1fr; align-items: baseline; gap: 20px; }
+  .type .note { font-family: 'JetBrains Mono'; font-size: 13px; color: var(--parchment-dim); }
+
+  /* Cards at hand size: 240×340 in the 1920 design. */
+  .cards { display: flex; flex-wrap: wrap; gap: 22px; }
+  .card { position: relative; width: 240px; height: 340px; border-radius: 14px; background: var(--ink-light);
+          box-shadow: 0 0 0 3px var(--frame), 0 0 0 5px var(--ink), 0 14px 30px rgba(0,0,0,.6); overflow: hidden; }
+  .card .cost { position: absolute; left: 10px; top: 10px; width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe9a6, var(--gold) 55%, #7a5a14); color: var(--ink); font-family: Cinzel; font-weight: 900; font-size: 26px; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--ink), 0 2px 6px rgba(0,0,0,.6); z-index: 2; }
+  .card .name { position: absolute; left: 0; right: 0; top: 14px; text-align: center; font-family: Cinzel; font-weight: 700; font-size: 17px; letter-spacing: .02em; padding: 0 58px 0 58px; line-height: 1.1; }
+  .card .art { position: absolute; left: 12px; right: 12px; top: 56px; height: 122px; border-radius: 6px; background: linear-gradient(160deg, var(--frame) 0%, var(--ink) 110%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); display: grid; place-items: center; color: rgba(239,228,200,.35); font-style: italic; font-size: 15px; }
+  .card .band { position: absolute; left: 0; right: 0; top: 180px; height: 28px; background: var(--frame); display: grid; place-items: center; font-family: Cinzel; font-weight: 700; font-size: 13px; letter-spacing: .12em; color: var(--parchment); text-transform: uppercase; }
+  .card .band::before, .card .band::after { content: ''; position: absolute; top: 0; bottom: 0; width: 14px; background: var(--ink-light); }
+  .card .band::before { left: 0; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .card .band::after { right: 0; clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+  .card .text { position: absolute; left: 16px; right: 16px; top: 218px; bottom: 34px; font-size: 17px; line-height: 1.25; text-align: center; display: flex; align-items: center; justify-content: center; }
+  .card .text b { color: var(--gold-bright); font-weight: 700; }
+  .card .text .up { color: #8fd18f; }
+  .card .text .down { color: #e07b7b; }
+  .card .kw { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-family: 'JetBrains Mono'; font-size: 12px; color: var(--parchment-dim); letter-spacing: .06em; }
+  .card .gem { position: absolute; right: 12px; top: 18px; width: 16px; height: 16px; transform: rotate(45deg); background: var(--gem); box-shadow: 0 0 0 2px var(--ink), 0 0 10px var(--gem); }
+  .card.secret { box-shadow: 0 0 0 3px var(--secret), 0 0 0 5px var(--ink), 0 0 26px rgba(212,168,59,.35), 0 14px 30px rgba(0,0,0,.6); }
+  .card.secret::after { content: 'SECRET'; position: absolute; right: -34px; top: 26px; transform: rotate(45deg); background: var(--secret); color: var(--ink); font-family: Cinzel; font-weight: 900; font-size: 11px; letter-spacing: .2em; padding: 3px 44px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  .btn { display: inline-grid; place-items: center; width: 360px; height: 72px; border-radius: 10px; font-family: Cinzel; font-weight: 700; font-size: 26px; letter-spacing: .05em; cursor: pointer; position: relative; }
+  .btn.gold { background: var(--gold); color: var(--ink); box-shadow: inset 0 0 0 3px rgba(11,10,15,0), inset 0 0 0 5px rgba(11,10,15,.35); }
+  .btn.gold:hover { background: var(--gold-bright); }
+  .btn.ghost { background: rgba(239,228,200,.06); color: var(--parchment); box-shadow: inset 0 0 0 2px rgba(212,168,59,.6); }
+  .btn.ghost:hover { background: rgba(239,228,200,.12); box-shadow: inset 0 0 0 2px var(--gold); }
+  .btn.disabled { opacity: .45; pointer-events: none; }
+  .btn .tag { position: absolute; right: 16px; font-family: 'JetBrains Mono'; font-size: 13px; opacity: .7; }
+
+  .panel { border-radius: 16px; background: rgba(239,228,200,.06); box-shadow: inset 0 0 0 2px rgba(212,168,59,.5); padding: 28px 32px; max-width: 640px; }
+  .tooltip { display: inline-block; background: #14121c; color: var(--parchment); border: 1px solid var(--gold); border-radius: 8px; padding: 10px 14px; font-size: 17px; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+  .tooltip b { font-family: Cinzel; font-size: 15px; color: var(--gold); letter-spacing: .04em; }
+
+  .intents { display: flex; gap: 16px; flex-wrap: wrap; }
+  .intent { display: grid; grid-template-columns: 44px auto; gap: 8px; align-items: center; background: rgba(0,0,0,.5); border-radius: 30px; padding: 6px 16px 6px 8px; font-family: 'JetBrains Mono'; font-size: 16px; }
+  .intent .ico { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+  .intent .ico svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .hp { width: 300px; height: 22px; border-radius: 11px; background: #2a1116; box-shadow: inset 0 0 0 2px #000; position: relative; overflow: hidden; font-family: 'JetBrains Mono'; font-size: 14px; }
+  .hp i { position: absolute; inset: 0; width: 62%; background: linear-gradient(#c7364a, #7d1f2e); }
+  .hp b { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 400; color: #fff; text-shadow: 0 1px 2px #000; }
+  .hp .blk { position: absolute; left: -10px; top: -8px; width: 38px; height: 38px; background: var(--frost); clip-path: polygon(50% 0, 100% 25%, 100% 65%, 50% 100%, 0 65%, 0 25%); display: grid; place-items: center; color: var(--ink); font-weight: 700; }
+
+  .pips { display: flex; gap: 8px; }
+  .pip { width: 22px; height: 22px; border-radius: 50%; background: #2a2210; box-shadow: inset 0 0 0 2px #5a4718; }
+  .pip.on { background: radial-gradient(circle at 35% 30%, #fff1b8, var(--gold) 50%, #7a5a14); box-shadow: 0 0 12px rgba(242,207,107,.7); }
+  .gems { display: flex; gap: 10px; }
+  .gem2 { width: 26px; height: 26px; transform: rotate(45deg); background: #211a33; box-shadow: inset 0 0 0 2px #4a3d73; }
+  .gem2.on { background: radial-gradient(circle at 35% 30%, #e6dcff, var(--arcane) 55%, #3b2b6a); box-shadow: 0 0 14px rgba(139,106,216,.8); }
+
+  .letterbox { background: var(--letterbox); border-radius: 8px; padding: 20px; }
+  .frame { aspect-ratio: 16/9; background: linear-gradient(var(--ink-light), var(--ink)); border: 1px solid rgba(212,168,59,.4); display: grid; place-items: center; font-family: Cinzel; color: var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Tome of Secrets · mood sheet · for Paul's approval before Phase 2</div>
+  <h1>TOME OF SECRETS</h1>
+  <p class="lede">Ink, parchment and gold leaf. Dark table, warm light. Serious enough for a boss, warm enough for a Grade 9 to want to draw for it.</p>
+
+  <h2>Palette</h2>
+  <div class="swatches">
+    <div class="sw" style="background:#06060a"><b>Letterbox</b>#06060a</div>
+    <div class="sw" style="background:#0b0a0f"><b>Ink</b>#0b0a0f</div>
+    <div class="sw" style="background:#1a1724"><b>Ink light</b>#1a1724</div>
+    <div class="sw" style="background:#efe4c8;color:#0b0a0f"><b>Parchment</b>#efe4c8</div>
+    <div class="sw" style="background:#bfb193;color:#0b0a0f"><b>Parchment dim</b>#bfb193</div>
+    <div class="sw" style="background:#d4a83b;color:#0b0a0f"><b>Gold</b>#d4a83b</div>
+    <div class="sw" style="background:#f2cf6b;color:#0b0a0f"><b>Gold bright</b>#f2cf6b</div>
+    <div class="sw" style="background:#9b2335"><b>Blood</b>#9b2335</div>
+    <div class="sw" style="background:#5d7a3a"><b>Moss</b>#5d7a3a</div>
+    <div class="sw" style="background:#e0662b"><b>Ember (Fire)</b>#e0662b</div>
+    <div class="sw" style="background:#6fb3d9;color:#0b0a0f"><b>Frost</b>#6fb3d9</div>
+    <div class="sw" style="background:#8b6ad8"><b>Arcane</b>#8b6ad8</div>
+  </div>
+  <p class="kicker" style="margin-top:28px">Class colours</p>
+  <div class="swatches">
+    <div class="sw" style="background:#d4a83b;color:#0b0a0f"><b>Paladin</b>gold / ivory</div>
+    <div class="sw" style="background:#6f8f3f"><b>Tracker</b>moss / leather</div>
+    <div class="sw" style="background:#6b5fd3"><b>Mage</b>indigo / violet</div>
+  </div>
+  <p class="kicker" style="margin-top:28px">Card type colours (the banner)</p>
+  <div class="swatches">
+    <div class="sw" style="background:#a8352f"><b>Attack</b>#a8352f</div>
+    <div class="sw" style="background:#3d7a5e"><b>Skill</b>#3d7a5e</div>
+    <div class="sw" style="background:#3f5fa8"><b>Power</b>#3f5fa8</div>
+    <div class="sw" style="background:#6b6b6b"><b>Status</b>#6b6b6b</div>
+    <div class="sw" style="background:#4a2a5a"><b>Curse</b>#4a2a5a</div>
+    <div class="sw" style="background:#8a6d2b"><b>Secret</b>#8a6d2b</div>
+  </div>
+
+  <h2>Type</h2>
+  <div class="type">
+    <div class="line"><span class="note">Cinzel 700 · titles</span><span style="font-family:Cinzel;font-weight:700;font-size:44px;letter-spacing:.06em;color:var(--gold)">THE MOSS HALLS</span></div>
+    <div class="line"><span class="note">Cinzel 700 · card names</span><span style="font-family:Cinzel;font-weight:700;font-size:22px;letter-spacing:.02em">Templar's Verdict · Glacial Spike · Kill Shot</span></div>
+    <div class="line"><span class="note">Alegreya 400 · card text</span><span>Spend all Holy Power: deal <b style="color:var(--gold-bright)">5</b> damage, <b style="color:var(--gold-bright)">+4</b> per point.</span></div>
+    <div class="line"><span class="note">Alegreya italic · flavour, dialogue</span><span style="font-style:italic;color:var(--parchment-dim)">"There is always a catch," said the Archivist.</span></div>
+    <div class="line"><span class="note">JetBrains Mono · numbers, dev</span><span style="font-family:'JetBrains Mono';font-size:17px">seed 7f3a-moss-9c · floor 6 · 42/80 hp · 113 gold</span></div>
+  </div>
+
+  <h2>Cards</h2>
+  <p class="lede">Hand size, 240×340 design px. Class colour on the frame, type colour on the banner, gold cost orb, rarity gem top-right. Numbers that are buffed read green, debuffed red. A Secret gets the bronze frame and a corner ribbon.</p>
+  <div class="cards">
+    <div class="card" style="--frame:var(--paladin);--gem:#bfb193"><div class="cost">1</div><div class="gem"></div><div class="name">Templar's Verdict</div><div class="art">art</div><div class="band">Attack</div><div class="text"><span>Spend all Holy Power: deal <b>5</b> damage, <b>+4</b> per point.</span></div><div class="kw">COMMON</div></div>
+    <div class="card" style="--frame:var(--tracker);--gem:#6fb3d9"><div class="cost">1</div><div class="gem"></div><div class="name">Snake Trap</div><div class="art">art</div><div class="band">Skill</div><div class="text"><span>Armed: when an enemy attacks you, apply <b>4</b> Poison to it.</span></div><div class="kw">UNCOMMON · ARMED</div></div>
+    <div class="card" style="--frame:var(--mage);--gem:#f2cf6b"><div class="cost">2</div><div class="gem"></div><div class="name">Glacial Spike</div><div class="art">art</div><div class="band">Attack</div><div class="text"><span>Deal <b class="up">21</b> damage; <b class="up">33</b> if the target is Frozen.</span></div><div class="kw">RARE · FROST</div></div>
+    <div class="card" style="--frame:var(--mage);--gem:#bfb193"><div class="cost">1</div><div class="gem"></div><div class="name">Ignite</div><div class="art">art</div><div class="band">Power</div><div class="text"><span>Whenever you play a Fire Attack, apply <b>1</b> Burn.</span></div><div class="kw">COMMON · FIRE</div></div>
+    <div class="card secret" style="--frame:var(--secret);--gem:#8a6d2b"><div class="cost">1</div><div class="name">Ink Splash</div><div class="art">Ink Slime</div><div class="band">Skill</div><div class="text"><span>Deal <b>3</b> damage to ALL. Apply <b>1</b> Weak to ALL.</span></div><div class="kw">SECRET · INK SLIME</div></div>
+    <div class="card" style="--frame:var(--curse);--gem:#4a2a5a"><div class="cost" style="background:#3a3a3a;color:#999">–</div><div class="name">Doubt</div><div class="art">art</div><div class="band" style="background:var(--curse)">Curse</div><div class="text"><span>Unplayable. At the end of your turn, gain <b>1</b> Weak.</span></div><div class="kw">CURSE</div></div>
+  </div>
+
+  <h2>Buttons, panel, tooltip</h2>
+  <div class="row">
+    <span class="btn gold">New Run</span>
+    <span class="btn ghost">The Tome</span>
+    <span class="btn gold disabled">Continue <span class="tag">no run</span></span>
+  </div>
+  <div class="row" style="margin-top:24px;align-items:flex-start">
+    <div class="panel"><span class="kicker">Camp</span><div style="font-family:Cinzel;font-size:26px;margin:6px 0 10px">Rest or Smith?</div>Rest heals 30% of your max HP. Smith upgrades one card, permanently. Reading Lamp adds a third option.</div>
+    <div class="tooltip"><b>VULNERABLE 2</b><br>Takes 50% more damage from attacks. Wears off by 1 each turn.</div>
+  </div>
+
+  <h2>Combat readouts</h2>
+  <div class="row" style="gap:32px">
+    <div class="hp"><i></i><b>42 / 68</b><span class="blk">7</span></div>
+    <div class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></div>
+    <div class="gems"><span class="gem2 on"></span><span class="gem2 on"></span><span class="gem2"></span><span class="gem2"></span></div>
+  </div>
+  <p class="kicker" style="margin-top:28px">Intents: shape and colour both carry the meaning</p>
+  <div class="intents">
+    <div class="intent"><span class="ico" style="background:var(--attack)"><svg viewBox="0 0 24 24"><path d="M4 20 18 6M14 6h4v4M6 14l4 4"/></svg></span>11 × 2</div>
+    <div class="intent"><span class="ico" style="background:var(--skill)"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg></span>+10</div>
+    <div class="intent"><span class="ico" style="background:var(--power)"><svg viewBox="0 0 24 24"><path d="M12 20V6M6 12l6-6 6 6"/></svg></span>Buff</div>
+    <div class="intent"><span class="ico" style="background:var(--curse)"><svg viewBox="0 0 24 24"><path d="M12 4v14M6 12l6 6 6-6"/></svg></span>Debuff</div>
+    <div class="intent"><span class="ico" style="background:var(--status)"><svg viewBox="0 0 24 24"><path d="M9 9a3 3 0 1 1 4 2.8c-.7.4-1 1-1 1.7V15M12 18.5v.5"/></svg></span>?</div>
+  </div>
+
+  <h2>The frame</h2>
+  <div class="letterbox"><div class="frame">1920 × 1080, uniformly scaled, letterboxed in #06060a</div></div>
+  <p class="lede" style="margin-top:16px">Everything lives inside the frame. The bars are the void; nothing is ever drawn there.</p>
+</main>
+</body>
+</html>
