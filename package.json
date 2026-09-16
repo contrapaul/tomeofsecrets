@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "check:boundary": "node scripts/check-boundary.mjs",
     "check": "npm run typecheck && npm run lint && npm run check:boundary && npm run test",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name tomeofsecrets"
+    "deploy": "npm run build && wrangler deploy"
   },
   "type": "module",
   "dependencies": {

@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Assets-only Worker: no code runs, Cloudflare serves dist/ from the edge.
+  // The custom-domain route creates the DNS record in the contrapaul.com zone.
+  "name": "tomeofsecrets",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "routes": [{ "pattern": "tome.contrapaul.com", "custom_domain": true }]
+}

@@ -14,8 +14,8 @@ dialogue format, schemas, art spec). This file is the roadmap. Update the checkb
 and the status line as work lands so a new session can pick up without re-reading the
 conversation.
 
-**Status:** Phase 0 built and verified locally; deploy and the mood-sheet approval are
-the two open boxes. Last updated 2026-09-17.
+**Status:** Phase 0 done and live at https://tome.contrapaul.com. Phase 1 (rules engine)
+is next. Last updated 2026-09-17.
 
 ---
 
@@ -186,11 +186,11 @@ moves between machines.
 
 ### Deploy
 
-Cloudflare Pages project `tomeofsecrets`, build `npm run build`, output `dist/`,
-custom domain `tome.contrapaul.com` (CNAME in the contrapaul.com zone).
+An **assets-only Worker**, not a Pages project: `wrangler.jsonc` names `dist/` as
+the assets directory and declares `tome.contrapaul.com` as a custom-domain route,
+which creates the DNS record itself. No code runs at the edge, no bindings.
 `public/_headers` sets long cache on `/assets/*` (hashed) and no-cache on
-`index.html`. No Functions, no bindings. `npm run deploy` = build +
-`wrangler pages deploy dist`.
+`index.html`. `npm run deploy` = `npm run build && wrangler deploy`.
 
 ---
 
@@ -213,14 +213,14 @@ Goal: an empty game that is the right shape, fast, and live at the URL.
 - [x] Scene router on `location.hash` with an `enter/exit` contract and a fade.
 - [x] Asset loader with per-chapter manifests and a loading screen; fonts via
       `FontFace` before the first scene. (Bundles are empty until Phase 4.)
-- [ ] Mood sheet `docs/mood.html`: palette (ink, parchment, gold leaf; Paladin
+- [x] Mood sheet `docs/mood.html`: palette (ink, parchment, gold leaf; Paladin
       gold/ivory, Tracker moss/leather, Mage indigo/violet), card frame per type,
       fonts (Cinzel + Alegreya + JetBrains Mono, self-hosted OFL), button, panel,
-      tooltip. **Written; awaiting Paul's approval** before Phase 2 uses it.
+      tooltip. Approved by Paul 2026-09-17.
 - [x] Title scene with a placeholder background and a hidden link to `#/dev/stats`.
 - [x] Settings store with motion (full / fast / reduced) and screen-shake toggles.
-- [ ] Cloudflare Pages project + custom domain; `npm run deploy`. (`.claude/launch.json`
-      on :5174 is done, in this repo and as `tome` in `make`.)
+- [x] Deployed with the custom domain; `npm run deploy`. `.claude/launch.json` on :5174
+      here and as `tome` in `make`. **Not Pages:** see the handoff note.
 
 Acceptance:
 - Resize to 4:3, 21:9, phone-narrow, tiny: content scales uniformly, stays centred,
@@ -588,3 +588,9 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   as numbers in `src/ui/kit/palette.ts`; change both.
 - Measured on this Mac: 120 fps, 8.3 ms frames, with 1000 spinning sprites. Not yet
   measured on a school MacBook Air.
+- **Deploy is a Worker with static assets, not Pages.** wrangler 4.132 routes
+  `pages project create` through a Pages-to-Workers path that wants a Workers config,
+  so the plan's Pages wording was replaced. The upside: the custom domain is declared
+  in `wrangler.jsonc` and needs no dashboard step. Right after a deploy the domain can
+  return a 500 for a few seconds while it propagates; `/index.html` 307s to `/`.
+- Repo is public under CC0, matching flashstone: https://github.com/contrapaul/tomeofsecrets
