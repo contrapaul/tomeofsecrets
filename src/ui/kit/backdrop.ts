@@ -3,7 +3,7 @@ import { DESIGN } from '../../app/fit';
 import { PALETTE } from './palette';
 
 /** A full-stage dark background with a soft vignette. The placeholder until real art. */
-export function backdrop(top = PALETTE.inkLight, bottom = PALETTE.ink): Graphics {
+export function backdrop(top: number = PALETTE.inkLight, bottom: number = PALETTE.ink): Graphics {
   const g = new Graphics({ label: 'backdrop' });
   const vertical = new FillGradient({
     type: 'linear',

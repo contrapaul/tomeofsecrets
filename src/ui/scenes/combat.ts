@@ -1,0 +1,527 @@
+import { Container, Graphics } from 'pixi.js';
+import gsap from 'gsap';
+import { DESIGN } from '../../app/fit';
+import type { Scene, SceneContext } from '../../app/router';
+import type { Card } from '../../content/schema';
+import {
+  cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, legalPlays, playCard, respondPrompt,
+  type CombatState, type Content, type EncounterSetup, type HeroSetup, type Unplayable,
+} from '../../engine/rules';
+import { CardView, type CardDisplay } from '../cards/CardView';
+import { DragController } from '../cards/DragController';
+import { HandLayout } from '../cards/HandLayout';
+import { PileView } from '../cards/PileView';
+import { EnemyView } from '../combat/EnemyView';
+import { Playback, type World } from '../combat/Playback';
+import { PlayerPanel } from '../combat/PlayerPanel';
+import { backdrop } from '../kit/backdrop';
+import { Button } from '../kit/button';
+import { KEYWORD_INFO } from '../kit/glossary';
+import { d, done, spatial } from '../kit/motion';
+import { PALETTE } from '../kit/palette';
+import { makeText, STYLE } from '../kit/text';
+import { Tooltip } from '../kit/tooltip';
+
+export interface CombatSetup {
+  hero: HeroSetup;
+  encounter: EncounterSetup;
+  seed: string;
+  /** Called when the fight ends; the run layer (Phase 5) routes onward. */
+  onEnd?: (result: 'won' | 'lost', state: CombatState) => void;
+}
+
+const LAYOUT = {
+  enemyBaseY: 640,
+  enemyCenterX: 1330,
+  player: { x: 250, y: 420 },
+  hand: { centerX: 960, baseY: 945, scale: 0.8, hoverScale: 1.15, maxSpread: 1000 },
+  draw: { x: 110, y: 960 },
+  discard: { x: 1810, y: 960 },
+  exhaust: { x: 1690, y: 985 },
+  endTurn: { x: 1760, y: 830 },
+  playLineY: 730,
+  center: { x: 960, y: 520 },
+  powers: { x: 250, y: 660 },
+};
+
+const REASONS: Record<Unplayable, string> = {
+  'not-your-turn': 'Not your turn.',
+  'prompt-open': 'Finish choosing first.',
+  resolving: 'Wait for the card to resolve.',
+  'not-in-hand': '',
+  unplayable: 'This card cannot be played.',
+  bound: 'Bound: take damage to free it.',
+  energy: 'Not enough energy.',
+  'needs-target': 'Drag it onto an enemy.',
+  'bad-target': 'Not a valid target.',
+  condition: 'Its condition is not met.',
+};
+
+/** The table. One fight, start to finish. */
+export function combatScene(ctx: SceneContext, content: Content, setup: CombatSetup): Scene {
+  const view = new Container({ label: 'combat' });
+  let state: CombatState;
+  let busy = true;
+  let promptSelection: number[] = [];
+
+  const tooltip = new Tooltip();
+  const layers = {
+    bg: new Container({ label: 'bg' }),
+    table: new Container({ label: 'table' }),
+    enemies: new Container({ label: 'enemies' }),
+    hand: null as unknown as HandLayout,
+    floating: new Container({ label: 'floating' }),
+    fx: new Container({ label: 'fx' }),
+    ui: new Container({ label: 'ui' }),
+    overlay: new Container({ label: 'combat-overlay' }),
+  };
+  const enemies = new Map<string, EnemyView>();
+  let player: PlayerPanel;
+  let piles: World['piles'];
+  let playback: Playback;
+  let drag: DragController;
+  let endTurnBtn: Button;
+  let promptBar: Container | null = null;
+  const shakeRoot = new Container({ label: 'shake' });
+
+  function display(uid: number): CardDisplay | null {
+    const inst = [...state.piles.hand, ...state.piles.draw, ...state.piles.discard, ...state.piles.exhaust, ...(state.inPlay ? [state.inPlay] : [])].find((c) => c.uid === uid);
+    if (!inst) return null;
+    const resolved = cardOf(content, inst);
+    const inHand = state.piles.hand.includes(inst);
+    const cost = resolved.cost === 'X' ? ('X' as const) : { value: inHand ? costOf(state, inst, resolved) : resolved.cost, base: resolved.cost };
+    return { resolved, segments: describeResolved(resolved, { state }), cost };
+  }
+
+  function cardDef(uid: number): Card | null {
+    const inst = [...state.piles.hand, ...state.piles.draw, ...state.piles.discard, ...state.piles.exhaust, ...(state.inPlay ? [state.inPlay] : [])].find((c) => c.uid === uid);
+    return inst ? (content.cards[inst.cardId] ?? null) : null;
+  }
+
+  function makeCardView(uid: number): CardView | null {
+    const def = cardDef(uid);
+    const disp = display(uid);
+    if (!def || !disp) return null;
+    const cv = new CardView(uid, def, disp);
+    drag.attach(cv);
+    return cv;
+  }
+
+  /** Re-render hand texts (live numbers) and glow the playable ones. */
+  function refreshHand(): void {
+    const legal = new Set(legalPlays(state, content).map((p) => p.uid));
+    for (const cv of layers.hand.cards) {
+      const disp = display(cv.cardUid);
+      if (disp) cv.refresh(disp);
+      cv.setGlow(!busy && !state.prompt && legal.has(cv.cardUid));
+    }
+    endTurnBtn.alpha = busy ? 0.5 : 1;
+  }
+
+  function layoutEnemies(): void {
+    const alive = state.enemies.filter((e) => e.alive && enemies.has(e.id));
+    const widths = alive.map((e) => ({ small: 220, medium: 300, large: 380 })[content.enemies[e.enemyId]!.size]);
+    const total = widths.reduce((a, b) => a + b, 0);
+    let x = LAYOUT.enemyCenterX - total / 2;
+    alive.forEach((e, i) => {
+      const v = enemies.get(e.id)!;
+      const cx = x + widths[i]! / 2;
+      x += widths[i]!;
+      gsap.to(v, { x: cx, y: LAYOUT.enemyBaseY, duration: d(0.3), ease: 'power2.out' });
+    });
+  }
+
+  function addEnemy(id: string): EnemyView | null {
+    const inst = state.enemies.find((e) => e.id === id);
+    if (!inst) return null;
+    const def = content.enemies[inst.enemyId]!;
+    const v = new EnemyView(inst, def, null, tooltip, layers.fx);
+    v.position.set(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY);
+    enemies.set(id, v);
+    layers.enemies.addChild(v);
+    v.body.on('pointerover', () => {
+      if (!drag.isDragging) v.setHighlight(true);
+    });
+    v.body.on('pointerout', () => {
+      if (!drag.isDragging) v.setHighlight(false);
+    });
+    v.body.on('rightclick', () => showMoves(id));
+    return v;
+  }
+
+  /** Right-click an enemy: the moves it has shown so far, with their numbers. */
+  function showMoves(id: string): void {
+    const inst = state.enemies.find((e) => e.id === id);
+    if (!inst) return;
+    const def = content.enemies[inst.enemyId]!;
+    const seen = [...new Set(inst.history)];
+    const overlay = new Container();
+    const dim = new Graphics();
+    dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.6 });
+    dim.eventMode = 'static';
+    dim.on('pointertap', () => overlay.destroy({ children: true }));
+    dim.on('rightclick', () => overlay.destroy({ children: true }));
+    overlay.addChild(dim);
+    const panel = new Graphics();
+    panel.roundRect(0, 0, 640, 120 + Math.max(1, seen.length) * 44, 16).fill({ color: 0x14121c, alpha: 0.97 }).stroke({ color: PALETTE.gold, width: 2 });
+    panel.position.set(DESIGN.width / 2 - 320, 300);
+    overlay.addChild(panel);
+    const title = makeText(def.name.toUpperCase(), { ...STYLE.display(30), fill: PALETTE.gold });
+    title.position.set(panel.x + 28, panel.y + 22);
+    overlay.addChild(title);
+    const sub = makeText(`${def.tags.join(' · ')} · moves seen ${seen.length} of ${Object.keys(def.moves).length}`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+    sub.position.set(panel.x + 28, panel.y + 66);
+    overlay.addChild(sub);
+    const lines = seen.length ? seen : ['—'];
+    lines.forEach((m, i) => {
+      const move = def.moves[m];
+      const name = move?.name ?? m.split('-').map((w) => w[0]!.toUpperCase() + w.slice(1)).join(' ');
+      const kind = move ? move.intent : '';
+      const text = makeText(`${name}${kind ? `  ·  ${kind}` : ''}`, STYLE.body(24));
+      text.position.set(panel.x + 28, panel.y + 100 + i * 44);
+      overlay.addChild(text);
+    });
+    layers.overlay.addChild(overlay);
+  }
+
+  async function banner(text: string, sub?: string): Promise<void> {
+    if (!text && !sub) return;
+    const c = new Container();
+    const bg = new Graphics();
+    bg.rect(0, -50, DESIGN.width, 100).fill({ color: 0x000000, alpha: text ? 0.55 : 0.25 });
+    c.addChild(bg);
+    if (text) {
+      const t = makeText(text, { ...STYLE.display(64), fill: PALETTE.gold, letterSpacing: 8 });
+      t.anchor.set(0.5);
+      c.addChild(t);
+    }
+    if (sub) {
+      const s = makeText(sub, { ...STYLE.mono(20), fill: PALETTE.parchmentDim });
+      s.anchor.set(0.5);
+      s.position.set(0, text ? 46 : 0);
+      c.addChild(s);
+    }
+    c.position.set(DESIGN.width / 2, LAYOUT.center.y - 60);
+    c.alpha = 0;
+    layers.overlay.addChild(c);
+    const tl = gsap.timeline({ onComplete: () => c.destroy({ children: true }) });
+    tl.to(c, { alpha: 1, duration: d(0.12) }).to(c, { alpha: 0, duration: d(0.2) }, text ? d(0.38) : d(0.25));
+    await done(tl);
+  }
+
+  function shakeScreen(px: number): void {
+    if (!spatial() || !ctx.settings.get().shake) return;
+    const tl = gsap.timeline({ onComplete: () => shakeRoot.position.set(0, 0) });
+    for (let i = 0; i < 4; i++) tl.to(shakeRoot, { x: (Math.random() - 0.5) * px * 2, y: (Math.random() - 0.5) * px, duration: d(0.04) });
+    tl.to(shakeRoot, { x: 0, y: 0, duration: d(0.05) });
+  }
+
+  async function slowMo(): Promise<void> {
+    if (!spatial()) return;
+    gsap.globalTimeline.timeScale(0.25);
+    await new Promise((r) => setTimeout(r, 90));
+    gsap.globalTimeline.timeScale(1);
+  }
+
+  /** Run an engine action, then play what it produced. */
+  async function act(fn: () => void): Promise<void> {
+    if (busy) return;
+    busy = true;
+    refreshHand();
+    fn();
+    const events = drainEvents(state);
+    await playback.play(events);
+    busy = false;
+    if (state.phase === 'won' || state.phase === 'lost') {
+      busy = true;
+      return;
+    }
+    if (state.prompt) showPrompt();
+    refreshHand();
+  }
+
+  function showPrompt(): void {
+    const p = state.prompt!;
+    promptSelection = [];
+    promptBar = new Container();
+    const bg = new Graphics();
+    bg.roundRect(-360, -34, 720, 68, 12).fill({ color: 0x000000, alpha: 0.7 }).stroke({ color: PALETTE.gold, width: 2 });
+    promptBar.addChild(bg);
+    const label = makeText(`Choose ${p.count} card${p.count > 1 ? 's' : ''} to ${p.kind}`, { ...STYLE.display(24), fill: PALETTE.gold });
+    label.anchor.set(0, 0.5);
+    label.position.set(-330, 0);
+    promptBar.addChild(label);
+    const confirm = new Button({
+      label: 'Confirm',
+      width: 180,
+      height: 48,
+      onPress: () => {
+        if (promptSelection.length !== p.count) return;
+        const chosen = [...promptSelection];
+        promptBar?.destroy({ children: true });
+        promptBar = null;
+        void act(() => respondPrompt(state, content, chosen));
+      },
+    });
+    confirm.position.set(250, 0);
+    confirm.alpha = 0.5;
+    promptBar.addChild(confirm);
+    promptBar.position.set(DESIGN.width / 2, LAYOUT.playLineY + 30);
+    layers.ui.addChild(promptBar);
+    for (const cv of layers.hand.cards) {
+      cv.removeAllListeners('pointertap');
+      cv.on('pointertap', () => {
+        if (!state.prompt) return;
+        const i = promptSelection.indexOf(cv.cardUid);
+        if (i >= 0) promptSelection.splice(i, 1);
+        else if (promptSelection.length < p.count) promptSelection.push(cv.cardUid);
+        for (const c of layers.hand.cards) c.setGlow(promptSelection.includes(c.cardUid));
+        confirm.alpha = promptSelection.length === p.count ? 1 : 0.5;
+      });
+    }
+  }
+
+  function showInspector(uid: number): void {
+    const def = cardDef(uid);
+    const disp = display(uid);
+    if (!def || !disp) return;
+    layers.hand.setHover(null);
+    const overlay = new Container();
+    const dim = new Graphics();
+    dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.7 });
+    dim.eventMode = 'static';
+    dim.on('pointertap', () => overlay.destroy({ children: true }));
+    overlay.addChild(dim);
+    const big = new CardView(uid, def, disp);
+    big.scale.set(2.2);
+    big.position.set(DESIGN.width / 2 - 200, DESIGN.height / 2);
+    big.eventMode = 'none';
+    overlay.addChild(big);
+    const keys = disp.resolved.keywords.map((k) => k[0]!.toUpperCase() + k.slice(1));
+    const armed = disp.resolved.effects.some((e) => e.do === 'trap');
+    if (armed) keys.push('Armed');
+    const lines = keys.map((k) => `${k}: ${KEYWORD_INFO[k] ?? ''}`);
+    const glossary = makeText(lines.join('\n\n') || 'No keywords.', { ...STYLE.body(24), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 480 });
+    glossary.position.set(DESIGN.width / 2 + 120, DESIGN.height / 2 - 120);
+    overlay.addChild(glossary);
+    const hint = makeText('click anywhere to close', STYLE.mono(16));
+    hint.alpha = 0.6;
+    hint.anchor.set(0.5);
+    hint.position.set(DESIGN.width / 2, DESIGN.height - 60);
+    overlay.addChild(hint);
+    layers.overlay.addChild(overlay);
+  }
+
+  function endFight(result: 'won' | 'lost'): void {
+    const overlay = new Container();
+    const dim = new Graphics();
+    dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.6 });
+    overlay.addChild(dim);
+    const t = makeText(result === 'won' ? 'VICTORY' : 'DEFEAT', { ...STYLE.display(96), fill: PALETTE.gold, letterSpacing: 10 });
+    t.anchor.set(0.5);
+    t.position.set(DESIGN.width / 2, 400);
+    overlay.addChild(t);
+    const again = new Button({ label: 'Again', onPress: () => ctx.router.go('/dev/fight', { seed: `${setup.seed}-${Date.now() % 1000}`, class: setup.hero.classId, enemies: setup.encounter.enemies.join(',') }) });
+    again.position.set(DESIGN.width / 2, 560);
+    const back = new Button({ label: 'Title', variant: 'ghost', onPress: () => ctx.router.go('/') });
+    back.position.set(DESIGN.width / 2, 660);
+    overlay.addChild(again, back);
+    overlay.alpha = 0;
+    layers.overlay.addChild(overlay);
+    gsap.to(overlay, { alpha: 1, duration: d(0.4) });
+    setup.onEnd?.(result, state);
+  }
+
+  let fpsText: ReturnType<typeof makeText> | null = null;
+  function toggleFps(): void {
+    if (fpsText) {
+      ctx.stage.app.ticker.remove(fpsTick);
+      fpsText.destroy();
+      fpsText = null;
+      return;
+    }
+    fpsText = makeText('', { ...STYLE.mono(22), fill: PALETTE.goldBright });
+    fpsText.position.set(24, 24);
+    layers.overlay.addChild(fpsText);
+    ctx.stage.app.ticker.add(fpsTick);
+  }
+  let worst = 0;
+  function fpsTick(): void {
+    if (!fpsText) return;
+    const t = ctx.stage.app.ticker;
+    worst = Math.max(worst * 0.97, t.deltaMS);
+    fpsText.text = `${t.FPS.toFixed(0)} fps · ${t.deltaMS.toFixed(1)} ms · worst ${worst.toFixed(1)} · hand ${layers.hand.cards.length} · enemies ${enemies.size}`;
+  }
+
+  /** Keyboard target: index into the living enemies, shown as the ground ring. */
+  let keyTarget = 0;
+  function keyTargetId(): string | undefined {
+    const alive = state.enemies.filter((x) => x.alive);
+    if (!alive.length) return undefined;
+    keyTarget = ((keyTarget % alive.length) + alive.length) % alive.length;
+    return alive[keyTarget]!.id;
+  }
+  function showKeyTarget(): void {
+    const id = keyTargetId();
+    for (const [eid, v] of enemies) v.setHighlight(eid === id);
+  }
+
+  function onKey(e: KeyboardEvent): void {
+    if (e.key === 'f' || e.key === 'F') toggleFps();
+    if (e.key === 'Escape') {
+      layers.hand.setHover(null);
+      for (const v of enemies.values()) v.setHighlight(false);
+    }
+    if (busy || state.prompt) return;
+    if (e.key === 'e' || e.key === 'E') void act(() => endTurn(state, content));
+    const n = Number(e.key);
+    if (n >= 1 && n <= 9) {
+      const cv = layers.hand.cards[n - 1];
+      if (cv) layers.hand.setHover(cv);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      keyTarget += e.key === 'ArrowLeft' ? -1 : 1;
+      showKeyTarget();
+    }
+    if (e.key === 'Enter' && layers.hand.hovered) {
+      const uid = layers.hand.hovered.cardUid;
+      const targeted = content.cards[layers.hand.hovered.card.id]!.target === 'enemy';
+      void tryPlay(uid, targeted ? keyTargetId() : undefined);
+      for (const v of enemies.values()) v.setHighlight(false);
+    }
+  }
+
+  function tryPlay(uid: number, targetId?: string): boolean {
+    const r = playCard(state, content, uid, targetId);
+    if (!r.ok) {
+      if (r.reason === 'energy') player.refuseEnergy();
+      const msg = REASONS[r.reason];
+      if (msg) {
+        const p = layers.hand.find(uid)?.getGlobalPosition();
+        const local = p ? tooltip.parent!.toLocal(p) : { x: 960, y: 800 };
+        tooltip.show('', msg, local.x, local.y - 60, 0);
+        setTimeout(() => tooltip.hide(), 1200);
+      }
+      return false;
+    }
+    // The engine has already run; play it back.
+    busy = true;
+    refreshHand();
+    const events = drainEvents(state);
+    void playback.play(events).then(() => {
+      busy = false;
+      if (state.phase === 'won' || state.phase === 'lost') {
+        busy = true;
+        return;
+      }
+      if (state.prompt) showPrompt();
+      refreshHand();
+    });
+    return true;
+  }
+
+  return {
+    view,
+    async enter() {
+      state = createCombat(content, setup.hero, setup.encounter, setup.seed);
+
+      view.addChild(shakeRoot);
+      shakeRoot.addChild(layers.bg, layers.table, layers.enemies);
+      layers.bg.addChild(backdrop(0x161a24, 0x0b0a0f));
+      const floor = new Graphics();
+      floor.ellipse(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY + 10, 520, 60).fill({ color: 0x000000, alpha: 0.25 });
+      layers.table.addChild(floor);
+
+      layers.hand = new HandLayout(LAYOUT.hand);
+      shakeRoot.addChild(layers.hand, layers.floating, layers.fx, layers.ui);
+      view.addChild(layers.overlay);
+      ctx.stage.overlay.addChild(tooltip);
+
+      player = new PlayerPanel(state.hero, tooltip, layers.fx);
+      player.position.set(LAYOUT.player.x, LAYOUT.player.y);
+      player.energyOrb.position.set(-130, 230);
+      layers.ui.addChild(player);
+
+      piles = { draw: new PileView('draw', PALETTE.gold), discard: new PileView('discard', PALETTE.blood), exhaust: new PileView('exhaust', PALETTE.type.status) };
+      piles.draw.position.set(LAYOUT.draw.x, LAYOUT.draw.y);
+      piles.discard.position.set(LAYOUT.discard.x, LAYOUT.discard.y);
+      piles.exhaust.position.set(LAYOUT.exhaust.x, LAYOUT.exhaust.y);
+      piles.exhaust.scale.set(0.7);
+      layers.ui.addChild(piles.draw, piles.discard, piles.exhaust);
+
+      endTurnBtn = new Button({ label: 'End Turn', width: 240, height: 64, onPress: () => void act(() => endTurn(state, content)) });
+      endTurnBtn.position.set(LAYOUT.endTurn.x, LAYOUT.endTurn.y);
+      layers.ui.addChild(endTurnBtn);
+
+      drag = new DragController({
+        hand: layers.hand,
+        floating: layers.floating,
+        fx: layers.fx,
+        stage: ctx.stage,
+        canInteract: () => !busy && !state.prompt,
+        isTargeted: (uid) => cardDef(uid)?.target === 'enemy',
+        enemyAt: (x, y) => {
+          for (const [id, v] of enemies) {
+            if (v.dead) continue;
+            const local = v.body.toLocal({ x, y }, shakeRoot);
+            if (v.body.hitArea?.contains(local.x, local.y)) return id;
+          }
+          return null;
+        },
+        highlightEnemy: (id) => {
+          for (const [eid, v] of enemies) v.setHighlight(eid === id);
+        },
+        playLineY: LAYOUT.playLineY,
+        onPlay: (uid, targetId) => tryPlay(uid, targetId),
+        onInspect: (uid) => showInspector(uid),
+        onReorder: (order) => {
+          // The hand's order is presentational; write it back so draws keep it.
+          state.piles.hand.sort((a, b) => order.indexOf(a.uid) - order.indexOf(b.uid));
+        },
+      });
+
+      for (const e of state.enemies) addEnemy(e.id);
+      layoutEnemies();
+      for (const v of enemies.values()) v.position.set(v.x, v.y);
+
+      playback = new Playback({
+        get state() {
+          return state;
+        },
+        content,
+        hand: layers.hand,
+        floating: layers.floating,
+        fx: layers.fx,
+        player,
+        enemies,
+        piles,
+        makeCardView,
+        addEnemy,
+        layoutEnemies,
+        banner,
+        shakeScreen,
+        slowMo,
+        positions: { draw: LAYOUT.draw, discard: LAYOUT.discard, exhaust: LAYOUT.exhaust, center: LAYOUT.center, powers: LAYOUT.powers },
+        onEnd: endFight,
+      });
+      playback.reset();
+
+      window.addEventListener('keydown', onKey);
+      if (import.meta.env.DEV) {
+        const dev = (window as unknown as { __tome?: Record<string, unknown> }).__tome;
+        if (dev) dev.combat = { get state() { return state; }, content, get busy() { return busy; }, hand: layers.hand };
+      }
+      // The opening: the engine already drew; play those events.
+      const events = drainEvents(state);
+      await playback.play(events);
+      busy = false;
+      refreshHand();
+    },
+    exit() {
+      window.removeEventListener('keydown', onKey);
+      if (fpsText) toggleFps();
+      tooltip.destroy({ children: true });
+      gsap.globalTimeline.timeScale(1);
+    },
+  };
+}

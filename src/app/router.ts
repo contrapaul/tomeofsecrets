@@ -81,7 +81,8 @@ export class Router {
   }
 
   private async switchTo(route: Route): Promise<void> {
-    if (route.path === this.currentPath && this.current) return;
+    const key = `${route.path}?${route.params.toString()}`;
+    if (key === this.currentPath && this.current) return;
     const factory = this.routes.get(route.path)!;
     const duration = 0.18 * MOTION_SCALE[this.ctx.settings.get().motion];
 
@@ -94,7 +95,7 @@ export class Router {
 
     const next = factory({ ...this.ctx, router: this });
     this.current = next;
-    this.currentPath = route.path;
+    this.currentPath = key;
     this.ctx.stage.addScene(next.view);
     await next.enter(route.params);
     await gsap.to(this.curtain, { alpha: 0, duration, ease: 'power1.out' });

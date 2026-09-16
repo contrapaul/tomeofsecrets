@@ -6,9 +6,12 @@ import { loadFonts } from './app/fonts';
 import { Router } from './app/router';
 import { defaultSettings, SettingsStore } from './app/settings';
 import { Stage } from './app/stage';
+import { devCardsScene } from './dev/cards';
+import { devFightScene } from './dev/fight';
 import { devStatsScene } from './dev/stats';
 import { devTextScene } from './dev/text';
 import { PALETTE } from './ui/kit/palette';
+import { setMotion } from './ui/kit/motion';
 import { bindTextToStage } from './ui/kit/text';
 import { settingsScene } from './ui/scenes/settings';
 import { titleScene } from './ui/scenes/title';
@@ -41,12 +44,16 @@ async function boot(): Promise<void> {
     storage = null;
   }
   const settings = new SettingsStore(storage, defaultSettings(window.matchMedia('(prefers-reduced-motion: reduce)').matches));
+  setMotion(settings.get().motion);
+  settings.on((s) => setMotion(s.motion));
 
   const router = new Router({ stage, settings })
     .register('/', titleScene)
     .register('/settings', settingsScene)
     .register('/dev/stats', devStatsScene)
-    .register('/dev/text', devTextScene);
+    .register('/dev/text', devTextScene)
+    .register('/dev/cards', devCardsScene)
+    .register('/dev/fight', devFightScene);
 
   stage.app.ticker.add((t) => router.update(t.deltaMS));
   router.start();
