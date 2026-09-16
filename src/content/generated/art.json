@@ -1,0 +1,43 @@
+{
+  "generated": "2026-09-16",
+  "enemies": {
+    "dummy-brute": {
+      "idle": "art/enemies/dummy-brute/idle.png",
+      "size": "large",
+      "artist": "placeholder",
+      "width": 700,
+      "height": 900,
+      "top": 288,
+      "attack": "art/enemies/dummy-brute/attack.png"
+    },
+    "dummy-cur": {
+      "idle": "art/enemies/dummy-cur/idle.png",
+      "size": "small",
+      "artist": "placeholder",
+      "width": 400,
+      "height": 400,
+      "top": 113
+    },
+    "dummy-wisp": {
+      "idle": "art/enemies/dummy-wisp/idle.png",
+      "size": "small",
+      "artist": "placeholder",
+      "width": 400,
+      "height": 400,
+      "top": 117,
+      "sheet": "art/enemies/dummy-wisp/idle.json"
+    }
+  },
+  "cards": {
+    "arcane-bolt": {
+      "url": "art/cards/arcane-bolt.png"
+    }
+  },
+  "portraits": {},
+  "backgrounds": {
+    "chapter1": {
+      "far": "art/backgrounds/chapter1/far.png",
+      "near": "art/backgrounds/chapter1/near.png"
+    }
+  }
+}

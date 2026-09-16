@@ -1,4 +1,4 @@
-import { Container, FillGradient, Graphics } from 'pixi.js';
+import { Container, FillGradient, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { Card, Rarity } from '../../content/schema';
 import type { ResolvedCard, Segment } from '../../engine/rules';
 import { FONT } from '../../app/fonts';
@@ -35,6 +35,8 @@ export interface CardDisplay {
   resolved: ResolvedCard;
   segments: Segment[];
   cost: { value: number; base: number } | 'X';
+  /** Cropped to the art slot's ratio by `loadCardArt`; null draws the placeholder. */
+  art?: Texture | null;
 }
 
 /**
@@ -141,12 +143,20 @@ export class CardView extends Container {
     name.position.set(CARD_W / 2 + 4, 30);
     this.dynamic.addChild(name);
 
-    // Placeholder art: a big initial.
-    const initial = makeText(resolved.name[0] ?? '?', { fontFamily: FONT.display, fontWeight: '900', fontSize: 84, fill: PALETTE.parchment });
-    initial.alpha = 0.18;
-    initial.anchor.set(0.5);
-    initial.position.set(CARD_W / 2, 118);
-    this.dynamic.addChild(initial);
+    if (display.art) {
+      const art = new Sprite(display.art);
+      art.width = CARD_W - 24;
+      art.height = 122;
+      art.position.set(12, 56);
+      this.dynamic.addChild(art);
+    } else {
+      // Placeholder art: a big initial.
+      const initial = makeText(resolved.name[0] ?? '?', { fontFamily: FONT.display, fontWeight: '900', fontSize: 84, fill: PALETTE.parchment });
+      initial.alpha = 0.18;
+      initial.anchor.set(0.5);
+      initial.position.set(CARD_W / 2, 118);
+      this.dynamic.addChild(initial);
+    }
 
     // Banner label.
     const banner = makeText(resolved.type.toUpperCase(), { fontFamily: FONT.display, fontWeight: '700', fontSize: 13, letterSpacing: 2, fill: PALETTE.parchment });

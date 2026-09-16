@@ -155,6 +155,7 @@ export interface Content {
   cards: Record<string, Card>;
   enemies: Record<string, Enemy>;
   classes?: Record<string, ClassDef>;
+  credits?: Record<string, { id: string; name: string; role: string; link?: string }>;
 }
 
 export interface HeroSetup {

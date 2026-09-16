@@ -1,7 +1,8 @@
-import { ColorMatrixFilter, Container, Graphics, Sprite, type Texture } from 'pixi.js';
+import { AnimatedSprite, ColorMatrixFilter, Container, Graphics, Sprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { Enemy } from '../../content/schema';
 import type { EnemyInstance, Intent } from '../../engine/rules';
+import type { EnemyTextures } from '../../app/art';
 import { FONT } from '../../app/fonts';
 import { floatNumber, shake } from '../fx/numbers';
 import { d, done, spatial } from '../kit/motion';
@@ -14,11 +15,15 @@ import { StatusRow } from './StatusRow';
 
 const SIZE_H = { small: 230, medium: 330, large: 440 } as const;
 const SIZE_W = { small: 200, medium: 260, large: 330 } as const;
+/** Real art is drawn at the spec size, 1:1 in design pixels. */
+const ART_H = { small: 400, medium: 600, large: 900 } as const;
+const ART_W = { small: 400, medium: 600, large: 700 } as const;
 
 /**
  * An enemy on the table: the puppet, its bars and badges. Positioned at its
- * feet; the body grows upward. With a texture, the sprite is the body;
- * without one, a placeholder shape stands in until Phase 4 art lands.
+ * feet; the body grows upward. With art, the sprite is the body and extra
+ * poses swap in during attack, hit and death; with a spritesheet those are
+ * frame animations; without either, a placeholder shape stands in.
  */
 export class EnemyView extends Container {
   readonly id: string;
@@ -31,13 +36,20 @@ export class EnemyView extends Container {
   private idleTl: gsap.core.Timeline | null = null;
   private readonly matrix = new ColorMatrixFilter();
   private readonly highlight = new Graphics();
+  private readonly art: EnemyTextures | null;
+  private sprite: Sprite | null = null;
+  private anim: AnimatedSprite | null = null;
+  readonly artist: string | null;
   dead = false;
 
-  constructor(inst: EnemyInstance, def: Enemy, texture: Texture | null, tooltip: Tooltip, private readonly fxLayer: Container) {
+  constructor(inst: EnemyInstance, def: Enemy, art: EnemyTextures | null, tooltip: Tooltip, private readonly fxLayer: Container) {
     super({ label: `enemy:${inst.id}` });
     this.id = inst.id;
-    this.bodyH = SIZE_H[def.size];
-    this.bodyW = SIZE_W[def.size];
+    this.art = art;
+    this.artist = art?.artist ?? null;
+    // With art the body is the image's visible height above the feet.
+    this.bodyH = art ? art.visibleHeight : SIZE_H[def.size];
+    this.bodyW = art ? Math.round(ART_W[def.size] * 0.7) : SIZE_W[def.size];
 
     // Selection ring on the ground.
     this.highlight.ellipse(0, 0, this.bodyW * 0.55, 22).stroke({ color: PALETTE.goldBright, width: 4, alpha: 0.9 });
@@ -48,11 +60,18 @@ export class EnemyView extends Container {
     shadow.ellipse(0, 6, this.bodyW * 0.5, 18).fill({ color: 0x000000, alpha: 0.45 });
     this.addChild(shadow);
 
-    if (texture) {
-      const sprite = new Sprite(texture);
-      sprite.anchor.set(0.5, 1);
-      const s = this.bodyH / sprite.height;
-      sprite.scale.set(s);
+    if (art?.sheet && art.sheet.animations['idle']) {
+      // Frame animation from an Aseprite export: idle loops, other tags play once.
+      const a = new AnimatedSprite(art.sheet.animations['idle']!);
+      a.anchor.set(0.5, 1 - art.baseline / ART_H[def.size]);
+      a.animationSpeed = 0.12;
+      a.play();
+      this.anim = a;
+      this.body.addChild(a);
+    } else if (art) {
+      const sprite = new Sprite(art.idle);
+      sprite.anchor.set(0.5, 1 - art.baseline / sprite.height);
+      this.sprite = sprite;
       this.body.addChild(sprite);
     } else {
       this.body.addChild(this.placeholder(def));
@@ -136,10 +155,35 @@ export class EnemyView extends Container {
     gsap.to(this.highlight, { alpha: on ? 1 : 0, duration: d(0.1) });
   }
 
+  /** Swap to a pose texture for a moment, if the art has one. */
+  private pose(name: 'attack' | 'hurt' | 'dead', seconds: number): void {
+    if (this.anim) {
+      const frames = this.art?.sheet?.animations[name === 'dead' ? 'die' : name];
+      if (!frames) return;
+      const a = this.anim;
+      a.textures = frames;
+      a.loop = false;
+      a.gotoAndPlay(0);
+      a.onComplete = () => {
+        if (name === 'dead') return;
+        a.textures = this.art!.sheet!.animations['idle']!;
+        a.loop = true;
+        a.play();
+        a.onComplete = undefined;
+      };
+      return;
+    }
+    const tex = this.art?.[name];
+    if (!tex || !this.sprite) return;
+    this.sprite.texture = tex;
+    if (name !== 'dead') gsap.delayedCall(d(seconds), () => { if (this.sprite && !this.dead) this.sprite.texture = this.art!.idle; });
+  }
+
   /** Anticipation, lunge toward the hero (to the left), recoil. */
   async attack(): Promise<void> {
     if (!spatial()) return;
     this.idleTl?.pause();
+    this.pose('attack', 0.42);
     const tl = gsap.timeline();
     tl.to(this.body, { x: 24, duration: d(0.12), ease: 'power2.in' })
       .to(this.body, { x: -90, duration: d(0.1), ease: 'power3.out' })
@@ -156,6 +200,7 @@ export class EnemyView extends Container {
     else void floatNumber(this.fxLayer, x, y, `${hpDamage}`, 'damage', hpDamage >= 15);
     if (amount === 0) return;
     if (!spatial()) return;
+    this.pose('hurt', 0.3);
     this.matrix.reset();
     this.matrix.brightness(2.2, false);
     await Promise.all([
@@ -178,6 +223,7 @@ export class EnemyView extends Container {
     this.dead = true;
     this.idleTl?.kill();
     this.intent.set(null);
+    this.pose('dead', 0);
     this.matrix.reset();
     this.matrix.desaturate();
     await done(gsap.to(this.body, { alpha: 0, y: 40, duration: d(0.55), ease: 'power2.in', delay: d(0.12) }));

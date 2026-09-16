@@ -47,6 +47,8 @@ export const Enemy = z.strictObject({
   tags: z.array(EnemyTag),
   hp: z.tuple([z.int().min(1), z.int().min(1)]),
   rank: z.enum(['normal', 'elite', 'boss', 'minion']).optional(),
+  /** Which chapter's pool it belongs to. Set on everything that ships; unset on test dummies. */
+  chapter: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   /** Credits id. Required by lint for anything that ships. */
   artist: z.string().optional(),
   /** Card id of this enemy's Secret. Required by lint for anything that ships. */

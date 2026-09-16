@@ -41,6 +41,20 @@ export function devStatsScene(ctx: SceneContext): Scene {
       back.position.set(DESIGN.width - 260, 180);
       view.addChild(back);
 
+      // The dev index.
+      const links: [string, string, Record<string, string>?][] = [
+        ['Fight', '/dev/fight', { class: 'paladin', enemies: 'dummy-brute,dummy-cur' }],
+        ['Cards', '/dev/cards', { class: 'all' }],
+        ['Enemy preview', '/dev/enemy', { id: 'dummy-brute' }],
+        ['Text', '/dev/text'],
+        ['Credits', '/credits'],
+      ];
+      links.forEach(([label, path, params], i) => {
+        const b = new Button({ label, variant: 'ghost', width: 260, height: 52, onPress: () => ctx.router.go(path, params) });
+        b.position.set(200, 440 + i * 64);
+        view.addChild(b);
+      });
+
       const frame = new Graphics();
       frame.rect(1, 1, DESIGN.width - 2, DESIGN.height - 2).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
       view.addChild(frame);

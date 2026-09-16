@@ -16,7 +16,7 @@ export const MANIFEST: AssetsManifest = {
 };
 
 export async function initAssets(): Promise<void> {
-  await Assets.init({ manifest: MANIFEST, basePath: '/art' });
+  await Assets.init({ manifest: MANIFEST });
 }
 
 export async function loadBundle(name: string, onProgress?: ProgressCallback): Promise<void> {

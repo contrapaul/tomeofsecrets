@@ -7,12 +7,14 @@ import { Router } from './app/router';
 import { defaultSettings, SettingsStore } from './app/settings';
 import { Stage } from './app/stage';
 import { devCardsScene } from './dev/cards';
+import { devEnemyScene } from './dev/enemy';
 import { devFightScene } from './dev/fight';
 import { devStatsScene } from './dev/stats';
 import { devTextScene } from './dev/text';
 import { PALETTE } from './ui/kit/palette';
 import { setMotion } from './ui/kit/motion';
 import { bindTextToStage } from './ui/kit/text';
+import { creditsScene } from './ui/scenes/credits';
 import { settingsScene } from './ui/scenes/settings';
 import { titleScene } from './ui/scenes/title';
 
@@ -50,10 +52,12 @@ async function boot(): Promise<void> {
   const router = new Router({ stage, settings })
     .register('/', titleScene)
     .register('/settings', settingsScene)
+    .register('/credits', creditsScene)
     .register('/dev/stats', devStatsScene)
     .register('/dev/text', devTextScene)
     .register('/dev/cards', devCardsScene)
-    .register('/dev/fight', devFightScene);
+    .register('/dev/fight', devFightScene)
+    .register('/dev/enemy', devEnemyScene);
 
   stage.app.ticker.add((t) => router.update(t.deltaMS));
   router.start();

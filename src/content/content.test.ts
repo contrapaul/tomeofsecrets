@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from './index';
+import art from './generated/art.json';
 import { Card, Effect } from './schema';
+import { ArtManifest } from './schema/art';
 
 describe('content', () => {
   const content = loadContent({ fixtures: true });
@@ -29,6 +31,21 @@ describe('content', () => {
       for (const m of Object.values(e.moves)) {
         for (const ef of m.effects) if (ef.do === 'summon') expect(content.enemies[ef.enemy], `${e.id} summons ${ef.enemy}`).toBeDefined();
       }
+    }
+  });
+
+  it('the art manifest validates and every artist in it has a credit', () => {
+    const m = ArtManifest.parse(art);
+    for (const [id, e] of Object.entries(m.enemies)) expect(content.credits[e.artist], `${id} drawn by unknown ${e.artist}`).toBeDefined();
+  });
+
+  it('every enemy that ships (has a chapter) has art, a credit and a Secret', () => {
+    const m = ArtManifest.parse(art);
+    for (const e of Object.values(content.enemies)) {
+      if (!e.chapter) continue;
+      expect(m.enemies[e.id], `${e.id} has no art in public/art/enemies`).toBeDefined();
+      expect(e.artist && content.credits[e.artist], `${e.id} has no credited artist`).toBeTruthy();
+      expect(e.secret && content.cards[e.secret], `${e.id} has no Secret card`).toBeTruthy();
     }
   });
 

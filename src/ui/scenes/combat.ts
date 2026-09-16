@@ -1,5 +1,6 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, type Texture } from 'pixi.js';
 import gsap from 'gsap';
+import { loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
 import { DESIGN } from '../../app/fit';
 import type { Scene, SceneContext } from '../../app/router';
 import type { Card } from '../../content/schema';
@@ -18,6 +19,7 @@ import { PlayerPanel } from '../combat/PlayerPanel';
 import { ResourceWidget } from '../combat/ResourceWidget';
 import { TrapRow } from '../combat/TrapRow';
 import { backdrop } from '../kit/backdrop';
+import { ParallaxBackdrop } from '../kit/parallax';
 import { Button } from '../kit/button';
 import { KEYWORD_INFO } from '../kit/glossary';
 import { d, done, spatial } from '../kit/motion';
@@ -29,6 +31,8 @@ export interface CombatSetup {
   hero: HeroSetup;
   encounter: EncounterSetup;
   seed: string;
+  /** Background key in the art manifest; defaults to chapter1. */
+  background?: string;
   /** Called when the fight ends; the run layer (Phase 5) routes onward. */
   onEnd?: (result: 'won' | 'lost', state: CombatState) => void;
 }
@@ -89,6 +93,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
   const shakeRoot = new Container({ label: 'shake' });
+  let enemyArt = new Map<string, EnemyTextures>();
+  let cardArt = new Map<string, Texture>();
 
   function display(uid: number): CardDisplay | null {
     const inst = [...state.piles.hand, ...state.piles.draw, ...state.piles.discard, ...state.piles.exhaust, ...(state.inPlay ? [state.inPlay] : [])].find((c) => c.uid === uid);
@@ -96,7 +102,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const resolved = cardOf(content, inst);
     const inHand = state.piles.hand.includes(inst);
     const cost = resolved.cost === 'X' ? ('X' as const) : { value: inHand ? costOf(state, inst, resolved) : resolved.cost, base: resolved.cost };
-    return { resolved, segments: describeResolved(resolved, { state }), cost };
+    return { resolved, segments: describeResolved(resolved, { state }), cost, art: cardArt.get(inst.cardId) ?? null };
   }
 
   function cardDef(uid: number): Card | null {
@@ -141,7 +147,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const inst = state.enemies.find((e) => e.id === id);
     if (!inst) return null;
     const def = content.enemies[inst.enemyId]!;
-    const v = new EnemyView(inst, def, null, tooltip, layers.fx);
+    const v = new EnemyView(inst, def, enemyArt.get(inst.enemyId) ?? null, tooltip, layers.fx);
     v.position.set(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY);
     enemies.set(id, v);
     layers.enemies.addChild(v);
@@ -175,7 +181,9 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const title = makeText(def.name.toUpperCase(), { ...STYLE.display(30), fill: PALETTE.gold });
     title.position.set(panel.x + 28, panel.y + 22);
     overlay.addChild(title);
-    const sub = makeText(`${def.tags.join(' · ')} · moves seen ${seen.length} of ${Object.keys(def.moves).length}`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+    const artist = enemies.get(id)?.artist;
+    const credit = artist ? content.credits?.[artist]?.name ?? artist : null;
+    const sub = makeText(`${def.tags.join(' · ')} · moves seen ${seen.length} of ${Object.keys(def.moves).length}${credit ? ` · drawn by ${credit}` : ''}`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
     sub.position.set(panel.x + 28, panel.y + 66);
     overlay.addChild(sub);
     const lines = seen.length ? seen : ['—'];
@@ -430,10 +438,15 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     view,
     async enter() {
       state = createCombat(content, setup.hero, setup.encounter, setup.seed);
+      // Art for this fight only: the enemies in it and the cards in the deck.
+      const deckIds = [...state.piles.draw, ...state.piles.hand].map((c) => c.cardId);
+      const [ea, ca, bg] = await Promise.all([loadEnemyArtFor(state.enemies.map((e) => e.enemyId)), loadCardArtFor(deckIds), loadBackground(setup.background ?? 'chapter1')]);
+      enemyArt = ea;
+      cardArt = ca;
 
       view.addChild(shakeRoot);
       shakeRoot.addChild(layers.bg, layers.table, layers.enemies);
-      layers.bg.addChild(backdrop(0x161a24, 0x0b0a0f));
+      layers.bg.addChild(bg ? new ParallaxBackdrop(bg, ctx.stage) : backdrop(0x161a24, 0x0b0a0f));
       const floor = new Graphics();
       floor.ellipse(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY + 10, 520, 60).fill({ color: 0x000000, alpha: 0.25 });
       layers.table.addChild(floor);

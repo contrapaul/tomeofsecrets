@@ -13,7 +13,11 @@
     "check:boundary": "node scripts/check-boundary.mjs",
     "check": "npm run typecheck && npm run lint && npm run check:boundary && npm run test",
     "deploy": "npm run build && wrangler deploy",
-    "sim": "tsx tools/sim.ts"
+    "sim": "tsx tools/sim.ts",
+    "art": "tsx tools/scan-art.ts",
+    "lint:content": "tsx tools/scan-art.ts --check && vitest run src/content",
+    "art:templates": "tsx tools/make-templates.ts",
+    "art:aseprite": "tsx tools/import-aseprite.ts"
   },
   "type": "module",
   "dependencies": {
@@ -25,6 +29,7 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.20.3",
     "eslint": "^10.10.0",
+    "sharp": "^0.35.4",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",

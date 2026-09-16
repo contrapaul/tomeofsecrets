@@ -1,4 +1,6 @@
 import { CardSet, ClassSet, EnemySet, type Card, type ClassDef, type Enemy } from './schema';
+import { CreditSet, type Credit } from './schema/art';
+import credits from './credits.json';
 import paladin from './cards/paladin.json';
 import tracker from './cards/tracker.json';
 import mage from './cards/mage.json';
@@ -13,6 +15,7 @@ export interface ContentRegistry {
   cards: Record<string, Card>;
   enemies: Record<string, Enemy>;
   classes: Record<string, ClassDef>;
+  credits: Record<string, Credit>;
 }
 
 function index<T extends { id: string }>(items: T[], what: string): Record<string, T> {
@@ -57,7 +60,11 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
   }
   const cls = ClassSet.safeParse(classes);
   if (!cls.success) throw new Error(`classes.json: ${cls.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
-  const registry = { cards: index(cards, 'card'), enemies: index(enemies, 'enemy'), classes: index(cls.data, 'class') };
+  const cr = CreditSet.safeParse(credits);
+  if (!cr.success) throw new Error(`credits.json: ${cr.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
+  const registry = { cards: index(cards, 'card'), enemies: index(enemies, 'enemy'), classes: index(cls.data, 'class'), credits: index(cr.data, 'credit') };
+  for (const c of cards) if (c.artist && !registry.credits[c.artist]) throw new Error(`card ${c.id} credits unknown artist ${c.artist}`);
+  for (const e of enemies) if (e.artist && !registry.credits[e.artist]) throw new Error(`enemy ${e.id} credits unknown artist ${e.artist}`);
   for (const c of cls.data) for (const id of c.starter) if (!registry.cards[id]) throw new Error(`class ${c.id} starter references unknown card ${id}`);
   return registry;
 }

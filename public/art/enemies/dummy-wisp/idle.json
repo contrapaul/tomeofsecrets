@@ -1,0 +1,133 @@
+{
+  "frames": {
+    "wisp 0.aseprite": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "sourceSize": {
+        "w": 400,
+        "h": 400
+      },
+      "duration": 120
+    },
+    "wisp 1.aseprite": {
+      "frame": {
+        "x": 400,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "sourceSize": {
+        "w": 400,
+        "h": 400
+      },
+      "duration": 120
+    },
+    "wisp 2.aseprite": {
+      "frame": {
+        "x": 800,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "sourceSize": {
+        "w": 400,
+        "h": 400
+      },
+      "duration": 120
+    },
+    "wisp 3.aseprite": {
+      "frame": {
+        "x": 1200,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "sourceSize": {
+        "w": 400,
+        "h": 400
+      },
+      "duration": 120
+    },
+    "wisp 4.aseprite": {
+      "frame": {
+        "x": 1600,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 400,
+        "h": 400
+      },
+      "sourceSize": {
+        "w": 400,
+        "h": 400
+      },
+      "duration": 120
+    }
+  },
+  "animations": {
+    "idle": [
+      "wisp 0.aseprite",
+      "wisp 1.aseprite",
+      "wisp 2.aseprite",
+      "wisp 1.aseprite"
+    ],
+    "attack": [
+      "wisp 3.aseprite",
+      "wisp 4.aseprite"
+    ],
+    "hurt": [
+      "wisp 3.aseprite"
+    ]
+  },
+  "meta": {
+    "image": "sheet.png",
+    "size": {
+      "w": 2000,
+      "h": 400
+    },
+    "scale": "1",
+    "format": "RGBA8888"
+  }
+}

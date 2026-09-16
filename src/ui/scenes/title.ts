@@ -34,6 +34,7 @@ export function titleScene(ctx: SceneContext): Scene {
         new Button({ label: 'New Run', tag: 'soon', disabled: true }),
         new Button({ label: 'The Tome', tag: 'soon', disabled: true, variant: 'ghost' }),
         new Button({ label: 'Settings', variant: 'ghost', onPress: () => ctx.router.go('/settings') }),
+        new Button({ label: 'Credits', variant: 'ghost', onPress: () => ctx.router.go('/credits') }),
       ];
       buttons.forEach((b, i) => {
         b.position.set(DESIGN.width / 2, 560 + i * 96);
