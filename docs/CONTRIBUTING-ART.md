@@ -50,7 +50,8 @@ npm run art:key -- scan.png medium your-enemy-id --artist your-credits-id
 ```
 
 which removes the paper, trims the drawing, scales it to fit the template and stands
-it on the baseline. White highlights inside the drawing survive; only paper that
+it on the baseline. Add `--float 90` for something that hovers: it is placed that
+many pixels above the ground, bobs instead of breathing, and casts a small shadow. White highlights inside the drawing survive; only paper that
 touches the edge of the page is removed, so keep the drawing away from the edges
 of the scan (a blob that runs off the bottom of the page just gets a flat bottom).
 Originals live in `art-src/enemies/` so they can be re-keyed later.
@@ -89,6 +90,9 @@ public/art/enemies/<your-enemy-id>/
 ```json
 { "id": "moss-beetle", "size": "medium", "artist": "sam-t", "notes": "" }
 ```
+
+Add `"float": 90` for a creature that hovers that far above the ground (draw it with
+the air underneath it on the template, or let `art:key` place it).
 
 `artist` is your **credits id** from `src/content/credits.json` — first name and initial,
 lowercase with a dash (`sam-t`). Your **display name** in that file is whatever you want

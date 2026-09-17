@@ -88,6 +88,7 @@ for (const id of listDirs(join(ART, 'enemies'))) {
     top: await visibleTop(idle),
   };
   if (meta.baseline !== undefined) entry.baseline = meta.baseline;
+  if (meta.float) entry.float = meta.float;
   for (const pose of ['attack', 'hurt', 'dead'] as const) if (existsSync(join(dir, `${pose}.png`))) entry[pose] = `art/enemies/${id}/${pose}.png`;
   if (existsSync(join(dir, 'idle.json'))) entry.sheet = `art/enemies/${id}/idle.json`;
   manifest.enemies[id] = entry;

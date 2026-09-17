@@ -3,7 +3,9 @@
  * enemy PNG: key out the paper, trim, fit onto the template canvas with the
  * feet on the baseline.
  *
- *   npm run art:key -- <input.png> <small|medium|large> <enemy-id> [--artist paul-k]
+ *   npm run art:key -- <input.png> <small|medium|large> <enemy-id> [--artist paul-k] [--float 90]
+ *
+ * `--float` leaves that many pixels of air under the drawing: a hovering creature.
  *
  * Writes public/art/enemies/<enemy-id>/idle.png and, if missing, meta.json.
  * The paper colour is sampled from the border and removed by flood fill, so
@@ -11,7 +13,7 @@
  * and have the paper colour divided out, which stops the pale fringe scans
  * otherwise get on dark backgrounds.
  */
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
@@ -31,7 +33,7 @@ const flag = (name: string) => {
 };
 const [input, size, id] = args as [string | undefined, keyof typeof SIZES | undefined, string | undefined];
 if (!input || !size || !id || !(size in SIZES) || !/^[a-z0-9-]+$/.test(id)) {
-  console.error('usage: npm run art:key -- <input.png> <small|medium|large> <enemy-id> [--artist <credits-id>]');
+  console.error('usage: npm run art:key -- <input.png> <small|medium|large> <enemy-id> [--artist <credits-id>] [--float <px>]');
   process.exit(2);
 }
 
@@ -107,9 +109,10 @@ if (maxX < 0) {
 
 // Trim, fit under the baseline, centre.
 const [cw, ch] = SIZES[size];
+const float = Math.max(0, Number(flag('float') ?? 0) || 0);
 const bw = maxX - minX + 1;
 const bh = maxY - minY + 1;
-const scale = Math.min((cw - MARGIN * 2) / bw, (ch - BASELINE - MARGIN) / bh);
+const scale = Math.min((cw - MARGIN * 2) / bw, (ch - BASELINE - float - MARGIN) / bh);
 const tw = Math.max(1, Math.round(bw * scale));
 const th = Math.max(1, Math.round(bh * scale));
 const drawing = await sharp(out, { raw: { width: W, height: H, channels: 4 } })
@@ -120,12 +123,13 @@ const drawing = await sharp(out, { raw: { width: W, height: H, channels: 4 } })
 const dir = join(ROOT, 'public', 'art', 'enemies', id);
 mkdirSync(dir, { recursive: true });
 await sharp({ create: { width: cw, height: ch, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-  .composite([{ input: drawing, left: Math.round((cw - tw) / 2), top: ch - BASELINE - th }])
+  .composite([{ input: drawing, left: Math.round((cw - tw) / 2), top: ch - BASELINE - float - th }])
   .png()
   .toFile(join(dir, 'idle.png'));
 
 const metaFile = join(dir, 'meta.json');
-if (!existsSync(metaFile)) {
-  writeFileSync(metaFile, `${JSON.stringify({ id, size, artist: flag('artist') ?? 'placeholder' }, null, 2)}\n`);
-}
+const meta: Record<string, unknown> = existsSync(metaFile) ? (JSON.parse(readFileSync(metaFile, 'utf8')) as Record<string, unknown>) : { id, size, artist: flag('artist') ?? 'placeholder' };
+if (float) meta.float = float;
+else delete meta.float;
+writeFileSync(metaFile, `${JSON.stringify(meta, null, 2)}\n`);
 console.log(`key-scan: ${input} → enemies/${id}/idle.png (${size} ${cw}×${ch}; paper rgb(${paper.join(',')}); drawing ${bw}×${bh} scaled ×${scale.toFixed(2)} to ${tw}×${th})`);

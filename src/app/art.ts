@@ -22,6 +22,8 @@ export interface EnemyTextures {
   visibleHeight: number;
   size: 'small' | 'medium' | 'large';
   artist: string;
+  /** Hovers this far above the ground (bobbing idle, smaller shadow). */
+  float: number;
 }
 
 const enemyCache = new Map<string, EnemyTextures>();
@@ -57,7 +59,7 @@ export async function loadEnemyArt(id: string): Promise<EnemyTextures | null> {
   ]);
   if (!idle) return null;
   const baseline = entry.baseline ?? 40;
-  const out: EnemyTextures = { idle, attack, hurt, dead, sheet, baseline, visibleHeight: entry.height - baseline - entry.top, size: entry.size, artist: entry.artist };
+  const out: EnemyTextures = { idle, attack, hurt, dead, sheet, baseline, visibleHeight: entry.height - baseline - entry.top, size: entry.size, artist: entry.artist, float: entry.float ?? 0 };
   enemyCache.set(id, out);
   return out;
 }
@@ -110,5 +112,5 @@ export async function loadBackground(key: string): Promise<{ far: Texture; near?
 
 /** Build enemy textures from an image the user dropped on a dev page. */
 export function texturesFromBitmap(bitmap: ImageBitmap, size: EnemyTextures['size']): EnemyTextures {
-  return { idle: Texture.from(bitmap), baseline: 40, visibleHeight: Math.round(bitmap.height * 0.8), size, artist: 'you' };
+  return { idle: Texture.from(bitmap), baseline: 40, visibleHeight: Math.round(bitmap.height * 0.8), size, artist: 'you', float: 0 };
 }

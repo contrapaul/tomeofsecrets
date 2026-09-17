@@ -57,8 +57,9 @@ export class EnemyView extends Container {
     this.highlight.alpha = 0;
     this.addChild(this.highlight);
 
+    const floating = (art?.float ?? 0) > 0;
     const shadow = new Graphics();
-    shadow.ellipse(0, 6, this.bodyW * 0.5, 18).fill({ color: 0x000000, alpha: 0.45 });
+    shadow.ellipse(0, 6, this.bodyW * (floating ? 0.35 : 0.5), floating ? 12 : 18).fill({ color: 0x000000, alpha: floating ? 0.3 : 0.45 });
     this.addChild(shadow);
 
     if (art?.sheet && art.sheet.animations['idle']) {
@@ -129,12 +130,17 @@ export class EnemyView extends Container {
     return c;
   }
 
-  /** Breathe and sway forever, until death. */
+  /** Breathe and sway forever, until death. A floating creature bobs instead. */
   idle(): void {
     this.idleTl?.kill();
     if (!spatial()) return;
     const phase = Math.random() * 2;
     this.idleTl = gsap.timeline({ repeat: -1, yoyo: true, delay: -phase });
+    if ((this.art?.float ?? 0) > 0) {
+      this.idleTl.to(this.body, { y: -14, duration: 1.6, ease: 'sine.inOut' }, 0);
+      this.idleTl.to(this.body, { rotation: 0.02, duration: 2.1, ease: 'sine.inOut' }, 0);
+      return;
+    }
     this.idleTl.to(this.body.scale, { y: 1.02, x: 0.99, duration: 1.1, ease: 'sine.inOut' }, 0);
     this.idleTl.to(this.body, { rotation: 0.012, duration: 1.55, ease: 'sine.inOut' }, 0);
   }

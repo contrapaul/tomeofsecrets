@@ -8,6 +8,8 @@ export const EnemyArtMeta = z.strictObject({
   artist: z.string().min(1),
   /** Baseline offset from the bottom of the image, if not the default 40 px. */
   baseline: z.int().min(0).optional(),
+  /** A floating creature: how far above the ground its lowest pixel hovers. It bobs instead of breathing. */
+  float: z.int().min(0).optional(),
   notes: z.string().optional(),
 });
 export type EnemyArtMeta = z.infer<typeof EnemyArtMeta>;
@@ -37,6 +39,7 @@ export const ArtManifest = z.strictObject({
       size: z.enum(['small', 'medium', 'large']),
       artist: z.string(),
       baseline: z.int().optional(),
+      float: z.int().optional(),
       width: z.int(),
       height: z.int(),
       /** First visible row of idle.png; the intent badge sits above it. */
