@@ -22,7 +22,7 @@ export function titleScene(ctx: SceneContext): Scene {
       wordmark.position.set(DESIGN.width / 2, 300);
       view.addChild(wordmark);
 
-      const tagline = makeText('Three seekers. Three chapters. Every enemy has a secret.', {
+      const tagline = makeText('A deckbuilding roguelike game.', {
         ...STYLE.body(30),
         fontStyle: 'italic',
         fill: PALETTE.parchmentDim,
