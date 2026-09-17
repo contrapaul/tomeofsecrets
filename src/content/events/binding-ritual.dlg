@@ -1,0 +1,26 @@
+title: The Binding Ritual
+portrait left: seeker
+portrait right: archivist
+
+archivist: A page you no longer need. Give it to the binding, and it is gone. The binding takes a little of you in return.
+
+choice:
+  - Remove a card, take 8 damage -> one
+  - [if hp > 20] Remove two cards, take 16 damage -> two
+  - Leave -> leave
+
+@one
+  > hp -8
+  > card remove choose 1
+  archivist: Lighter already.
+  > end
+
+@two
+  > hp -16
+  > card remove choose 2
+  archivist: Lighter. Paler. Off you go.
+  > end
+
+@leave
+  archivist: Some people like their weight.
+  > end

@@ -1,0 +1,62 @@
+{
+  "id": "bandit-scribe",
+  "name": "Bandit Scribe",
+  "size": "medium",
+  "tags": [
+    "humanoid"
+  ],
+  "hp": [
+    44,
+    48
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "pickpocket",
+  "moves": {
+    "quill-stab": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "hero"
+        }
+      ]
+    },
+    "pickpocket": {
+      "intent": "special",
+      "effects": [
+        {
+          "do": "gold",
+          "amount": -12
+        }
+      ],
+      "name": "Pickpocket"
+    },
+    "scribble": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "addCard",
+          "card": "smudge",
+          "to": "discard"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "quill-stab": 45,
+      "pickpocket": 30,
+      "scribble": 25
+    }
+  },
+  "onDeath": [
+    {
+      "do": "gold",
+      "amount": 12
+    }
+  ],
+  "flavour": "Copies your notes and charges you for them."
+}

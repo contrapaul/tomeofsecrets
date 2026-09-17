@@ -58,6 +58,12 @@ export const Enemy = z.strictObject({
   moves: z.record(z.string(), Move),
   pattern: Pattern,
   phases: z.array(Phase).optional(),
+  /** Resolved when it dies, from its own point of view (a Scribe gives the gold back). */
+  onDeath: z.array(Effect).optional(),
+  /** What the `split` script divides it into. */
+  minion: z.string().optional(),
+  /** Bestiary flavour, one line. */
+  flavour: z.string().optional(),
 });
 export type Enemy = z.infer<typeof Enemy>;
 

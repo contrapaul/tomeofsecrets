@@ -1,0 +1,61 @@
+{
+  "id": "thornwood-sapling",
+  "name": "Thornwood Sapling",
+  "size": "medium",
+  "tags": [
+    "plant"
+  ],
+  "hp": [
+    50,
+    56
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "sap",
+  "start": {
+    "ritual": 1
+  },
+  "moves": {
+    "lash": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 5,
+          "target": "hero"
+        }
+      ]
+    },
+    "sap": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "heal",
+          "amount": 6,
+          "target": "self"
+        }
+      ],
+      "name": "Sap"
+    },
+    "creeping-roots": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "lash": 50,
+      "sap": 25,
+      "creeping-roots": 25
+    }
+  },
+  "flavour": "Every turn it is a little more tree than you would like."
+}

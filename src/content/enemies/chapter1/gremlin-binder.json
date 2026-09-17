@@ -1,0 +1,63 @@
+{
+  "id": "gremlin-binder",
+  "name": "Gremlin Binder",
+  "size": "small",
+  "tags": [
+    "humanoid"
+  ],
+  "hp": [
+    30,
+    34
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "staple",
+  "moves": {
+    "staple": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 5,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "vulnerable",
+          "amount": 1,
+          "target": "hero"
+        }
+      ]
+    },
+    "bind": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "script",
+          "id": "bind"
+        }
+      ],
+      "name": "Bind"
+    },
+    "shriek": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 1,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "staple": 50,
+      "bind": 25,
+      "shriek": 25
+    }
+  },
+  "flavour": "Binds books. Binds hands. Binds whatever is nearest."
+}

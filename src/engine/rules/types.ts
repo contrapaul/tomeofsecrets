@@ -1,4 +1,4 @@
-import type { Card, ClassDef, ClassId, Enemy, IntentKind, PowerTrigger, ResourceName, StatusId, TrapTrigger } from '../../content/schema';
+import type { Card, ClassDef, ClassId, EncounterPools, Enemy, IntentKind, PowerTrigger, Relic, ResourceName, StatusId, TrapTrigger, Vial } from '../../content/schema';
 import type { Effect } from '../../content/schema';
 import type { Streams } from '../rng';
 import type { CombatEvent } from '../events';
@@ -58,6 +58,11 @@ export interface HeroState {
   powers: PowerInstance[];
   traps: TrapInstance[];
   companion: CompanionState | null;
+  /** Vial ids held, in slot order. */
+  vials: string[];
+  vialSlots: number;
+  /** Relic ids, for the panel. The engine reads their effects through `hooks`. */
+  relics: string[];
   /** Block survives the start of turn (Aegis, Sacred Duty). Cleared when it applies. */
   barricade: boolean;
   /** Per-turn counters, reset at start of turn. */
@@ -115,7 +120,8 @@ export interface EnemyInstance {
 
 export type Prompt =
   | { kind: 'discard'; count: number; from: number[] }
-  | { kind: 'exhaust'; count: number; from: number[] };
+  | { kind: 'exhaust'; count: number; from: number[] }
+  | { kind: 'retrieve'; count: number; from: number[] };
 
 export interface EffectContext {
   source: { kind: 'hero'; cardUid?: number; cardId?: string } | { kind: 'enemy'; id: string } | { kind: 'companion' } | { kind: 'trap'; uid: number } | { kind: 'power'; uid: number } | { kind: 'system' };
@@ -156,6 +162,11 @@ export interface Content {
   enemies: Record<string, Enemy>;
   classes?: Record<string, ClassDef>;
   credits?: Record<string, { id: string; name: string; role: string; link?: string }>;
+  relics?: Record<string, Relic>;
+  vials?: Record<string, Vial>;
+  encounters?: Record<number, EncounterPools>;
+  /** Event scripts, raw .dlg text by name. */
+  events?: Record<string, string>;
 }
 
 export interface HeroSetup {
@@ -165,9 +176,19 @@ export interface HeroSetup {
   gold?: number;
   deck: { cardId: string; upgraded?: boolean }[];
   companion?: CompanionId;
-  /** Starting resources (relic effects arrive in Phase 5). */
   resources?: Partial<Record<ResourceName, number>>;
   maxEnergy?: number;
+  vials?: string[];
+  vialSlots?: number;
+  relics?: string[];
+  /** What relics do inside a fight, already merged by the run layer. */
+  hooks?: {
+    flags?: string[];
+    /** Resolved on turn 1 after block clears and energy refills, before the draw. */
+    fightStart?: Effect[];
+    /** Resolved at the start of every turn. */
+    turnStart?: Effect[];
+  };
 }
 
 export interface EncounterSetup {

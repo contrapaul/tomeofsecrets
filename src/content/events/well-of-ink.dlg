@@ -1,0 +1,25 @@
+title: The Well of Ink
+portrait left: seeker
+
+A well in the middle of the reading room, full to the brim with black ink. It does not reflect you.
+Something in it is turning, slowly.
+
+choice:
+  - Dip a card in (transform one card) -> transform
+  - Drink (+6 max HP, and a Debt) -> drink
+  - Back away -> leave
+
+@transform
+  > card transform choose 1
+  The card comes out different. The ink does not come off your hand.
+  > end
+
+@drink
+  > maxhp 6
+  > curse debt
+  It tastes like copper and old paper. You feel stronger. You feel owed.
+  > end
+
+@leave
+  The turning stops as you step back. It starts again when you turn around.
+  > end

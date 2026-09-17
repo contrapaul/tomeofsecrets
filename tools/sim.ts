@@ -8,6 +8,7 @@
  */
 import { loadContent } from '../src/content';
 import { playFight } from '../src/engine/ai/heuristic';
+import { playRun } from '../src/engine/ai/runner';
 import { createCombat, type HeroSetup } from '../src/engine/rules';
 
 function arg(name: string, fallback?: string): string | undefined {
@@ -27,8 +28,32 @@ function parseDeck(spec: string): { cardId: string; upgraded?: boolean }[] {
 }
 
 const command = process.argv[2];
+if (command === 'run') {
+  const content = loadContent();
+  const games = Number(arg('games', '200'));
+  const seed = arg('seed', 'sim')!;
+  const classes = (arg('class', 'paladin,tracker,mage')!.split(',')) as HeroSetup['classId'][];
+  for (const classId of classes) {
+    const t0 = performance.now();
+    const results = Array.from({ length: games }, (_, g) => playRun(content, { classId, seed: `${seed}-${g}` }));
+    const ms = performance.now() - t0;
+    const won = results.filter((r) => r.won).length;
+    const floors = results.map((r) => r.floor).sort((a, b) => a - b);
+    const hist: Record<number, number> = {};
+    for (const f of floors) hist[f] = (hist[f] ?? 0) + 1;
+    const deaths: Record<string, number> = {};
+    for (const r of results) if (r.deathBy) deaths[r.deathBy] = (deaths[r.deathBy] ?? 0) + 1;
+    const topDeaths = Object.entries(deaths).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => `${k} ${v}`).join(', ');
+    console.log(`run     ${classId} · ${games} runs in ${ms.toFixed(0)} ms`);
+    console.log(`won     ${((100 * won) / games).toFixed(1)}%   floor avg ${(floors.reduce((a, b) => a + b, 0) / games).toFixed(1)} · median ${floors[Math.floor(games / 2)]}`);
+    console.log(`floors  ${Object.entries(hist).map(([f, n]) => `${f}:${n}`).join(' ')}`);
+    console.log(`deaths  ${topDeaths || '—'}`);
+    console.log('');
+  }
+  process.exit(0);
+}
 if (command !== 'fight') {
-  console.error('usage: sim fight --deck <spec> --enemies <a,b> [--games N] [--seed s] [--class c] [--companion wolf] [--hp N]');
+  console.error('usage: sim fight --deck <spec> --enemies <a,b> [--games N] [--seed s] [--class c] [--companion wolf] [--hp N]\n       sim run [--class a,b] [--games N] [--seed s]');
   process.exit(1);
 }
 

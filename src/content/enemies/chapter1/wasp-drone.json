@@ -1,0 +1,41 @@
+{
+  "id": "wasp-drone",
+  "name": "Wasp Drone",
+  "size": "small",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    14,
+    14
+  ],
+  "rank": "minion",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "venom-sting",
+  "moves": {
+    "sting": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "poison",
+          "amount": 1,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "sting"
+    ]
+  },
+  "flavour": "One of many."
+}

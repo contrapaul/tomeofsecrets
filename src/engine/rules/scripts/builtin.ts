@@ -10,7 +10,7 @@ registerScript('split', (state, content, ctx) => {
   const self = state.enemies.find((e) => e.id === (ctx.source as { id: string }).id);
   if (!self || !self.alive) return;
   const def = content.enemies[self.enemyId]!;
-  const minionId = def.id.replace(/-slime$/, '-inkling');
+  const minionId = def.minion ?? def.id.replace(/-slime$/, '-inkling');
   if (!content.enemies[minionId]) return;
   const at = state.enemies.indexOf(self);
   for (let i = 0; i < 2; i++) {
@@ -23,4 +23,19 @@ registerScript('split', (state, content, ctx) => {
   self.hp = 0;
   self.intent = null;
   state.events.push({ t: 'die', target: self.id });
+});
+
+/** bind: you draw one fewer card next turn (the Gremlin Binder, the Tide Warden). */
+registerScript('bind', (state) => {
+  state.hero.drawPenaltyNext += 1;
+});
+
+/** ink-trap: your Companion is Stunned and you have one less energy next turn (the Mad Cartographer). */
+registerScript('ink-trap', (state) => {
+  if (state.hero.companion) {
+    state.hero.companion.stunned = true;
+    state.events.push({ t: 'companion', action: 'stun' });
+  } else {
+    state.hero.energyPenaltyNext += 1;
+  }
 });

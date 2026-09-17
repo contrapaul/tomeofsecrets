@@ -1,0 +1,62 @@
+{
+  "id": "feral-cur",
+  "name": "Feral Cur",
+  "size": "small",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    22,
+    26
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "howl",
+  "moves": {
+    "bite": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "hero"
+        }
+      ]
+    },
+    "howl": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 2,
+          "target": "all"
+        },
+        {
+          "do": "flag",
+          "name": "howled"
+        }
+      ]
+    },
+    "lunge": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero"
+        }
+      ],
+      "requires": "howled"
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "bite": 50,
+      "howl": 30,
+      "lunge": 20
+    }
+  },
+  "flavour": "Somebody's dog. Nobody's dog. Comes in twos."
+}

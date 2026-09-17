@@ -307,6 +307,10 @@ export class Playback {
         return;
       case 'prompt':
         return;
+      case 'vial':
+        void floatNumber(w.fx, w.player.x, w.player.y - 80, w.content.vials?.[ev.id]?.name ?? 'Vial', 'status');
+        await wait(d(0.2));
+        return;
       case 'die': {
         if (ev.target === 'hero') return;
         const e = w.enemies.get(ev.target);

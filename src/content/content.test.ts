@@ -39,11 +39,10 @@ describe('content', () => {
     for (const [id, e] of Object.entries(m.enemies)) expect(content.credits[e.artist], `${id} drawn by unknown ${e.artist}`).toBeDefined();
   });
 
-  it('every enemy that ships (has a chapter) has art, a credit and a Secret', () => {
-    const m = ArtManifest.parse(art);
+  it('every enemy that ships (has a chapter) has a credit and a Secret', () => {
+    // Art itself is allowed to be missing while students draw; the scanner reports it.
     for (const e of Object.values(content.enemies)) {
       if (!e.chapter) continue;
-      expect(m.enemies[e.id], `${e.id} has no art in public/art/enemies`).toBeDefined();
       expect(e.artist && content.credits[e.artist], `${e.id} has no credited artist`).toBeTruthy();
       expect(e.secret && content.cards[e.secret], `${e.id} has no Secret card`).toBeTruthy();
     }

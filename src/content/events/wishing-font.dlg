@@ -1,0 +1,18 @@
+title: The Wishing Font
+portrait left: seeker
+
+A stone basin of clear water in a room that has no business having clear water. Coins on the bottom. Some of them are very old.
+
+choice:
+  - [if gold >= 50] Throw in 50 gold -> wish
+  - Leave -> leave
+
+@wish
+  > gold -50
+  > card add random uncommon
+  Ripples. Then, floating up, something that was not there before.
+  > end
+
+@leave
+  You keep your coins. The water keeps its secrets.
+  > end

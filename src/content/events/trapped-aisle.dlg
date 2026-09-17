@@ -1,0 +1,25 @@
+title: The Trapped Aisle
+portrait left: seeker
+
+A narrow aisle, and something glinting at the far end. The floor is a chessboard of slightly loose flagstones.
+
+choice:
+  - Push through (take 12 damage, take the relic) -> push
+  - Sneak (a coin flip) -> sneak
+  - Go around -> leave
+
+@push
+  > hp -12
+  > relic random uncommon
+  Every third stone bites. You reach the end bleeding and holding something worth it.
+  > end
+
+@sneak
+  > flag set sneak-roll
+  You step, and step, and step. Nothing happens. Nothing happens. The glint is gone; someone else was sneakier.
+  > gold 20
+  > end
+
+@leave
+  You take the long way. It is long.
+  > end

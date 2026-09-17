@@ -1,0 +1,64 @@
+{
+  "id": "ogre-bookkeeper",
+  "name": "Ogre Bookkeeper",
+  "size": "large",
+  "tags": [
+    "humanoid"
+  ],
+  "hp": [
+    120,
+    130
+  ],
+  "rank": "elite",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "ledger-slam",
+  "moves": {
+    "ledger-slam": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 14,
+          "target": "hero"
+        }
+      ]
+    },
+    "count": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "self"
+        },
+        {
+          "do": "block",
+          "amount": 10
+        }
+      ],
+      "name": "Count"
+    },
+    "tally": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "hero",
+          "times": 2
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "ledger-slam",
+      "count",
+      "tally"
+    ]
+  },
+  "flavour": "Every debt in the Moss Halls is in that book. Yours is on page one."
+}

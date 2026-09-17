@@ -1,0 +1,60 @@
+{
+  "id": "bramble-sprite",
+  "name": "Bramble Sprite",
+  "size": "small",
+  "tags": [
+    "spirit",
+    "plant"
+  ],
+  "hp": [
+    30,
+    34
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "thorncoat",
+  "moves": {
+    "thorn-whip": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "hero",
+          "times": 2
+        }
+      ]
+    },
+    "root": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "grow": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 2,
+          "target": "self"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "thorn-whip",
+      "root",
+      "grow"
+    ]
+  },
+  "flavour": "The longer you leave it, the worse it gets. Like most weeds."
+}

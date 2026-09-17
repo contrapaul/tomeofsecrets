@@ -1,0 +1,76 @@
+{
+  "id": "ink-slime",
+  "name": "Ink Slime",
+  "size": "small",
+  "tags": [
+    "ooze"
+  ],
+  "hp": [
+    28,
+    32
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "ink-splash",
+  "moves": {
+    "splat": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 5,
+          "target": "hero"
+        }
+      ]
+    },
+    "smear": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 1,
+          "target": "hero"
+        }
+      ]
+    },
+    "divide": {
+      "intent": "special",
+      "effects": [
+        {
+          "do": "script",
+          "id": "split"
+        }
+      ],
+      "once": true,
+      "name": "Divide"
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "splat": 60,
+      "smear": 40
+    }
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "onEnter": "divide",
+      "pattern": {
+        "type": "weighted",
+        "moves": {
+          "splat": 60,
+          "smear": 40
+        }
+      }
+    }
+  ],
+  "minion": "ink-inkling",
+  "flavour": "It was a bottle of ink, once. It has opinions now."
+}

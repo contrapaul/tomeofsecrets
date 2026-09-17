@@ -1,0 +1,94 @@
+{
+  "id": "mad-cartographer",
+  "name": "The Mad Cartographer",
+  "size": "large",
+  "tags": [
+    "humanoid",
+    "spirit"
+  ],
+  "hp": [
+    240,
+    240
+  ],
+  "rank": "boss",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "fold-space",
+  "moves": {
+    "compass-stab": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 13,
+          "target": "hero"
+        }
+      ]
+    },
+    "fold": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 18
+        }
+      ],
+      "hidden": true,
+      "name": "Fold"
+    },
+    "lost": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "addCard",
+          "card": "dazed",
+          "to": "hand",
+          "count": 2
+        }
+      ],
+      "hidden": true,
+      "name": "Lost"
+    },
+    "ink-trap": {
+      "intent": "special",
+      "effects": [
+        {
+          "do": "script",
+          "id": "ink-trap"
+        },
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "hero"
+        }
+      ],
+      "name": "Ink Trap",
+      "once": true
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "compass-stab",
+      "fold",
+      "compass-stab",
+      "lost"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "onEnter": "ink-trap",
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "compass-stab",
+          "lost",
+          "compass-stab",
+          "fold"
+        ]
+      }
+    }
+  ],
+  "flavour": "He drew the map. Then he drew the map again, differently. Then he drew you."
+}

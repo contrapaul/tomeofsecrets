@@ -1,0 +1,66 @@
+{
+  "id": "wasp-queen",
+  "name": "Wasp Queen",
+  "size": "medium",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    80,
+    80
+  ],
+  "rank": "elite",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "venom-sting",
+  "moves": {
+    "sting": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "poison",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "lay": {
+      "intent": "summon",
+      "effects": [
+        {
+          "do": "summon",
+          "enemy": "wasp-drone",
+          "max": 4
+        }
+      ],
+      "name": "Lay"
+    },
+    "frenzy": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 2,
+          "target": "all"
+        }
+      ],
+      "name": "Frenzy"
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "sting": 45,
+      "lay": 35,
+      "frenzy": 20
+    }
+  },
+  "flavour": "The hive is the library now."
+}

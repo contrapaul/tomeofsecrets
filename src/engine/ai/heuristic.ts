@@ -76,7 +76,8 @@ export function playTurn(state: CombatState, content: Content): void {
   let guard = 0;
   while (state.phase === 'player' && guard++ < 50) {
     if (state.prompt) {
-      respondPrompt(state, content, worstCards(state, content, state.prompt.count, state.prompt.from));
+      const p = state.prompt;
+      respondPrompt(state, content, p.kind === 'retrieve' ? p.from.slice(0, p.count) : worstCards(state, content, p.count, p.from));
       continue;
     }
     const plays = legalPlays(state, content);

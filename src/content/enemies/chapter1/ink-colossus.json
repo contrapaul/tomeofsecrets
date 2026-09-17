@@ -1,0 +1,103 @@
+{
+  "id": "ink-colossus",
+  "name": "The Ink Colossus",
+  "size": "large",
+  "tags": [
+    "ooze",
+    "construct"
+  ],
+  "hp": [
+    260,
+    260
+  ],
+  "rank": "boss",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "inkflood",
+  "start": {
+    "ritual": 2
+  },
+  "moves": {
+    "crush": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "hero"
+        }
+      ]
+    },
+    "spill": {
+      "intent": "summon",
+      "effects": [
+        {
+          "do": "summon",
+          "enemy": "ink-slime",
+          "max": 3
+        }
+      ],
+      "name": "Spill"
+    },
+    "drown": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 2,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ],
+      "name": "Drown"
+    },
+    "deluge": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 2,
+          "target": "hero"
+        }
+      ],
+      "name": "Deluge",
+      "once": true
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "crush",
+      "spill",
+      "drown"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "onEnter": "deluge",
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "crush",
+          "drown",
+          "crush",
+          "spill"
+        ]
+      }
+    }
+  ],
+  "flavour": "It was the well the whole library drew from. Now it draws from you."
+}

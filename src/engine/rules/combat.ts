@@ -5,10 +5,18 @@ import { drawCards, enqueue, fireTraps, gainEnergy, moveFromHand, runQueue, spaw
 import { chooseIntent, refreshIntents, skipReason } from './intents';
 import { applyStatus, dealDamage, decay, decayHeroRound, gainBlock, heal, loseHp, ROUND_DECAY, setStatusTo } from './mutate';
 import { getStatus } from './statuses';
+import type { Effect } from '../../content/schema';
 import type { CombatState, Content, EncounterSetup, EnemyInstance, HeroSetup } from './types';
 
 export const DRAW_PER_TURN = 5;
 export const BASE_ENERGY = 3;
+
+/** Relic effects for the fight being created; read by startHeroTurn. Not state: the run re-supplies them on resume. */
+let hooks: { fightStart: Effect[]; turnStart: Effect[] } = { fightStart: [], turnStart: [] };
+
+export function setHooks(h: { fightStart?: Effect[]; turnStart?: Effect[] }): void {
+  hooks = { fightStart: h.fightStart ?? [], turnStart: h.turnStart ?? [] };
+}
 
 // ---------------------------------------------------------------- setup
 
@@ -30,11 +38,14 @@ export function createCombat(content: Content, hero: HeroSetup, encounter: Encou
       powers: [],
       traps: [],
       companion: hero.companion ? { id: hero.companion, bonus: 0, stunned: false, enraged: false, turnsActed: 0 } : null,
+      vials: [...(hero.vials ?? [])],
+      vialSlots: hero.vialSlots ?? 3,
+      relics: [...(hero.relics ?? [])],
       barricade: false,
       turn: freshTurn(),
       drawPenaltyNext: 0,
       energyPenaltyNext: 0,
-      flags: {},
+      flags: Object.fromEntries((hero.hooks?.flags ?? []).map((f) => [f, true])),
       fresh: [],
     },
     piles: { draw: [], hand: [], discard: [], exhaust: [] },
@@ -58,6 +69,7 @@ export function createCombat(content: Content, hero: HeroSetup, encounter: Encou
 
   for (const id of encounter.enemies) state.enemies.push(spawnEnemy(state, content, id));
   state.events.push({ t: 'fightStart' });
+  hooks = { fightStart: hero.hooks?.fightStart ?? [], turnStart: hero.hooks?.turnStart ?? [] };
 
   for (const c of state.piles.draw) {
     const card = cardOf(content, c);
@@ -99,7 +111,12 @@ export function startHeroTurn(state: CombatState, content: Content): void {
   tickStartOfTurn(state, content, HERO_ID);
   if (state.phase !== 'player') return;
 
-  const draws = Math.max(0, DRAW_PER_TURN + h.turn.drawBonus - h.drawPenaltyNext + (h.flags.aspectOfTheHawk ? 1 : 0));
+  if (state.turn === 1 && hooks.fightStart.length) enqueue(state, hooks.fightStart, { source: { kind: 'system' } });
+  if (hooks.turnStart.length) enqueue(state, hooks.turnStart, { source: { kind: 'system' } });
+  runQueue(state, content);
+  if (state.phase !== 'player') return;
+
+  const draws = Math.max(0, DRAW_PER_TURN + h.turn.drawBonus - h.drawPenaltyNext + (h.flags.aspectOfTheHawk ? 1 : 0) - (h.flags.inkheart ? 1 : 0));
   h.drawPenaltyNext = 0;
   drawCards(state, content, draws);
   if (h.companion && h.flags.bestialWrath) enqueue(state, [{ do: 'companion', action: 'act' }], { source: { kind: 'system' } });
@@ -149,6 +166,31 @@ export function playCard(state: CombatState, content: Content, uid: number, targ
   return { ok: true };
 }
 
+export type VialResult = { ok: true } | { ok: false; reason: 'not-your-turn' | 'prompt-open' | 'resolving' | 'no-vial' | 'needs-target' | 'bad-target' | 'passive' };
+
+/** Drink a vial by slot index. Targeted vials need a living enemy. */
+export function useVial(state: CombatState, content: Content, index: number, targetId?: string): VialResult {
+  if (state.phase !== 'player') return { ok: false, reason: 'not-your-turn' };
+  if (state.prompt) return { ok: false, reason: 'prompt-open' };
+  if (state.inPlay) return { ok: false, reason: 'resolving' };
+  const id = state.hero.vials[index];
+  const vial = id ? content.vials?.[id] : undefined;
+  if (!vial) return { ok: false, reason: 'no-vial' };
+  if (vial.passive) return { ok: false, reason: 'passive' };
+  if (vial.target === 'enemy') {
+    if (!targetId) return { ok: false, reason: 'needs-target' };
+    const e = state.enemies.find((x) => x.id === targetId);
+    if (!e || !e.alive) return { ok: false, reason: 'bad-target' };
+  }
+  state.hero.vials.splice(index, 1);
+  state.events.push({ t: 'vial', id: vial.id, index, targetId });
+  enqueue(state, vial.effects, { source: { kind: 'hero', cardId: vial.id }, targetId });
+  runQueue(state, content);
+  checkWin(state);
+  refreshIntents(state, content);
+  return { ok: true };
+}
+
 /** Answer an open discard/exhaust prompt with the chosen hand cards. */
 export function respondPrompt(state: CombatState, content: Content, uids: number[]): boolean {
   const p = state.prompt;
@@ -158,6 +200,17 @@ export function respondPrompt(state: CombatState, content: Content, uids: number
   if (unique.length !== Math.min(p.count, p.from.length)) return false;
   state.prompt = null;
   for (const u of unique) {
+    if (p.kind === 'retrieve') {
+      for (const pile of [state.piles.discard, state.piles.exhaust]) {
+        const i = pile.findIndex((c) => c.uid === u);
+        if (i >= 0 && state.piles.hand.length < 10) {
+          const [inst] = pile.splice(i, 1);
+          state.piles.hand.push(inst!);
+          state.events.push({ t: 'cardMoved', uid: u, to: 'hand' });
+        }
+      }
+      continue;
+    }
     const inst = state.piles.hand.find((c) => c.uid === u);
     if (inst) moveFromHand(state, content, inst, p.kind);
   }

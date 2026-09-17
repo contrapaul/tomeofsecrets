@@ -1,0 +1,15 @@
+[
+  { "id": "ember-vial", "name": "Ember Vial", "rarity": "common", "target": "none", "text": "Deal 10 damage to ALL enemies.", "effects": [{ "do": "damage", "amount": 10, "target": "all" }] },
+  { "id": "frost-vial", "name": "Frost Vial", "rarity": "common", "target": "none", "text": "Apply 3 Chill to ALL enemies.", "effects": [{ "do": "status", "status": "chill", "amount": 3, "target": "all" }] },
+  { "id": "healing-draught", "name": "Healing Draught", "rarity": "common", "target": "none", "text": "Heal 20.", "effects": [{ "do": "heal", "amount": 20 }] },
+  { "id": "ink-draught", "name": "Ink Draught", "rarity": "common", "target": "none", "text": "Draw 3.", "effects": [{ "do": "draw", "amount": 3 }] },
+  { "id": "tonic-of-iron", "name": "Tonic of Iron", "rarity": "common", "target": "none", "text": "Gain 12 block.", "effects": [{ "do": "block", "amount": 12 }] },
+  { "id": "venom-vial", "name": "Venom Vial", "rarity": "common", "target": "enemy", "text": "Apply 6 Poison.", "effects": [{ "do": "status", "status": "poison", "amount": 6, "target": "target" }] },
+  { "id": "sleeping-draught", "name": "Sleeping Draught", "rarity": "common", "target": "none", "text": "Apply 3 Weak to ALL enemies.", "effects": [{ "do": "status", "status": "weak", "amount": 3, "target": "all" }] },
+  { "id": "elixir-of-might", "name": "Elixir of Might", "rarity": "uncommon", "target": "none", "text": "Gain 2 Strength.", "effects": [{ "do": "status", "status": "strength", "amount": 2, "target": "hero" }] },
+  { "id": "elixir-of-grace", "name": "Elixir of Grace", "rarity": "uncommon", "target": "none", "text": "Gain 2 Dexterity.", "effects": [{ "do": "status", "status": "dexterity", "amount": 2, "target": "hero" }] },
+  { "id": "ghost-ink", "name": "Ghost Ink", "rarity": "uncommon", "target": "none", "text": "Gain 1 Intangible.", "effects": [{ "do": "status", "status": "intangible", "amount": 1, "target": "hero" }] },
+  { "id": "vial-of-focus", "name": "Vial of Focus", "rarity": "uncommon", "target": "none", "text": "Gain 2 energy.", "effects": [{ "do": "energy", "amount": 2 }] },
+  { "id": "distilled-lore", "name": "Distilled Lore", "rarity": "rare", "target": "none", "text": "Gain 2 energy. Your hand is not discarded this turn.", "effects": [{ "do": "energy", "amount": 2 }, { "do": "flag", "name": "retainHand" }] },
+  { "id": "phoenix-feather", "name": "Phoenix Feather", "rarity": "rare", "target": "none", "text": "Held: if you would die, revive at 30% and the feather is spent.", "effects": [], "passive": "revive" }
+]

@@ -63,6 +63,7 @@ export function evalCondition(state: CombatState, content: Content, when: Condit
     return (content.enemies[target.enemyId]?.tags ?? []).includes(when.targetTag);
   }
   if ('flag' in when) return !!state.hero.flags[when.flag];
+  if ('goldAtLeast' in when) return state.hero.gold >= when.goldAtLeast;
   return false;
 }
 
@@ -197,8 +198,18 @@ function resolveOne(state: CombatState, content: Content, effect: AnyEffect, ctx
       }
       break;
     }
+    case 'retrieve': {
+      const pile = state.piles[effect.from];
+      const n = Math.min(effect.count ?? 1, pile.length);
+      if (n > 0) {
+        state.prompt = { kind: 'retrieve', count: n, from: pile.map((c) => c.uid) };
+        state.events.push({ t: 'prompt', kind: 'retrieve', count: n });
+      }
+      break;
+    }
     case 'addCard': {
       const count = effect.count ?? 1;
+      if (!content.cards[effect.card]) throw new Error(`addCard: unknown card ${effect.card}`);
       for (let i = 0; i < count; i++) {
         const inst = makeInstance(state, effect.card, effect.upgraded ?? false);
         if (effect.to === 'hand' && state.piles.hand.length < HAND_LIMIT) {
@@ -317,6 +328,7 @@ export function drawCards(state: CombatState, content: Content, n: number): Card
   for (const inst of drawn) {
     const card = cardOf(content, inst);
     if (card.onDraw) enqueue(state, card.onDraw, { source: { kind: 'hero', cardUid: inst.uid, cardId: inst.cardId } });
+    if (card.type === 'status' && state.hero.flags.driedInk) moveFromHand(state, content, inst, 'exhaust');
   }
   return drawn;
 }

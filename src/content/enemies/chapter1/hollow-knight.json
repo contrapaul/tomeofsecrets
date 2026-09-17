@@ -1,0 +1,59 @@
+{
+  "id": "hollow-knight",
+  "name": "Hollow Knight",
+  "size": "large",
+  "tags": [
+    "undead",
+    "construct"
+  ],
+  "hp": [
+    60,
+    66
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "iron-guard",
+  "moves": {
+    "guard": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 10
+        }
+      ]
+    },
+    "slam": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 11,
+          "target": "hero"
+        }
+      ]
+    },
+    "rally": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "self"
+        }
+      ],
+      "once": true
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "guard",
+      "slam",
+      "slam",
+      "rally"
+    ]
+  },
+  "flavour": "An empty suit of armour that remembers how to fight."
+}

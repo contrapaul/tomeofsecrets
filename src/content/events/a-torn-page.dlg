@@ -1,0 +1,28 @@
+title: A Torn Page
+portrait left: seeker
+portrait right: archivist mood=sly
+
+archivist: A page, torn from something older than this place. It hums when you get close.
+seeker: What's the catch?
+archivist: There is always a catch, {name}.
+
+choice:
+  - Take the page (a relic, and a Doubt in your deck) -> take
+  - Leave it -> leave
+  - [if gold >= 50] Pay 50 gold for it, no strings -> buy
+
+@take
+  > relic random common
+  > curse doubt
+  archivist: Wise. Foolish. Both. Off you go.
+  > end
+
+@leave
+  archivist: Another time, then. It will still be here. It is always here.
+  > end
+
+@buy
+  > gold -50
+  > relic random common
+  archivist: Coin. How refreshingly ordinary.
+  > end

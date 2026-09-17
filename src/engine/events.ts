@@ -27,7 +27,8 @@ export type CombatEvent =
   | { t: 'companion'; action: 'act' | 'enrage' | 'stun' | 'unstun' | 'feed' }
   | { t: 'power'; uid: number; cardId: string; state: 'added' | 'fired' | 'removed' }
   | { t: 'phase'; enemy: string; phase: number }
-  | { t: 'prompt'; kind: 'discard' | 'exhaust'; count: number }
+  | { t: 'prompt'; kind: 'discard' | 'exhaust' | 'retrieve'; count: number }
+  | { t: 'vial'; id: string; index: number; targetId?: string }
   | { t: 'end'; result: 'won' | 'lost' };
 
 export type EventType = CombatEvent['t'];

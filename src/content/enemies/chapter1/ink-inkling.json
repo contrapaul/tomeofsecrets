@@ -1,0 +1,35 @@
+{
+  "id": "ink-inkling",
+  "name": "Inkling",
+  "size": "small",
+  "tags": [
+    "ooze"
+  ],
+  "hp": [
+    10,
+    10
+  ],
+  "rank": "minion",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "ink-splash",
+  "moves": {
+    "splat": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "splat"
+    ]
+  },
+  "flavour": "Half an opinion."
+}

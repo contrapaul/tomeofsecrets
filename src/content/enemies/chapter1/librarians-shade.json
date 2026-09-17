@@ -1,0 +1,71 @@
+{
+  "id": "librarians-shade",
+  "name": "The Librarian's Shade",
+  "size": "large",
+  "tags": [
+    "spirit",
+    "undead"
+  ],
+  "hp": [
+    100,
+    110
+  ],
+  "rank": "elite",
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "reshelve",
+  "moves": {
+    "shush": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "hero"
+        }
+      ]
+    },
+    "reshelve": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "addCard",
+          "card": "torn-page",
+          "to": "draw",
+          "count": 2
+        }
+      ],
+      "name": "Reshelve"
+    },
+    "overdue": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 18,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "shush",
+      "reshelve"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "overdue",
+          "shush"
+        ]
+      }
+    }
+  ],
+  "flavour": "It never left. It never will. Quiet, please."
+}

@@ -1,0 +1,41 @@
+[
+  { "id": "sunbrand-libram", "name": "Sunbrand Libram", "tier": "starter", "class": "paladin", "text": "Start each fight with 1 Holy Power.", "combat": { "resource": { "name": "holyPower", "amount": 1 } } },
+  { "id": "bone-whistle", "name": "Bone Whistle", "tier": "starter", "class": "tracker", "text": "Your Companion is with you. It acts at the end of your turn." },
+  { "id": "runed-focus", "name": "Runed Focus", "tier": "starter", "class": "mage", "text": "Start each fight with 1 Arcane Charge.", "combat": { "resource": { "name": "charge", "amount": 1 } } },
+
+  { "id": "iron-bookmark", "name": "Iron Bookmark", "tier": "common", "text": "Start each fight with 4 block.", "combat": { "fightStart": [{ "do": "block", "amount": 4 }] } },
+  { "id": "reading-glasses", "name": "Reading Glasses", "tier": "common", "text": "Elites and bosses also show their next-but-one intent.", "combat": { "flags": ["readingGlasses"] } },
+  { "id": "inkwell", "name": "Inkwell", "tier": "common", "text": "Draw 1 extra card at the start of each fight.", "combat": { "fightStart": [{ "do": "draw", "amount": 1 }] } },
+  { "id": "quill-of-haste", "name": "Quill of Haste", "tier": "common", "text": "Gain 1 energy on the first turn of each fight.", "combat": { "flags": ["quillOfHaste"] } },
+  { "id": "lucky-coin", "name": "Lucky Coin", "tier": "common", "text": "Gold from fights is increased by 25%.", "run": { "goldMult": 1.25 } },
+  { "id": "whetstone", "name": "Whetstone", "tier": "common", "text": "On pickup, upgrade two random Attacks.", "run": { "upgradeRandomAttacks": 2 } },
+  { "id": "candle-stub", "name": "Candle Stub", "tier": "common", "text": "Rest heals 15% more.", "run": { "restBonus": 0.15 } },
+  { "id": "salt-circle", "name": "Salt Circle", "tier": "common", "text": "Start each fight with 1 Artifact.", "combat": { "fightStart": [{ "do": "status", "status": "artifact", "amount": 1, "target": "hero" }] } },
+  { "id": "vial-belt", "name": "Vial Belt", "tier": "common", "text": "One more vial slot.", "run": { "vialSlots": 1 } },
+  { "id": "preserved-heart", "name": "Preserved Heart", "tier": "common", "text": "+7 max HP.", "run": { "maxHp": 7 } },
+  { "id": "ledger", "name": "Ledger", "tier": "common", "text": "Gain 5 gold after each fight.", "run": { "goldAfterFight": 5 } },
+  { "id": "warding-charm", "name": "Warding Charm", "tier": "common", "text": "The first attack against you each fight deals half.", "combat": { "flags": ["wardingCharm"] } },
+  { "id": "pocket-anvil", "name": "Pocket Anvil", "tier": "common", "text": "The Smith upgrades two cards.", "run": { "smithUpgrades": 2 } },
+  { "id": "dried-ink", "name": "Dried Ink", "tier": "common", "text": "Status cards are exhausted when drawn.", "combat": { "flags": ["driedInk"] } },
+  { "id": "snack-tin", "name": "Snack Tin", "tier": "common", "text": "Heal 6 after each fight.", "run": { "healAfterFight": 6 } },
+  { "id": "brass-key", "name": "Brass Key", "tier": "common", "text": "Treasure offers two relics; choose one.", "run": { "treasureChoices": 2 } },
+
+  { "id": "hourglass", "name": "Hourglass", "tier": "uncommon", "text": "Keep one card in hand at the end of each turn.", "combat": { "flags": ["hourglass"] } },
+  { "id": "thornvine-bracers", "name": "Thornvine Bracers", "tier": "uncommon", "text": "3 Thorns.", "combat": { "fightStart": [{ "do": "status", "status": "thorns", "amount": 3, "target": "hero" }] } },
+  { "id": "battle-standard", "name": "Battle Standard", "tier": "uncommon", "text": "Start each fight with 1 Strength.", "combat": { "fightStart": [{ "do": "status", "status": "strength", "amount": 1, "target": "hero" }] } },
+  { "id": "ironwood-ring", "name": "Ironwood Ring", "tier": "uncommon", "text": "Start each fight with 1 Dexterity.", "combat": { "fightStart": [{ "do": "status", "status": "dexterity", "amount": 1, "target": "hero" }] } },
+  { "id": "mercenarys-chit", "name": "Mercenary's Chit", "tier": "uncommon", "text": "Merchant prices are 20% lower.", "run": { "shopMult": 0.8 } },
+  { "id": "hammer-emblem", "name": "Hammer Emblem", "tier": "uncommon", "class": "paladin", "text": "Start each fight with 2 Holy Power.", "combat": { "resource": { "name": "holyPower", "amount": 2 } } },
+  { "id": "worn-leash", "name": "Worn Leash", "tier": "uncommon", "class": "tracker", "text": "Your Companion deals 2 more damage.", "combat": { "fightStart": [{ "do": "companion", "action": "feed", "bonus": 2 }] } },
+  { "id": "trappers-kit", "name": "Trapper's Kit", "tier": "uncommon", "class": "tracker", "text": "You can hold three armed traps.", "combat": { "flags": ["trappersKit"] } },
+  { "id": "ember-charm", "name": "Ember Charm", "tier": "uncommon", "class": "mage", "text": "Start each fight with 2 Arcane Charges.", "combat": { "resource": { "name": "charge", "amount": 2 } } },
+
+  { "id": "phylactery", "name": "Phylactery", "tier": "rare", "text": "Once per run, survive a killing blow at 30% HP.", "combat": { "flags": ["reviveOnce"] }, "run": { "oncePerRun": true } },
+  { "id": "golden-bookmark", "name": "Golden Bookmark", "tier": "rare", "text": "Draw 2 extra cards at the start of each fight.", "combat": { "fightStart": [{ "do": "draw", "amount": 2 }] } },
+  { "id": "heros-bracer", "name": "Hero's Bracer", "tier": "rare", "text": "Whenever an enemy dies, heal 3.", "combat": { "fightStart": [{ "do": "power", "trigger": "onEnemyDeath", "name": "Hero's Bracer", "effects": [{ "do": "heal", "amount": 3 }] }] } },
+
+  { "id": "cursed-tome", "name": "Cursed Tome", "tier": "boss", "text": "+1 energy each turn. You cannot Rest at Camps.", "run": { "energy": 1 } },
+  { "id": "inkheart", "name": "Inkheart", "tier": "boss", "text": "+1 energy each turn. Draw 1 fewer card each turn.", "run": { "energy": 1 }, "combat": { "flags": ["inkheart"] } },
+  { "id": "fresh-pages", "name": "Fresh Pages", "tier": "boss", "text": "Transform every Starter Attack and Skill into a random card of your class." },
+  { "id": "black-bookmark", "name": "Black Bookmark", "tier": "boss", "text": "Whenever you Exhaust a card, deal 3 damage to ALL enemies.", "combat": { "fightStart": [{ "do": "power", "trigger": "onExhaust", "name": "Black Bookmark", "effects": [{ "do": "damage", "amount": 3, "target": "all" }] }] } }
+]

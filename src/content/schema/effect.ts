@@ -52,6 +52,7 @@ export const Condition = z.union([
   z.strictObject({ firstCardThisTurn: z.literal(true) }),
   z.strictObject({ targetTag: EnemyTag }),
   z.strictObject({ flag: z.string() }),
+  z.strictObject({ goldAtLeast: z.int() }),
 ]);
 export type Condition = z.infer<typeof Condition>;
 
@@ -77,6 +78,7 @@ export type Effect =
   | { do: 'spend'; name: ResourceName; then: Effect[] }
   | { do: 'exhaust'; from: 'hand' | 'random' | 'choose'; count?: number }
   | { do: 'discard'; from: 'hand' | 'random' | 'choose'; count?: number }
+  | { do: 'retrieve'; from: 'discard' | 'exhaust'; count?: number }
   | { do: 'addCard'; card: string; to: 'hand' | 'discard' | 'draw'; upgraded?: boolean; count?: number }
   | { do: 'trap'; trigger: TrapTrigger; effects: Effect[] }
   | { do: 'companion'; action: 'act' | 'enrage' | 'unstun' | 'feed'; bonus?: number }
@@ -100,6 +102,7 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
     z.strictObject({ do: z.literal('spend'), name: ResourceName, then: z.array(Effect) }),
     z.strictObject({ do: z.literal('exhaust'), from: z.enum(['hand', 'random', 'choose']), count: z.int().min(1).optional() }),
     z.strictObject({ do: z.literal('discard'), from: z.enum(['hand', 'random', 'choose']), count: z.int().min(1).optional() }),
+    z.strictObject({ do: z.literal('retrieve'), from: z.enum(['discard', 'exhaust']), count: z.int().min(1).optional() }),
     z.strictObject({ do: z.literal('addCard'), card: z.string(), to: z.enum(['hand', 'discard', 'draw']), upgraded: z.boolean().optional(), count: z.int().min(1).optional() }),
     z.strictObject({ do: z.literal('trap'), trigger: TrapTrigger, effects: z.array(Effect) }),
     z.strictObject({ do: z.literal('companion'), action: z.enum(['act', 'enrage', 'unstun', 'feed']), bonus: z.int().optional() }),

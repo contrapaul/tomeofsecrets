@@ -1,0 +1,27 @@
+title: The Bookseller
+portrait left: seeker
+portrait right: bookseller
+
+bookseller: Rare volumes! Rarer than they should be, if you take my meaning.
+bookseller: Seventy-five gold for something you have never seen. Or I pay you a hundred to carry something nobody wants.
+
+choice:
+  - [if gold >= 75] Buy a random Rare card, 75 gold -> buy
+  - Take 100 gold and a Curse -> curse
+  - Walk on -> leave
+
+@buy
+  > gold -75
+  > card add random rare
+  bookseller: Handle it carefully. Or don't. It's yours.
+  > end
+
+@curse
+  > gold 100
+  > curse injury
+  bookseller: Pleasure doing business. Mind the paper cuts.
+  > end
+
+@leave
+  bookseller: Suit yourself. The shelves remember who walked past.
+  > end

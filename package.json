@@ -13,7 +13,7 @@
     "check:boundary": "node scripts/check-boundary.mjs",
     "check": "npm run typecheck && npm run lint && npm run check:boundary && npm run test",
     "deploy": "npm run build && wrangler deploy",
-    "sim": "tsx tools/sim.ts",
+    "sim": "vite-node tools/sim.ts --",
     "art": "tsx tools/scan-art.ts",
     "lint:content": "tsx tools/scan-art.ts --check && vitest run src/content",
     "art:templates": "tsx tools/make-templates.ts",
@@ -34,6 +34,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
     "vite": "^8.3.0",
+    "vite-node": "^6.0.0",
     "vitest": "^5.0.1",
     "wrangler": "^4.132.0"
   },

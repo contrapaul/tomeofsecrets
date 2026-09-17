@@ -1,0 +1,18 @@
+title: Moss Spring
+portrait left: seeker
+
+Warm water rising through the flagstones. The moss around it is impossibly green.
+
+choice:
+  - Bathe (heal 30%) -> bathe
+  - Drink (+3 max HP) -> drink
+
+@bathe
+  > heal pct 30
+  The aches go. Most of them.
+  > end
+
+@drink
+  > maxhp 3
+  Mineral. Green. Fine.
+  > end

@@ -1,0 +1,62 @@
+{
+  "id": "mossback-beetle",
+  "name": "Mossback Beetle",
+  "size": "medium",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    40,
+    46
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "shell-up",
+  "moves": {
+    "shell": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8
+        }
+      ]
+    },
+    "bite": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "hero"
+        }
+      ]
+    },
+    "molt": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "removeStatus",
+          "status": "debuffs",
+          "target": "self"
+        },
+        {
+          "do": "status",
+          "status": "platedArmor",
+          "amount": 3,
+          "target": "self"
+        }
+      ],
+      "name": "Molt"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "shell",
+      "bite",
+      "molt"
+    ]
+  },
+  "flavour": "Slow, armoured, and entirely unbothered by you."
+}

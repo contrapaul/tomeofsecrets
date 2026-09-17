@@ -1,0 +1,56 @@
+{
+  "id": "page-wisp",
+  "name": "Page Wisp",
+  "size": "small",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    12,
+    15
+  ],
+  "chapter": 1,
+  "artist": "placeholder",
+  "secret": "wisp-light",
+  "moves": {
+    "flicker": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    },
+    "fade": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 4
+        }
+      ]
+    },
+    "swarm": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero",
+          "times": 2
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "flicker": 50,
+      "fade": 30,
+      "swarm": 20
+    }
+  },
+  "flavour": "A page that refused to be read. It flutters in threes."
+}

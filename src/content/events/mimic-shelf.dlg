@@ -1,0 +1,18 @@
+title: The Mimic Shelf
+portrait left: seeker
+
+A shelf that is slightly too neat. The spines are all the same colour. One of them is breathing.
+There is something shiny behind the third book.
+
+choice:
+  - Reach for it -> reach
+  - Leave it alone -> leave
+
+@reach
+  > fight mossback-beetle,page-wisp,page-wisp reward:double
+  The shelf snaps shut on nothing. Whatever was behind it is yours now.
+  > end
+
+@leave
+  You back away. The shelf exhales.
+  > end

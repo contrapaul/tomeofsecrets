@@ -1,0 +1,12 @@
+title: Campfire Tale
+portrait left: seeker
+portrait right: scholar
+
+scholar: Sit. I'll tell you about the last one who came through here.
+scholar: They got further than you'd think. Kept a page from every monster they beat. Called it their tome.
+seeker: What happened to them?
+scholar: Ran out of pages. Here, take this. It's the one they left me.
+
+> hp 10
+> card add bookmark
+> end

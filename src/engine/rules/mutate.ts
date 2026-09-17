@@ -49,6 +49,10 @@ export function dealDamage(state: CombatState, content: Content, targetId: strin
   }
 
   let dealt = Math.max(0, Math.floor(amount));
+  if (opts.attack && targetId === HERO_ID && state.hero.flags.wardingCharm) {
+    delete state.hero.flags.wardingCharm;
+    dealt = Math.floor(dealt / 2);
+  }
   if (getStatus(target.statuses, 'intangible') > 0 && dealt > 1) {
     dealt = 1;
     state.events.push({ t: 'negated', target: targetId, by: 'intangible' });
@@ -107,6 +111,8 @@ function die(state: CombatState, content: Content, target: Combatant): void {
     target.intent = null;
     state.events.push({ t: 'die', target: target.id });
     state.hero.flags.enemyDiedThisTurn = true;
+    const def = content.enemies[target.enemyId];
+    if (def?.onDeath?.length) state.queue.unshift(...def.onDeath.map((effect) => ({ effect, ctx: { source: { kind: 'enemy' as const, id: target.id }, targetId: HERO_ID } })));
     // Living Bomb: the blast hits everyone else.
     const bomb = getStatus(target.statuses, 'bomb');
     if (bomb > 0) {

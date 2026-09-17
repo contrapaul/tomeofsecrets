@@ -1,32 +1,328 @@
 [
-  { "id": "quick-jab", "name": "Quick Jab", "class": "neutral", "type": "attack", "rarity": "common", "cost": 0, "target": "enemy",
-    "effects": [{ "do": "damage", "amount": 3, "target": "target" }],
-    "upgrade": { "effects": [{ "do": "damage", "amount": 5, "target": "target" }] } },
-  { "id": "sidestep", "name": "Sidestep", "class": "neutral", "type": "skill", "rarity": "common", "cost": 0, "target": "none",
-    "effects": [{ "do": "block", "amount": 3 }],
-    "upgrade": { "effects": [{ "do": "block", "amount": 5 }] } },
-  { "id": "bandages", "name": "Bandages", "class": "neutral", "type": "skill", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "heal", "amount": 4 }], "keywords": ["exhaust"],
-    "upgrade": { "effects": [{ "do": "heal", "amount": 6 }] } },
-  { "id": "trip", "name": "Trip", "class": "neutral", "type": "skill", "rarity": "common", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "status", "status": "vulnerable", "amount": 2, "target": "target" }],
-    "upgrade": { "effects": [{ "do": "status", "status": "vulnerable", "amount": 3, "target": "target" }] } },
-  { "id": "second-look", "name": "Second Look", "class": "neutral", "type": "skill", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "draw", "amount": 2 }, { "do": "discard", "from": "choose", "count": 1 }],
-    "upgrade": { "effects": [{ "do": "draw", "amount": 3 }, { "do": "discard", "from": "choose", "count": 1 }] } },
-  { "id": "grit", "name": "Grit", "class": "neutral", "type": "skill", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "if", "when": { "heroBelowHp": 0.5 }, "then": [{ "do": "block", "amount": 10 }], "else": [{ "do": "block", "amount": 6 }] }],
+  {
+    "id": "quick-jab",
+    "name": "Quick Jab",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 0,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "damage",
+        "amount": 3,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 5,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "sidestep",
+    "name": "Sidestep",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 0,
+    "target": "none",
+    "effects": [
+      {
+        "do": "block",
+        "amount": 3
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "block",
+          "amount": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "bandages",
+    "name": "Bandages",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "heal",
+        "amount": 4
+      }
+    ],
+    "keywords": [
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "heal",
+          "amount": 6
+        }
+      ]
+    }
+  },
+  {
+    "id": "trip",
+    "name": "Trip",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "status",
+        "status": "vulnerable",
+        "amount": 2,
+        "target": "target"
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "vulnerable",
+          "amount": 3,
+          "target": "target"
+        }
+      ]
+    }
+  },
+  {
+    "id": "second-look",
+    "name": "Second Look",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "draw",
+        "amount": 2
+      },
+      {
+        "do": "discard",
+        "from": "choose",
+        "count": 1
+      }
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "draw",
+          "amount": 3
+        },
+        {
+          "do": "discard",
+          "from": "choose",
+          "count": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "grit",
+    "name": "Grit",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "heroBelowHp": 0.5
+        },
+        "then": [
+          {
+            "do": "block",
+            "amount": 10
+          }
+        ],
+        "else": [
+          {
+            "do": "block",
+            "amount": 6
+          }
+        ]
+      }
+    ],
     "text": "Gain 6 block; 10 if you are below half HP.",
-    "upgrade": { "effects": [{ "do": "if", "when": { "heroBelowHp": 0.5 }, "then": [{ "do": "block", "amount": 13 }], "else": [{ "do": "block", "amount": 8 }] }],
-                 "text": "Gain 8 block; 13 if you are below half HP." } },
-  { "id": "finishing-blow", "name": "Finishing Blow", "class": "neutral", "type": "attack", "rarity": "common", "cost": 1, "target": "enemy",
-    "effects": [{ "do": "if", "when": { "targetBelowHp": 0.3 }, "then": [{ "do": "damage", "amount": 16, "target": "target" }], "else": [{ "do": "damage", "amount": 8, "target": "target" }] }],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "heroBelowHp": 0.5
+          },
+          "then": [
+            {
+              "do": "block",
+              "amount": 13
+            }
+          ],
+          "else": [
+            {
+              "do": "block",
+              "amount": 8
+            }
+          ]
+        }
+      ],
+      "text": "Gain 8 block; 13 if you are below half HP."
+    }
+  },
+  {
+    "id": "finishing-blow",
+    "name": "Finishing Blow",
+    "class": "neutral",
+    "type": "attack",
+    "rarity": "common",
+    "cost": 1,
+    "target": "enemy",
+    "effects": [
+      {
+        "do": "if",
+        "when": {
+          "targetBelowHp": 0.3
+        },
+        "then": [
+          {
+            "do": "damage",
+            "amount": 16,
+            "target": "target"
+          }
+        ],
+        "else": [
+          {
+            "do": "damage",
+            "amount": 8,
+            "target": "target"
+          }
+        ]
+      }
+    ],
     "text": "Deal 8 damage; 16 if the target is below 30% HP.",
-    "upgrade": { "effects": [{ "do": "if", "when": { "targetBelowHp": 0.3 }, "then": [{ "do": "damage", "amount": 20, "target": "target" }], "else": [{ "do": "damage", "amount": 10, "target": "target" }] }],
-                 "text": "Deal 10 damage; 20 if the target is below 30% HP." } },
-  { "id": "whetstone", "name": "Whetstone", "class": "neutral", "type": "skill", "rarity": "common", "cost": 1, "target": "none",
-    "effects": [{ "do": "status", "status": "strength", "amount": 2, "target": "hero" }, { "do": "power", "trigger": "endTurn", "name": "Whetstone", "effects": [{ "do": "status", "status": "strength", "amount": -2, "target": "hero" }] }],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "if",
+          "when": {
+            "targetBelowHp": 0.3
+          },
+          "then": [
+            {
+              "do": "damage",
+              "amount": 20,
+              "target": "target"
+            }
+          ],
+          "else": [
+            {
+              "do": "damage",
+              "amount": 10,
+              "target": "target"
+            }
+          ]
+        }
+      ],
+      "text": "Deal 10 damage; 20 if the target is below 30% HP."
+    }
+  },
+  {
+    "id": "whetstone",
+    "name": "Whetstone",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "common",
+    "cost": 1,
+    "target": "none",
+    "effects": [
+      {
+        "do": "status",
+        "status": "strength",
+        "amount": 2,
+        "target": "hero"
+      },
+      {
+        "do": "power",
+        "trigger": "endTurn",
+        "name": "Whetstone",
+        "effects": [
+          {
+            "do": "status",
+            "status": "strength",
+            "amount": -2,
+            "target": "hero"
+          }
+        ]
+      }
+    ],
     "text": "Gain 2 Strength this turn.",
-    "upgrade": { "effects": [{ "do": "status", "status": "strength", "amount": 3, "target": "hero" }, { "do": "power", "trigger": "endTurn", "name": "Whetstone", "effects": [{ "do": "status", "status": "strength", "amount": -3, "target": "hero" }] }],
-                 "text": "Gain 3 Strength this turn." } }
+    "upgrade": {
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "hero"
+        },
+        {
+          "do": "power",
+          "trigger": "endTurn",
+          "name": "Whetstone",
+          "effects": [
+            {
+              "do": "status",
+              "status": "strength",
+              "amount": -3,
+              "target": "hero"
+            }
+          ]
+        }
+      ],
+      "text": "Gain 3 Strength this turn."
+    }
+  },
+  {
+    "id": "bookmark",
+    "name": "Bookmark",
+    "class": "neutral",
+    "type": "skill",
+    "rarity": "uncommon",
+    "cost": 0,
+    "target": "none",
+    "effects": [
+      {
+        "do": "draw",
+        "amount": 1
+      }
+    ],
+    "keywords": [
+      "retain",
+      "exhaust"
+    ],
+    "upgrade": {
+      "effects": [
+        {
+          "do": "draw",
+          "amount": 2
+        }
+      ]
+    }
+  }
 ]

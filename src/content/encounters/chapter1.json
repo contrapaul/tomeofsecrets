@@ -1,0 +1,81 @@
+{
+  "chapter": 1,
+  "easy": [
+    [
+      "ink-slime"
+    ],
+    [
+      "page-wisp",
+      "page-wisp",
+      "page-wisp"
+    ],
+    [
+      "feral-cur",
+      "feral-cur"
+    ],
+    [
+      "bramble-sprite"
+    ]
+  ],
+  "normal": [
+    [
+      "mossback-beetle"
+    ],
+    [
+      "bandit-scribe"
+    ],
+    [
+      "hollow-knight"
+    ],
+    [
+      "gremlin-binder",
+      "page-wisp",
+      "page-wisp"
+    ],
+    [
+      "gremlin-binder",
+      "feral-cur"
+    ],
+    [
+      "thornwood-sapling"
+    ],
+    [
+      "ink-slime",
+      "ink-slime"
+    ],
+    [
+      "feral-cur",
+      "feral-cur",
+      "feral-cur"
+    ],
+    [
+      "bramble-sprite",
+      "page-wisp",
+      "page-wisp"
+    ]
+  ],
+  "elite": [
+    [
+      "librarians-shade"
+    ],
+    [
+      "ogre-bookkeeper"
+    ],
+    [
+      "wasp-queen",
+      "wasp-drone",
+      "wasp-drone"
+    ]
+  ],
+  "boss": [
+    [
+      "bookwyrm"
+    ],
+    [
+      "ink-colossus"
+    ],
+    [
+      "mad-cartographer"
+    ]
+  ]
+}

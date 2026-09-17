@@ -1,0 +1,26 @@
+title: Wandering Scholar
+portrait left: seeker
+portrait right: scholar
+
+scholar: Oh! A living one. You don't get many of those down here.
+scholar: I can sharpen a technique, patch you up, or split my purse. Pick one; I'm in a hurry to be somewhere quieter.
+
+choice:
+  - Upgrade a card -> upgrade
+  - Heal 15 -> heal
+  - Take 40 gold -> gold
+
+@upgrade
+  > card upgrade choose 1
+  scholar: Better. Not good. Better.
+  > end
+
+@heal
+  > hp 15
+  scholar: Stop bleeding on the books.
+  > end
+
+@gold
+  > gold 40
+  scholar: Don't spend it all on vials.
+  > end

@@ -192,6 +192,11 @@ function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext 
       if (ef.from === 'random') return [{ text: n === 1 ? `${verb} a random card.` : `${verb} ${n} random cards.` }];
       return [{ text: n === 1 ? `${verb} a card.` : `${verb} ${n} cards.` }];
     }
+    case 'retrieve': {
+      const n = ef.count ?? 1;
+      const pile = ef.from === 'discard' ? 'discard pile' : 'exhaust pile';
+      return [{ text: n === 1 ? `Put a card from your ${pile} into your hand.` : `Put ${n} cards from your ${pile} into your hand.` }];
+    }
     case 'addCard': {
       const n = ef.count ?? 1;
       const name = cardName(live, ef.card) + (ef.upgraded ? '+' : '');
@@ -243,6 +248,7 @@ function conditionText(c: Condition): string {
   if ('firstCardThisTurn' in c) return 'this is your first card this turn';
   if ('targetTag' in c) return `the target is ${c.targetTag[0]!.toUpperCase()}${c.targetTag.slice(1)}`;
   if ('flag' in c) return c.flag;
+  if ('goldAtLeast' in c) return `you have ${c.goldAtLeast}+ gold`;
   return '';
 }
 
