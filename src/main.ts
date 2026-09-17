@@ -15,8 +15,21 @@ import { PALETTE } from './ui/kit/palette';
 import { setMotion } from './ui/kit/motion';
 import { bindTextToStage } from './ui/kit/text';
 import { creditsScene } from './ui/scenes/credits';
+import { bossRewardScene } from './ui/run/bossReward';
+import { campScene } from './ui/run/camp';
+import { runEndScene } from './ui/run/end';
+import { eventScene } from './ui/run/event';
+import { runFightScene } from './ui/run/fight';
+import { mapScene } from './ui/run/map';
+import { newRunScene } from './ui/run/newRun';
+import { rewardScene } from './ui/run/reward';
+import { shopScene } from './ui/run/shop';
+import { treasureScene } from './ui/run/treasure';
 import { settingsScene } from './ui/scenes/settings';
 import { titleScene } from './ui/scenes/title';
+import { runController } from './app/runController';
+import * as runApi from './engine/run/run';
+import * as eventApi from './engine/run/events';
 
 async function boot(): Promise<void> {
   const stage = await Stage.create(PALETTE.letterbox);
@@ -53,6 +66,16 @@ async function boot(): Promise<void> {
     .register('/', titleScene)
     .register('/settings', settingsScene)
     .register('/credits', creditsScene)
+    .register('/run/new', newRunScene)
+    .register('/run/map', mapScene)
+    .register('/run/fight', runFightScene)
+    .register('/run/reward', rewardScene)
+    .register('/run/shop', shopScene)
+    .register('/run/camp', campScene)
+    .register('/run/treasure', treasureScene)
+    .register('/run/event', eventScene)
+    .register('/run/boss-reward', bossRewardScene)
+    .register('/run/end', runEndScene)
     .register('/dev/stats', devStatsScene)
     .register('/dev/text', devTextScene)
     .register('/dev/cards', devCardsScene)
@@ -64,7 +87,7 @@ async function boot(): Promise<void> {
 
   if (import.meta.env.DEV) {
     // Poke at the running game from the console: __tome.stage, __tome.settings.
-    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router };
+    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi };
   }
 }
 

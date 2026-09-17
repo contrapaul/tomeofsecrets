@@ -7,6 +7,7 @@ import { backdrop } from '../kit/backdrop';
 import { Button } from '../kit/button';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
+import { runController } from '../../app/runController';
 
 export function titleScene(ctx: SceneContext): Scene {
   const view = new Container({ label: 'title' });
@@ -30,14 +31,16 @@ export function titleScene(ctx: SceneContext): Scene {
       tagline.position.set(DESIGN.width / 2, 390);
       view.addChild(tagline);
 
+      const controller = runController();
       const buttons = [
-        new Button({ label: 'New Run', tag: 'soon', disabled: true }),
+        ...(controller.hasSave() ? [new Button({ label: 'Continue', onPress: () => ctx.router.go(controller.route()) })] : []),
+        new Button({ label: 'New Run', variant: controller.hasSave() ? 'ghost' : 'gold', onPress: () => ctx.router.go('/run/new') }),
         new Button({ label: 'The Tome', tag: 'soon', disabled: true, variant: 'ghost' }),
         new Button({ label: 'Settings', variant: 'ghost', onPress: () => ctx.router.go('/settings') }),
         new Button({ label: 'Credits', variant: 'ghost', onPress: () => ctx.router.go('/credits') }),
       ];
       buttons.forEach((b, i) => {
-        b.position.set(DESIGN.width / 2, 560 + i * 96);
+        b.position.set(DESIGN.width / 2, 520 + i * 90);
         view.addChild(b);
       });
 

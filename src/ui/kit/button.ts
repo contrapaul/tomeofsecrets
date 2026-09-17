@@ -12,6 +12,8 @@ export interface ButtonOptions {
   /** Small tag drawn after the label, e.g. "soon". */
   tag?: string;
   variant?: 'gold' | 'ghost';
+  /** Label size; long choice labels use a smaller one. */
+  fontSize?: number;
 }
 
 /** A parchment-and-gold button. Hover lifts, press dips, disabled greys. */
@@ -31,7 +33,7 @@ export class Button extends Container {
     this.addChild(this.bg);
     this.paint(0);
 
-    const label = makeText(opts.label, { ...STYLE.display(30), fill: this.variant === 'gold' ? PALETTE.ink : PALETTE.parchment });
+    const label = makeText(opts.label, { ...STYLE.display(opts.fontSize ?? 30), fill: this.variant === 'gold' ? PALETTE.ink : PALETTE.parchment });
     label.anchor.set(0.5);
     label.position.set(this.w / 2, this.h / 2 + 2);
     this.addChild(label);

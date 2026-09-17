@@ -5,13 +5,14 @@ import { DESIGN } from '../../app/fit';
 import type { Scene, SceneContext } from '../../app/router';
 import type { Card } from '../../content/schema';
 import {
-  cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, legalPlays, playCard, respondPrompt,
+  cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, legalPlays, playCard, respondPrompt, useVial,
   type CombatState, type Content, type EncounterSetup, type HeroSetup, type Unplayable,
 } from '../../engine/rules';
 import { CardView, type CardDisplay } from '../cards/CardView';
 import { DragController } from '../cards/DragController';
 import { HandLayout } from '../cards/HandLayout';
 import { PileView } from '../cards/PileView';
+import { CombatBar } from '../combat/CombatBar';
 import { CompanionView } from '../combat/CompanionView';
 import { EnemyView } from '../combat/EnemyView';
 import { Playback, type World } from '../combat/Playback';
@@ -25,6 +26,7 @@ import { KEYWORD_INFO } from '../kit/glossary';
 import { d, done, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
+import { toast } from '../kit/toast';
 import { Tooltip } from '../kit/tooltip';
 
 export interface CombatSetup {
@@ -33,8 +35,16 @@ export interface CombatSetup {
   seed: string;
   /** Background key in the art manifest; defaults to chapter1. */
   background?: string;
-  /** Called when the fight ends; the run layer (Phase 5) routes onward. */
+  /** An existing fight to continue (a saved run). `hero`/`encounter`/`seed` are ignored. */
+  resume?: CombatState;
+  /** After every engine step; the run layer saves here. */
+  onStep?: (state: CombatState) => void;
+  /** Called when the fight ends; the run layer routes onward. Returns the buttons to show, or nothing for the dev overlay. */
   onEnd?: (result: 'won' | 'lost', state: CombatState) => void;
+  /** Hide the dev "Again / Title" overlay and let onEnd take over. */
+  quietEnd?: boolean;
+  /** Show the three first-fight tips (the run does this once per browser). */
+  tips?: boolean;
 }
 
 const LAYOUT = {
@@ -87,6 +97,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let resource: ResourceWidget | null = null;
   let companion: CompanionView | null = null;
   let traps: TrapRow;
+  let bar: CombatBar;
   let piles: World['piles'];
   let playback: Playback;
   let drag: DragController;
@@ -121,6 +132,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
 
   /** Re-render hand texts (live numbers) and glow the playable ones. */
   function refreshHand(): void {
+    bar?.sync(state.hero);
     const legal = new Set(legalPlays(state, content).map((p) => p.uid));
     for (const cv of layers.hand.cards) {
       const disp = display(cv.cardUid);
@@ -158,6 +170,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       if (!drag.isDragging) v.setHighlight(false);
     });
     v.body.on('rightclick', () => showMoves(id));
+    v.body.on('pointertap', () => drinkOn(id));
     return v;
   }
 
@@ -244,6 +257,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     refreshHand();
     fn();
     const events = drainEvents(state);
+    setup.onStep?.(state);
     await playback.play(events);
     busy = false;
     if (state.phase === 'won' || state.phase === 'lost') {
@@ -326,7 +340,24 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     layers.overlay.addChild(overlay);
   }
 
+  async function runTips(): Promise<void> {
+    const lines = [
+      'Drag a card onto an enemy to attack it. Skills play by dragging them up.',
+      'The badge above an enemy shows what it will do next. Hover it for the numbers.',
+      'Press End Turn when you are done. Unused energy is lost, and so is your hand.',
+    ];
+    for (const line of lines) {
+      if (state.phase !== 'player') return;
+      await toast(layers.overlay, line, 4);
+    }
+  }
+
   function endFight(result: 'won' | 'lost'): void {
+    setup.onStep?.(state);
+    if (setup.quietEnd) {
+      setup.onEnd?.(result, state);
+      return;
+    }
     const overlay = new Container();
     const dim = new Graphics();
     dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.6 });
@@ -384,6 +415,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     if (e.key === 'f' || e.key === 'F') toggleFps();
     if (e.key === 'Escape') {
       layers.hand.setHover(null);
+      bar.selectedVial = null;
+      bar.sync(state.hero);
       for (const v of enemies.values()) v.setHighlight(false);
     }
     if (busy || state.prompt) return;
@@ -405,6 +438,31 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     }
   }
 
+  /** A vial: drink it, or arm it and wait for an enemy click. */
+  function onVial(index: number): void {
+    if (busy || state.prompt) return;
+    const id = state.hero.vials[index];
+    const vial = id ? content.vials?.[id] : undefined;
+    if (!vial) return;
+    if (vial.target === 'enemy') {
+      bar.selectedVial = bar.selectedVial === index ? null : index;
+      bar.sync(state.hero);
+      for (const v of enemies.values()) v.setHighlight(bar.selectedVial !== null);
+      return;
+    }
+    void act(() => useVial(state, content, index));
+    bar.selectedVial = null;
+  }
+
+  function drinkOn(enemyId: string): boolean {
+    if (bar.selectedVial === null) return false;
+    const index = bar.selectedVial;
+    bar.selectedVial = null;
+    for (const v of enemies.values()) v.setHighlight(false);
+    void act(() => useVial(state, content, index, enemyId));
+    return true;
+  }
+
   function tryPlay(uid: number, targetId?: string): boolean {
     const r = playCard(state, content, uid, targetId);
     if (!r.ok) {
@@ -422,6 +480,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     busy = true;
     refreshHand();
     const events = drainEvents(state);
+    setup.onStep?.(state);
     void playback.play(events).then(() => {
       busy = false;
       if (state.phase === 'won' || state.phase === 'lost') {
@@ -437,9 +496,10 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   return {
     view,
     async enter() {
-      state = createCombat(content, setup.hero, setup.encounter, setup.seed);
+      const resumed = !!setup.resume;
+      state = setup.resume ?? createCombat(content, setup.hero, setup.encounter, setup.seed);
       // Art for this fight only: the enemies in it and the cards in the deck.
-      const deckIds = [...state.piles.draw, ...state.piles.hand].map((c) => c.cardId);
+      const deckIds = [...state.piles.draw, ...state.piles.hand, ...state.piles.discard].map((c) => c.cardId);
       const [ea, ca, bg] = await Promise.all([loadEnemyArtFor(state.enemies.map((e) => e.enemyId)), loadCardArtFor(deckIds), loadBackground(setup.background ?? 'chapter1')]);
       enemyArt = ea;
       cardArt = ca;
@@ -483,6 +543,10 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       piles.exhaust.scale.set(0.7);
       layers.ui.addChild(piles.draw, piles.discard, piles.exhaust);
 
+      bar = new CombatBar(content, tooltip, onVial);
+      bar.sync(state.hero);
+      layers.ui.addChild(bar);
+
       endTurnBtn = new Button({ label: 'End Turn', width: 240, height: 64, onPress: () => void act(() => endTurn(state, content)) });
       endTurnBtn.position.set(LAYOUT.endTurn.x, LAYOUT.endTurn.y);
       layers.ui.addChild(endTurnBtn);
@@ -514,7 +578,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         },
       });
 
-      for (const e of state.enemies) addEnemy(e.id);
+      for (const e of state.enemies) if (e.alive) addEnemy(e.id);
       layoutEnemies();
       for (const v of enemies.values()) v.position.set(v.x, v.y);
 
@@ -546,13 +610,36 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       window.addEventListener('keydown', onKey);
       if (import.meta.env.DEV) {
         const dev = (window as unknown as { __tome?: Record<string, unknown> }).__tome;
-        if (dev) dev.combat = { get state() { return state; }, content, get busy() { return busy; }, hand: layers.hand };
+        if (dev) dev.combat = { get state() { return state; }, content, get busy() { return busy; }, hand: layers.hand, enemies, get resource() { return resource; } };
+      }
+      if (resumed && state.events.length === 0) {
+        // A saved fight mid-way: rebuild the hand from state.
+        for (const inst of state.piles.hand) {
+          const cv = makeCardView(inst.uid);
+          if (cv) layers.hand.add(cv);
+        }
+        layers.hand.layout(true);
+        playback.syncCounts();
+        player.sync(state.hero);
+        for (const e of state.enemies) {
+          const v = enemies.get(e.id);
+          if (!v || !e.alive) continue;
+          v.setHp(e.hp, e.maxHp, e.block);
+          v.setIntent(e.intent);
+          for (const [k, n] of Object.entries(e.statuses)) v.statuses.set(k as keyof typeof e.statuses, n ?? 0);
+        }
+        layoutEnemies();
+        busy = false;
+        if (state.prompt) showPrompt();
+        refreshHand();
+        return;
       }
       // The opening: the engine already drew; play those events.
       const events = drainEvents(state);
       await playback.play(events);
       busy = false;
       refreshHand();
+      if (setup.tips) void runTips();
     },
     exit() {
       window.removeEventListener('keydown', onKey);

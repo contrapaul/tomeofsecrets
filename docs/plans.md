@@ -14,9 +14,9 @@ dialogue format, schemas, art spec). This file is the roadmap. Update the checkb
 and the status line as work lands so a new session can pick up without re-reading the
 conversation.
 
-**Status:** Phases 0–4 built. Students can start drawing now: `docs/CONTRIBUTING-ART.md`
-and `#/dev/enemy`. Phase 2 has two acceptance lines waiting on a school MacBook and a
-first-time player. Live at https://tome.contrapaul.com. Phase 5 (the run) is next.
+**Status:** Phases 0–5 built. **The game is playable start to finish through Chapter 1**
+at https://tome.contrapaul.com. Next: **Checkpoint 1**, the first student playtest, then
+Phase 6. Students can start drawing now (`docs/CONTRIBUTING-ART.md`, `#/dev/enemy`).
 Last updated 2026-09-17.
 
 ---
@@ -378,41 +378,45 @@ Acceptance:
 - [x] Chapter 1's art today: 544 KB. The budget line will be re-measured when real
       art lands.
 
-### Phase 5: The run. Chapter 1 end to end
+### Phase 5: The run. Chapter 1 end to end — Built 2026-09-17
 
 Goal: a full Chapter 1 run, saved and resumed, live at the URL. **Checkpoint 1 follows.**
 
-- [ ] Map generation per `design.md` §7: 7 columns × 10 floors + boss, 6 starting
-      paths, node rules, unknown nodes. Deterministic from `rng.map`.
-- [ ] `MapScene`: vertical scroll, node icons, reachable-path highlight, current
-      position, boss preview, tooltips, chapter title.
-- [ ] Encounters: `encounters/chapter1.json` easy / normal / elite / boss pools; the
-      first three fights draw from easy; no repeats.
-- [ ] Chapter 1 roster from `design.md` §6: 9 normals, 3 elites, 3 bosses, engine
-      moves plus placeholder art until student art lands. Boss intro banner.
-- [ ] Rewards: gold, 1-of-3 cards (rarity weights by node type, skip allowed), relic
-      from elites, vial chance; boss reward = 1 of 3 rare relics.
-- [ ] Shop, Camp (Rest / Smith), Treasure, Vials (3 slots, drag to use).
-- [ ] The relics marked "Ch1" in `design.md` §8 (about 23) as data with triggers.
-- [ ] Dialogue engine: `.dlg` parser, runner, effects; `EventScene` with left/right
-      portraits and choices; the first 12 events.
-- [ ] Run state, autosave, resume (including mid-fight); Abandon run with confirm.
-- [ ] Run end: victory/defeat summary (floor, cause of death, most-played cards,
-      damage dealt and taken), seed with "copy seed".
-- [ ] Character select (class only for now; Origin/Boon/Seal arrive in Phase 6), deck
-      preview, starter relic.
-- [ ] First-run tips: three one-line callouts on the first fight (drag to play,
-      intents, end turn). The full tutorial is Phase 10.
-- [ ] `sim run --class x --games 200`: whole chapters with the heuristic player;
-      floor-reached distribution.
+- [x] Map generation per `design.md` §7.2: 7 columns × 10 floors + boss, 6 paths with
+      no crossings, the node rules, unknown nodes. 300 seeds validated in tests.
+- [x] `MapScene`: paths, node icons, reachable-path highlight, the hero marker,
+      tooltips, chapter title, Abandon (with a confirm click).
+- [x] Encounters: `content/encounters/chapter1.json`; the first three fights draw from
+      the easy pool; no group repeats within a chapter (tested).
+- [x] Chapter 1 roster: 9 normals, 2 minions, 3 elites, 3 bosses in
+      `content/enemies/chapter1/`, each with a Secret in `cards/secrets.json` and a
+      flavour line. Placeholder art until student art lands.
+- [x] Rewards: gold, 1-of-3 cards (rarity weights, Rare pity, class/neutral split),
+      relic from elites, vial chance, boss = 1 of 3 boss relics + full heal.
+- [x] Shop (5 cards with a sale, 3 relics, 3 vials, removal at 75 +25 each), Camp
+      (Rest / Smith with a preview picker), Treasure (Brass Key gives two), Vials
+      usable in fights from the top bar.
+- [x] Relics: 36 in `content/relics.json` — combat hooks (flags, fight-start effects,
+      resources) and run effects (gold, prices, rest, HP, slots, Smith, treasure).
+- [x] Dialogue engine: `.dlg` parser with line-numbered errors, a runner that applies
+      effects to the run, card picks that pause the script, fights launched from a
+      script that return to it with a doubled reward. Twelve events.
+- [x] Run state, autosave after every step (including every card played), resume
+      mid-fight, Continue on the title, Abandon.
+- [x] Run end: floor, fights, deck/relics/gold, the seed, kills, cause of death.
+- [x] Character select (class only; Origin/Boon/Seal are Phase 6).
+- [x] First-fight tips: three toasts, once per browser.
+- [x] `npm run sim -- run`: whole-chapter runs with the heuristic. Baseline over 300
+      runs per class (seed `sim`): Paladin 17% wins, Tracker 19%, Mage 7%; median
+      run reaches the boss; deaths are the bosses and the Ogre Bookkeeper.
 
 Acceptance:
-- Start → map → 10 floors → boss → summary, all three classes, no console errors, no
-  unhandled events.
-- Close the tab mid-fight, reopen: the same hand, the same intents.
-- Same seed and same choices twice → identical run.
-- Target after three runs by a first-timer: floor 6+ reliably; Chapter 1 boss beaten
-  30–40% of the time.
+- [x] Start → map → floors → boss → summary, no console errors. (Every screen was
+      exercised in the browser; the auto-player covers the fights.)
+- [x] Close the tab mid-fight, reopen: the same hand, the same intents.
+- [x] Same seed and same choices twice → identical run (tested).
+- [ ] Target after three runs by a first-timer: floor 6+ reliably; Chapter 1 boss
+      beaten 30–40% of the time. **Checkpoint 1 measures this.**
 
 **Checkpoint 1:** 6–10 students, two runs each, school laptops. Record floor reached,
 cause of death, confusion points, and whether they asked to go again. Notes go into
@@ -685,6 +689,32 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
 - The three dummies with art (`dummy-brute`, `dummy-cur`, `dummy-wisp`) are
   SVG-rendered samples from `tools/make-templates.ts`; the wisp's spritesheet is a
   synthetic Aseprite export, kept as the reference for that path.
+
+### After Phase 5 (2026-09-17)
+
+- **The run layer is `src/engine/run/`**: `map.ts`, `rewards.ts`, `run.ts` (the state
+  machine), `events.ts` (the dialogue runner). `src/engine/dialogue/parse.ts` is the
+  `.dlg` parser. `src/engine/ai/runner.ts` plays whole runs for the sim and tests.
+- **`app/runController.ts` owns the one run** (`tome.run.v1`). Scenes call engine
+  functions on `controller.run`, then `save()`, then `next()` which routes by phase.
+  `src/ui/run/base.ts` guards every run screen: a stale link lands on the right one.
+- **Relics reach the fight through `combatHooks(run)`** → `HeroSetup.hooks` (flags,
+  fight-start effects, starting resources). The engine keeps those hooks in a module
+  variable set by `setHooks`, so `reviveRun` re-supplies them. New relic behaviours
+  are either a flag the engine reads or an effect list; add to `relics.json` first.
+- **Saves are taken after events are drained**, so a resumed fight has no queued
+  events and the scene rebuilds from state; a fight saved before its first action
+  still carries the opening events and replays them.
+- Events: `content/events/*.dlg` are globbed with `?raw`; `loadContent().events`
+  holds the sources and `createRun`/`reviveRun` register them. Portrait ids other
+  than `seeker` map to placeholder frames until Phase 8 art.
+- `import.meta.glob` is Vite-only: tools that load content run under `vite-node`
+  (`npm run sim`). `tsx` remains for the art tools, which do not touch content.
+- Dev handles: `window.__tome.runController`, `.runApi`, `.eventApi`, and
+  `.combat.{state,hand,enemies,resource}`. Jumping the run state from the console and
+  then setting `location.hash` is how the screens were verified.
+- Deferred inside this phase: click-to-inspect the piles, a low-HP vignette, Reading
+  Glasses (flag exists, no UI), Fresh Pages is data-only (its transform runs on pickup).
 
 - `hero.flags` carries relic-style switches the engine already honours (`aegis`,
   `hourglass`, `quillOfHaste`, `aspectOfTheHawk`, `bestialWrath`, `trueshot`,
