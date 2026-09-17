@@ -41,6 +41,20 @@ visible pixels to place the intent badge, so leave no stray marks above the head
   styles are expected. What makes them sit together is the baseline and the size.
 - **Keep it school-appropriate.** Scary is good. Gore is not.
 
+## Drew it on paper?
+
+Scan or photograph it on white paper, any size, and hand in the file as is. We run
+
+```
+npm run art:key -- scan.png medium your-enemy-id --artist your-credits-id
+```
+
+which removes the paper, trims the drawing, scales it to fit the template and stands
+it on the baseline. White highlights inside the drawing survive; only paper that
+touches the edge of the page is removed, so keep the drawing away from the edges
+of the scan (a blob that runs off the bottom of the page just gets a flat bottom).
+Originals live in `art-src/enemies/` so they can be re-keyed later.
+
 ## Extra poses (optional)
 
 Same canvas, same size, same feet. Put them in the same folder:

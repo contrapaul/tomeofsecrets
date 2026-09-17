@@ -1,6 +1,14 @@
 {
-  "generated": "2026-09-16",
+  "generated": "2026-09-17",
   "enemies": {
+    "bookwyrm": {
+      "idle": "art/enemies/bookwyrm/idle.png",
+      "size": "large",
+      "artist": "paul-k",
+      "width": 700,
+      "height": 900,
+      "top": 520
+    },
     "dummy-brute": {
       "idle": "art/enemies/dummy-brute/idle.png",
       "size": "large",
@@ -26,6 +34,22 @@
       "height": 400,
       "top": 117,
       "sheet": "art/enemies/dummy-wisp/idle.json"
+    },
+    "ink-inkling": {
+      "idle": "art/enemies/ink-inkling/idle.png",
+      "size": "small",
+      "artist": "paul-k",
+      "width": 400,
+      "height": 400,
+      "top": 126
+    },
+    "ink-slime": {
+      "idle": "art/enemies/ink-slime/idle.png",
+      "size": "medium",
+      "artist": "paul-k",
+      "width": 600,
+      "height": 600,
+      "top": 258
     }
   },
   "cards": {

@@ -769,3 +769,16 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   else so a typo cannot silently do nothing.
 - `docs/CONTRIBUTING-ART.md` now has the background spec (1920×1080 `far.png`,
   optional transparent `near.png`, per chapter key).
+
+### First real art (2026-09-17)
+
+- Paul's marker drawings of the Bookwyrm, Ink Slime and Inkling are in. They came as
+  opaque scans on white paper, so `tools/key-scan.ts` (`npm run art:key`) now exists:
+  border-sampled paper colour, flood-fill key (interior whites survive), edge alpha
+  with the paper divided out (no pale fringe), trim, fit to the template, feet on the
+  baseline, `meta.json` written if missing. Originals are kept in `art-src/enemies/`.
+- Ink Slime is `medium` now (drawn at 600×600; it divides into small Inklings, which
+  reads right). The Bookwyrm is wide and low for a `large`; if it should loom, the
+  next drawing wants to use the template's height.
+- `layoutEnemies` still spaces by size class (220/300/380), not by art width, so wide
+  blobs overlap a little in threes. Fine for slimes; revisit if it bothers anyone.
