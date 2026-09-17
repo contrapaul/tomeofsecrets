@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, type Text } from 'pixi.js';
 import gsap from 'gsap';
 import { audio } from '../../app/audio';
 import { PALETTE } from './palette';
@@ -22,6 +22,7 @@ export class Button extends Container {
   private readonly bg = new Graphics();
   private readonly glow = new Graphics();
   private glowTween: gsap.core.Tween | null = null;
+  private readonly labelText: Text;
   private readonly w: number;
   private readonly h: number;
   private readonly variant: 'gold' | 'ghost';
@@ -43,6 +44,7 @@ export class Button extends Container {
     label.anchor.set(0.5);
     label.position.set(this.w / 2, this.h / 2 + 2);
     this.addChild(label);
+    this.labelText = label;
 
     if (opts.tag) {
       const tag = makeText(opts.tag, { ...STYLE.mono(16), fill: this.variant === 'gold' ? PALETTE.ink : PALETTE.parchmentDim });
@@ -67,6 +69,10 @@ export class Button extends Container {
       opts.onPress?.();
     });
     this.on('destroyed', () => this.glowTween?.kill());
+  }
+
+  setLabel(text: string): void {
+    this.labelText.text = text;
   }
 
   /** A pulsing halo: "this is what you do next". */

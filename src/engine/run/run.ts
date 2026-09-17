@@ -1,9 +1,10 @@
-import type { Card, ClassId, Effect } from '../../content/schema';
+import type { Boon, Card, ClassId, CompanionId, Effect, ResourceName } from '../../content/schema';
+import type { RunLedger } from '../meta/profile';
 import { createStreams, restoreStreams, saveStreams, type StreamStates, type Streams } from '../rng';
-import { createCombat, setHooks, type CombatState, type CompanionId, type Content, type HeroSetup } from '../rules';
+import { createCombat, setHooks, type CombatState, type Content, type HeroSetup } from '../rules';
 import { findNode, generateMap, reachable, type MapNode, type RunMap } from './map';
 import { knownEvents, registerEvents, resumeAfterFight, startDialogue, type DialogueState } from './events';
-import { offerCards, rollBossRelics, rollGold, rollRelic, rollVial } from './rewards';
+import { offerCards, relicPool, rollBossRelics, rollGold, rollRelic, rollVial } from './rewards';
 
 /**
  * A run: the hero between fights, the map, and whichever screen is open.
@@ -102,11 +103,33 @@ export interface RunState {
   stats: RunStats;
   nextUid: number;
   rng: Streams;
+  /** Phase 6: the run-start choices and what the Tome has opened. */
+  seal: number;
+  origin?: string;
+  boon?: string;
+  /** Cards and relics the profile has unlocked; absent means everything. */
+  pool?: { cards: string[]; relics: string[] };
+  /** Enemies whose Bestiary page is written, so their Secret can be offered. */
+  known: string[];
+  /** Pages this run wrote (first kills), for the Lore ledger and the end screen. */
+  pagesWritten?: string[];
+  /** Boon resources handed to every fight. */
+  startResources?: Partial<Record<ResourceName, number>>;
+  fightFlags?: string[];
+  /** Filled once at run end by `recordRun`. */
+  ledger?: RunLedger;
+  abandoned?: boolean;
 }
 
 export interface RunSetup {
   classId: ClassId;
   seed: string;
+  origin?: string;
+  companion?: CompanionId;
+  seal?: number;
+  boon?: string;
+  pool?: { cards: string[]; relics: string[] };
+  known?: string[];
 }
 
 // ---------------------------------------------------------------- creation and save
@@ -116,6 +139,15 @@ export function createRun(content: Content, setup: RunSetup): RunState {
   const cls = content.classes?.[setup.classId];
   if (!cls) throw new Error(`unknown class ${setup.classId}`);
   const rng = createStreams(setup.seed);
+  const seal = setup.seal ?? 0;
+  const origin = setup.origin ? content.origins?.[setup.origin] : Object.values(content.origins ?? {}).find((o) => o.class === setup.classId && o.default);
+  if (setup.origin && !origin) throw new Error(`unknown origin ${setup.origin}`);
+  // The starter deck, with the origin's swaps applied one card each.
+  const starter = [...cls.starter];
+  for (const [out, into] of origin?.swaps ?? []) {
+    const i = starter.indexOf(out);
+    if (i >= 0) starter[i] = into;
+  }
   let uid = 1;
   const run: RunState = {
     version: 1,
@@ -126,16 +158,16 @@ export function createRun(content: Content, setup: RunSetup): RunState {
       hp: cls.hp,
       maxHp: cls.hp,
       gold: 99,
-      deck: cls.starter.map((cardId) => ({ uid: uid++, cardId, upgraded: false })),
+      deck: starter.map((cardId) => ({ uid: uid++, cardId, upgraded: false })),
       relics: [],
       relicsUsed: [],
       vials: [],
       vialSlots: 3,
       maxEnergy: 3,
-      companion: cls.companion,
+      companion: cls.companion ? setup.companion ?? origin?.companion ?? cls.companion : undefined,
     },
     chapter: 1,
-    map: generateMap(rng.map, 1),
+    map: generateMap(rng.map, 1, { moreElites: seal >= 1 }),
     position: null,
     visited: [],
     phase: 'map',
@@ -153,10 +185,79 @@ export function createRun(content: Content, setup: RunSetup): RunState {
     stats: { fights: 0, elites: 0, bosses: 0, damageDealt: 0, damageTaken: 0, cardsPlayed: {}, kills: {}, floorsClimbed: 0 },
     nextUid: uid,
     rng,
+    seal,
+    ...(origin ? { origin: origin.id } : {}),
+    ...(setup.pool ? { pool: setup.pool } : {}),
+    known: [...(setup.known ?? [])],
   };
-  const starter = Object.values(content.relics ?? {}).find((r) => r.tier === 'starter' && r.class === setup.classId);
-  if (starter) addRelic(run, content, starter.id);
+  const starterRelic = origin?.relic ?? Object.values(content.relics ?? {}).find((r) => r.tier === 'starter' && r.class === setup.classId)?.id;
+  if (starterRelic) addRelic(run, content, starterRelic);
+  // Seal 9: a Doubt in the deck. Seal 6: start at 90% HP.
+  if (seal >= 9 && content.cards['doubt']) run.hero.deck.push({ uid: run.nextUid++, cardId: 'doubt', upgraded: false });
+  if (seal >= 6) run.hero.hp = Math.floor(run.hero.maxHp * 0.9);
+  if (setup.boon) {
+    const boon = content.boons?.[setup.boon];
+    if (!boon) throw new Error(`unknown boon ${setup.boon}`);
+    run.boon = boon.id;
+    applyBoon(run, content, boon);
+  }
   return run;
+}
+
+/** A run-start Boon (docs/design.md §9.3). Random picks use the rewards stream. */
+function applyBoon(run: RunState, content: Content, boon: Boon): void {
+  const rng = run.rng.rewards;
+  const starters = () => run.hero.deck.filter((c) => content.cards[c.cardId]?.rarity === 'starter');
+  for (const e of boon.effects) {
+    switch (e.do) {
+      case 'maxHp':
+        run.hero.maxHp = Math.max(1, run.hero.maxHp + e.amount);
+        run.hero.hp = Math.max(1, Math.min(run.hero.maxHp, run.hero.hp + e.amount));
+        break;
+      case 'gold':
+        run.hero.gold += e.amount;
+        break;
+      case 'rareCard': {
+        const pool = Object.values(content.cards).filter((c) => c.class === run.hero.classId && c.rarity === 'rare' && (!run.pool || run.pool.cards.includes(c.id)));
+        const all = pool.length ? pool : Object.values(content.cards).filter((c) => c.class === run.hero.classId && c.rarity === 'rare');
+        if (all.length) run.hero.deck.push({ uid: run.nextUid++, cardId: rng.pick(all).id, upgraded: false });
+        break;
+      }
+      case 'relic': {
+        const pool = relicPool(content, run.hero.classId, e.tier, run.hero.relics, run.pool?.relics);
+        if (pool.length) addRelic(run, content, rng.pick(pool).id);
+        break;
+      }
+      case 'removeStarters': {
+        for (const type of ['attack', 'skill'] as const) {
+          const c = starters().find((x) => content.cards[x.cardId]?.type === type);
+          if (c) run.hero.deck.splice(run.hero.deck.indexOf(c), 1);
+        }
+        break;
+      }
+      case 'transform':
+        for (const c of rng.shuffle(starters()).slice(0, e.count)) c.cardId = randomClassCard(run, content);
+        break;
+      case 'upgradeStarters':
+        for (const c of rng.shuffle(starters().filter((x) => !x.upgraded)).slice(0, e.count)) c.upgraded = true;
+        break;
+      case 'vials':
+        for (let i = 0; i < e.count && run.hero.vials.length < run.hero.vialSlots; i++) {
+          const v = rollVial(rng, content);
+          if (v) run.hero.vials.push(v);
+        }
+        break;
+      case 'runFlag':
+        (run.flags ??= {})[e.flag] = true;
+        break;
+      case 'fightFlag':
+        (run.fightFlags ??= []).push(e.flag);
+        break;
+      case 'resource':
+        (run.startResources ??= {})[e.name] = (run.startResources?.[e.name] ?? 0) + e.amount;
+        break;
+    }
+  }
 }
 
 /** JSON-safe copy. The combat state's RNG serialises itself. */
@@ -168,7 +269,7 @@ export function reviveRun(content: Content, data: unknown): RunState {
   const raw = data as Omit<RunState, 'rng'> & { rng: StreamStates };
   if (!raw || raw.version !== 1) throw new Error('unknown save version');
   if (content.events) registerEvents(content.events);
-  const run: RunState = { ...raw, rng: restoreStreams(raw.rng) };
+  const run: RunState = { ...raw, rng: restoreStreams(raw.rng), seal: raw.seal ?? 0, known: raw.known ?? [] };
   if (run.fight) {
     const fs = run.fight.state as unknown as Omit<CombatState, 'rng'> & { rng: StreamStates };
     run.fight.state = { ...fs, rng: restoreStreams(fs.rng) } as CombatState;
@@ -203,8 +304,9 @@ export function addRelic(run: RunState, content: Content, id: string): void {
 }
 
 function randomClassCard(run: RunState, content: Content): string {
-  const pool = Object.values(content.cards).filter((c) => c.class === run.hero.classId && c.rarity !== 'starter');
-  return run.rng.rewards.pick(pool).id;
+  const all = Object.values(content.cards).filter((c) => c.class === run.hero.classId && c.rarity !== 'starter');
+  const pool = run.pool ? all.filter((c) => run.pool!.cards.includes(c.id)) : all;
+  return run.rng.rewards.pick(pool.length ? pool : all).id;
 }
 
 function relicsOf(run: RunState, content: Content) {
@@ -227,6 +329,10 @@ export function combatHooks(run: RunState, content: Content): NonNullable<HeroSe
     if (c.resource) resources[c.resource.name] = (resources[c.resource.name] ?? 0) + c.resource.amount;
   }
   if (run.hero.vials.includes('phoenix-feather')) flags.push('reviveOnce');
+  flags.push(...(run.fightFlags ?? []));
+  for (const [name, amount] of Object.entries(run.startResources ?? {})) {
+    if (name === 'holyPower' || name === 'charge') resources[name] = (resources[name] ?? 0) + (amount ?? 0);
+  }
   return { flags, fightStart, turnStart, resources };
 }
 
@@ -261,7 +367,7 @@ export function enterNode(run: RunState, content: Content, nodeId: string): void
       const choices = relicsOf(run, content).reduce((n, r) => n + (r.run?.treasureChoices ?? 0), 0) || 1;
       const relics: string[] = [];
       for (let i = 0; i < choices; i++) {
-        const r = rollRelic(run.rng.rewards, content, run.hero.classId, 'treasure', [...run.hero.relics, ...relics]);
+        const r = rollRelic(run.rng.rewards, content, run.hero.classId, 'treasure', [...run.hero.relics, ...relics], run.pool?.relics);
         if (r) relics.push(r);
       }
       run.treasure = { relics, taken: false };
@@ -319,7 +425,9 @@ export function startFight(run: RunState, content: Content, kind: 'fight' | 'eli
     hooks,
   };
   const seed = `${run.seed}:${run.chapter}:${run.visited.length}:${enemies.join('+')}`;
-  const state = createCombat(content, setup, { enemies }, seed);
+  // Seals 2–4 and 7: tougher enemies (docs/design.md §9.4).
+  const hpMult = kind === 'boss' ? (run.seal >= 4 ? 1.15 : 1) : kind === 'elite' ? (run.seal >= 3 ? 1.15 : 1) : run.seal >= 2 ? 1.1 : 1;
+  const state = createCombat(content, setup, { enemies, mods: { enemyHp: hpMult, enemyDamage: run.seal >= 7 ? 1.1 : 1 } }, seed);
   run.fight = { encounter: enemies, kind, state, fromEvent };
   run.phase = 'fight';
   if (kind === 'fight') run.fightsThisChapter++;
@@ -335,7 +443,15 @@ export function finishFight(run: RunState, content: Content): void {
   run.hero.vials = [...s.hero.vials];
   if (s.hero.relics.includes('phylactery') && !s.hero.flags.reviveOnce && !run.hero.relicsUsed.includes('phylactery')) run.hero.relicsUsed.push('phylactery');
   if (run.hero.vials.includes('phoenix-feather') && !s.hero.flags.reviveOnce) run.hero.vials = run.hero.vials.filter((v) => v !== 'phoenix-feather');
-  for (const e of s.enemies) if (!e.alive) run.stats.kills[e.enemyId] = (run.stats.kills[e.enemyId] ?? 0) + 1;
+  for (const e of s.enemies) {
+    if (e.alive) continue;
+    run.stats.kills[e.enemyId] = (run.stats.kills[e.enemyId] ?? 0) + 1;
+    // The first kill of a kind writes its Bestiary page; from then on its Secret can be stolen.
+    if (!run.known.includes(e.enemyId)) {
+      run.known.push(e.enemyId);
+      (run.pagesWritten ??= []).push(e.enemyId);
+    }
+  }
   if (s.phase === 'lost') {
     run.phase = 'lost';
     const killer = s.enemies.find((e) => e.alive && e.history.length);
@@ -351,8 +467,9 @@ export function finishFight(run: RunState, content: Content): void {
   const goldAfter = relics.reduce((n, r) => n + (r.run?.goldAfterFight ?? 0), 0);
   const healAfter = relics.reduce((n, r) => n + (r.run?.healAfterFight ?? 0), 0);
   if (healAfter) run.hero.hp = Math.min(run.hero.maxHp, run.hero.hp + healAfter);
-  const offer = offerCards(run.rng.rewards, content, run.hero.classId, f.kind, run.rarePity);
+  const offer = offerCards(run.rng.rewards, content, run.hero.classId, f.kind, run.rarePity, 3, run.pool?.cards);
   run.rarePity = offer.pity;
+  stealSecret(run, content, f.kind, f.encounter, offer.cards);
   const doubled = f.fromEvent && run.event?.state.fightReward === 'double' ? 2 : 1;
   run.reward = {
     kind: f.kind,
@@ -360,18 +477,36 @@ export function finishFight(run: RunState, content: Content): void {
     goldTaken: false,
     cards: offer.cards,
     cardTaken: false,
-    relic: f.kind === 'elite' || doubled === 2 ? rollRelic(run.rng.rewards, content, run.hero.classId, 'elite', run.hero.relics) : null,
+    relic: f.kind === 'elite' || doubled === 2 ? rollRelic(run.rng.rewards, content, run.hero.classId, 'elite', run.hero.relics, run.pool?.relics) : null,
     relicTaken: false,
     vial: run.rng.rewards.chance(f.kind === 'fight' ? 0.25 : 0.4) ? rollVial(run.rng.rewards, content) : null,
     vialTaken: false,
   };
   if (f.kind === 'boss') {
-    run.bossRelics = rollBossRelics(run.rng.rewards, content, run.hero.classId, run.hero.relics);
+    run.bossRelics = rollBossRelics(run.rng.rewards, content, run.hero.classId, run.hero.relics, 3, run.pool?.relics);
     run.hero.hp = run.hero.maxHp;
   }
   run.afterReward = f.fromEvent ? 'event' : 'map';
   run.fight = null;
   run.phase = 'reward';
+}
+
+/**
+ * docs/design.md §5: after a fight with an enemy whose page is written, its
+ * Secret has a 35% chance to replace one of the three cards; after an elite
+ * or boss, that enemy's Secret always does. Enemy Lore makes it certain.
+ */
+function stealSecret(run: RunState, content: Content, kind: 'fight' | 'elite' | 'boss', encounter: string[], cards: string[]): void {
+  if (!cards.length) return;
+  const rng = run.rng.rewards;
+  const known = [...new Set(encounter)].filter((id) => run.known.includes(id) && content.enemies[id]?.secret && content.cards[content.enemies[id]!.secret!]);
+  if (!known.length) return;
+  const headliner = known.filter((id) => content.enemies[id]?.rank === kind);
+  let from: string | null = null;
+  if (kind !== 'fight') from = headliner.length ? rng.pick(headliner) : rng.pick(known);
+  else if (run.flags?.enemyLore || rng.chance(0.35)) from = rng.pick(known);
+  if (!from) return;
+  cards[rng.int(0, cards.length - 1)] = content.enemies[from]!.secret!;
 }
 
 // ---------------------------------------------------------------- rewards
@@ -447,7 +582,7 @@ const RELIC_PRICE = { common: [143, 157], uncommon: [238, 262], rare: [285, 315]
 const VIAL_PRICE = { common: [48, 52], uncommon: [72, 78], rare: [95, 105] } as const;
 
 function priceIn(run: RunState, content: Content, range: readonly [number, number]): number {
-  const mult = relicsOf(run, content).reduce((m, r) => m * (r.run?.shopMult ?? 1), 1);
+  const mult = relicsOf(run, content).reduce((m, r) => m * (r.run?.shopMult ?? 1), run.seal >= 8 ? 1.2 : 1);
   return Math.round(run.rng.shop.int(range[0], range[1]) * mult);
 }
 
@@ -458,7 +593,7 @@ export function openShop(run: RunState, content: Content): void {
   for (let i = 0; i < 5; i++) {
     const neutral = i === 4;
     const rarity = rng.weighted(['common', 'uncommon', 'rare'] as const, [55, 35, 10]);
-    const pool = Object.values(content.cards).filter((c: Card) => c.rarity === rarity && (neutral ? c.class === 'neutral' : c.class === run.hero.classId) && !seen.has(c.id));
+    const pool = Object.values(content.cards).filter((c: Card) => c.rarity === rarity && (neutral ? c.class === 'neutral' : c.class === run.hero.classId) && !seen.has(c.id) && (!run.pool || run.pool.cards.includes(c.id)));
     if (!pool.length) continue;
     const card = rng.pick(pool);
     seen.add(card.id);
@@ -467,7 +602,7 @@ export function openShop(run: RunState, content: Content): void {
   const relics: ShopItem[] = [];
   const owned = [...run.hero.relics];
   for (const tier of ['common', 'uncommon', 'rare'] as const) {
-    const r = rollRelic(rng, content, run.hero.classId, tier === 'rare' ? 'elite' : 'treasure', owned);
+    const r = rollRelic(rng, content, run.hero.classId, tier === 'rare' ? 'elite' : 'treasure', owned, run.pool?.relics);
     const relic = r ? content.relics?.[r] : undefined;
     if (!relic) continue;
     owned.push(relic.id);
@@ -573,6 +708,7 @@ export function leaveEvent(run: RunState): void {
 
 export function abandon(run: RunState): void {
   run.phase = 'lost';
+  run.abandoned = true;
   run.fight = null;
 }
 

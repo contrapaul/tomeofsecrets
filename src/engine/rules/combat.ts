@@ -56,7 +56,9 @@ export function createCombat(content: Content, hero: HeroSetup, encounter: Encou
     events: [],
     nextUid: 1,
     rng: createStreams(seed),
+    mods: { enemyHp: encounter.mods?.enemyHp ?? 1, enemyDamage: encounter.mods?.enemyDamage ?? 1 },
   };
+  if (state.hero.companion && state.hero.flags.companionEnraged) state.hero.companion.enraged = true;
 
   for (const c of hero.deck) {
     if (!content.cards[c.cardId]) throw new Error(`unknown card ${c.cardId}`);

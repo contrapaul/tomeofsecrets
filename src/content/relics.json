@@ -2,6 +2,11 @@
   { "id": "sunbrand-libram", "name": "Sunbrand Libram", "tier": "starter", "class": "paladin", "text": "Start each fight with 1 Holy Power.", "combat": { "resource": { "name": "holyPower", "amount": 1 } } },
   { "id": "bone-whistle", "name": "Bone Whistle", "tier": "starter", "class": "tracker", "text": "Your Companion is with you. It acts at the end of your turn." },
   { "id": "runed-focus", "name": "Runed Focus", "tier": "starter", "class": "mage", "text": "Start each fight with 1 Arcane Charge.", "combat": { "resource": { "name": "charge", "amount": 1 } } },
+  { "id": "ashen-libram", "name": "Ashen Libram", "tier": "starter", "class": "paladin", "text": "Start each fight with 2 Holy Power. −5 max HP.", "combat": { "resource": { "name": "holyPower", "amount": 2 } }, "run": { "maxHp": -5 } },
+  { "id": "beacon-libram", "name": "Beacon Libram", "tier": "starter", "class": "paladin", "text": "Heal 3 after each fight.", "run": { "healAfterFight": 3 } },
+  { "id": "bone-whistle-worn", "name": "Bone Whistle (Worn)", "tier": "starter", "class": "tracker", "text": "Your Companion is with you. It also acts on turn 1, before you draw.", "combat": { "fightStart": [{ "do": "companion", "action": "act" }] } },
+  { "id": "ember-focus", "name": "Ember Focus", "tier": "starter", "class": "mage", "text": "Start each fight with 1 Charge. Burn you apply +1.", "combat": { "resource": { "name": "charge", "amount": 1 }, "flags": ["emberFocus"] } },
+  { "id": "rime-focus", "name": "Rime Focus", "tier": "starter", "class": "mage", "text": "Start each fight with 1 Charge. Chill you apply +1.", "combat": { "resource": { "name": "charge", "amount": 1 }, "flags": ["rimeFocus"] } },
 
   { "id": "iron-bookmark", "name": "Iron Bookmark", "tier": "common", "text": "Start each fight with 4 block.", "combat": { "fightStart": [{ "do": "block", "amount": 4 }] } },
   { "id": "reading-glasses", "name": "Reading Glasses", "tier": "common", "text": "Elites and bosses also show their next-but-one intent.", "combat": { "flags": ["readingGlasses"] } },

@@ -1,0 +1,40 @@
+[
+  { "id": "paladin-verdicts", "kind": "cards", "class": "paladin", "name": "Verdicts", "cost": 60, "blurb": "The spending half of Holy Power.", "unlocks": ["blade-of-justice", "divine-storm", "holy-wrath", "hammer-of-wrath"] },
+  { "id": "paladin-bulwark", "kind": "cards", "class": "paladin", "name": "The Bulwark", "cost": 60, "blurb": "Block that hits back.", "unlocks": ["avengers-shield", "shield-bash", "hand-of-protection", "righteous-fury"], "requires": "paladin-verdicts" },
+  { "id": "paladin-light", "kind": "cards", "class": "paladin", "name": "The Light", "cost": 60, "blurb": "Blessings, and the two Rares.", "unlocks": ["blessing-of-might", "divine-plea", "aura-of-light", "wake-of-ashes", "divine-shield"], "requires": "paladin-bulwark" },
+
+  { "id": "tracker-beastmaster", "kind": "cards", "class": "tracker", "name": "Beastmaster", "cost": 60, "blurb": "The Companion acts more and harder.", "unlocks": ["kill-command", "bestial-wrath", "growl", "aspect-of-the-hawk"] },
+  { "id": "tracker-marksman", "kind": "cards", "class": "tracker", "name": "Marksman", "cost": 60, "blurb": "Marks and multi-hit.", "unlocks": ["aimed-shot", "arcane-shot", "trueshot", "volley"], "requires": "tracker-beastmaster" },
+  { "id": "tracker-survivalist", "kind": "cards", "class": "tracker", "name": "Survivalist", "cost": 60, "blurb": "Traps, poison, and the two Rares.", "unlocks": ["explosive-trap", "freezing-trap", "vipers-kiss", "kill-shot", "steel-trap"], "requires": "tracker-marksman" },
+
+  { "id": "mage-fire", "kind": "cards", "class": "mage", "name": "Fire", "cost": 60, "blurb": "Burn, then make it explode.", "unlocks": ["living-bomb", "combustion", "pyroblast", "frostfire-bolt"] },
+  { "id": "mage-frost", "kind": "cards", "class": "mage", "name": "Frost", "cost": 60, "blurb": "Chill until Frozen, then shatter.", "unlocks": ["blizzard", "shatter", "glacial-spike", "frozen-orb"], "requires": "mage-fire" },
+  { "id": "mage-arcane", "kind": "cards", "class": "mage", "name": "Arcane", "cost": 60, "blurb": "Charges, and the two Rares.", "unlocks": ["arcane-barrage", "evocation", "mirror-image", "rune-of-power", "meteor", "deep-freeze"], "requires": "mage-frost" },
+
+  { "id": "relics-odds", "kind": "relics", "name": "Odds and Ends", "cost": 60, "blurb": "Four more common relics in the pool.", "unlocks": ["pocket-anvil", "dried-ink", "snack-tin", "brass-key"] },
+  { "id": "relics-keepsakes", "kind": "relics", "name": "Keepsakes", "cost": 60, "blurb": "Four uncommon relics.", "unlocks": ["hourglass", "thornvine-bracers", "battle-standard", "ironwood-ring"], "requires": "relics-odds" },
+  { "id": "relics-treasures", "kind": "relics", "name": "Treasures", "cost": 60, "blurb": "The rare relics.", "unlocks": ["mercenarys-chit", "phylactery", "golden-bookmark", "heros-bracer"], "requires": "relics-keepsakes" },
+
+  { "id": "boon-rare-find", "kind": "boon", "name": "Rare Find", "cost": 40, "unlocks": ["rare-find"] },
+  { "id": "boon-lighter-pack", "kind": "boon", "name": "Lighter Pack", "cost": 40, "unlocks": ["lighter-pack"] },
+  { "id": "boon-transmute", "kind": "boon", "name": "Transmute", "cost": 40, "unlocks": ["transmute"] },
+  { "id": "boon-sharpened", "kind": "boon", "name": "Sharpened", "cost": 40, "unlocks": ["sharpened"] },
+  { "id": "boon-stocked", "kind": "boon", "name": "Stocked", "cost": 40, "unlocks": ["stocked"] },
+  { "id": "boon-enemy-lore", "kind": "boon", "name": "Enemy Lore", "cost": 40, "unlocks": ["enemy-lore"] },
+  { "id": "boon-blood-price", "kind": "boon", "name": "Blood Price", "cost": 40, "unlocks": ["blood-price"] },
+  { "id": "boon-zealots-start", "kind": "boon", "class": "paladin", "name": "Zealot's Start", "cost": 40, "unlocks": ["zealots-start"] },
+  { "id": "boon-runic-start", "kind": "boon", "class": "mage", "name": "Runic Start", "cost": 40, "unlocks": ["runic-start"] },
+  { "id": "boon-companions-heart", "kind": "boon", "class": "tracker", "name": "Companion's Heart", "cost": 40, "unlocks": ["companions-heart"] },
+
+  { "id": "origin-oath-of-vengeance", "kind": "origin", "class": "paladin", "name": "Oath of Vengeance", "cost": 100, "unlocks": ["oath-of-vengeance"] },
+  { "id": "origin-oath-of-light", "kind": "origin", "class": "paladin", "name": "Oath of Light", "cost": 100, "unlocks": ["oath-of-light"] },
+  { "id": "origin-marksman", "kind": "origin", "class": "tracker", "name": "Marksman", "cost": 100, "unlocks": ["marksman"] },
+  { "id": "origin-survivalist", "kind": "origin", "class": "tracker", "name": "Survivalist", "cost": 100, "unlocks": ["survivalist"] },
+  { "id": "origin-pyromancer", "kind": "origin", "class": "mage", "name": "Pyromancer", "cost": 100, "unlocks": ["pyromancer"] },
+  { "id": "origin-cryomancer", "kind": "origin", "class": "mage", "name": "Cryomancer", "cost": 100, "unlocks": ["cryomancer"] },
+
+  { "id": "companion-bear", "kind": "companion", "class": "tracker", "name": "The Bear", "cost": 80, "blurb": "Guard: you gain 5 block at the end of your turn.", "unlocks": ["bear"] },
+  { "id": "companion-hawk", "kind": "companion", "class": "tracker", "name": "The Hawk", "cost": 80, "blurb": "Peck: 2 damage and Mark 1 to a random enemy.", "unlocks": ["hawk"] },
+  { "id": "companion-serpent", "kind": "companion", "class": "tracker", "name": "The Serpent", "cost": 80, "blurb": "Venom: 3 Poison to a random enemy.", "unlocks": ["serpent"] },
+  { "id": "companion-boar", "kind": "companion", "class": "tracker", "name": "The Boar", "cost": 120, "blurb": "Gore: 8 damage to a random enemy every other turn.", "unlocks": ["boar"] }
+]

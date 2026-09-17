@@ -1,4 +1,4 @@
-import type { Card, ClassDef, ClassId, EncounterPools, Enemy, IntentKind, PowerTrigger, Relic, ResourceName, StatusId, TrapTrigger, Vial } from '../../content/schema';
+import type { Boon, Card, ClassDef, ClassId, EncounterPools, Enemy, IntentKind, Origin, Page, PowerTrigger, Relic, ResourceName, StatusId, TrapTrigger, Vial } from '../../content/schema';
 import type { Effect } from '../../content/schema';
 import type { Streams } from '../rng';
 import type { CombatEvent } from '../events';
@@ -154,6 +154,8 @@ export interface CombatState {
   events: CombatEvent[];
   nextUid: number;
   rng: Streams;
+  /** Seal modifiers for this fight; absent on saves from before Phase 6. */
+  mods?: { enemyHp: number; enemyDamage: number };
 }
 
 /** The content the engine needs. Tests hand in fixtures; the game hands in everything. */
@@ -167,6 +169,9 @@ export interface Content {
   encounters?: Record<number, EncounterPools>;
   /** Event scripts, raw .dlg text by name. */
   events?: Record<string, string>;
+  boons?: Record<string, Boon>;
+  origins?: Record<string, Origin>;
+  pages?: Record<string, Page>;
 }
 
 export interface HeroSetup {
@@ -193,4 +198,6 @@ export interface HeroSetup {
 
 export interface EncounterSetup {
   enemies: string[];
+  /** Seal modifiers: multipliers on enemy HP at spawn and enemy attack damage. */
+  mods?: { enemyHp?: number; enemyDamage?: number };
 }

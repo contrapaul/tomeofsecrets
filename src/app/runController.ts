@@ -1,7 +1,8 @@
 import { loadContent, type ContentRegistry } from '../content';
-import type { ClassId } from '../content/schema';
+import { recordFight, recordRun, unlocks, type RunLedger } from '../engine/meta/profile';
 import { formatSeed } from '../engine/rng';
-import { createRun, reviveRun, serializeRun, type RunState } from '../engine/run/run';
+import { createRun, finishFight, reviveRun, serializeRun, type RunSetup, type RunState } from '../engine/run/run';
+import { profileStore } from './profile';
 
 export const RUN_KEY = 'tome.run.v1';
 
@@ -38,11 +39,45 @@ class RunController {
     return !!this.run && this.run.phase !== 'won' && this.run.phase !== 'lost';
   }
 
-  newRun(classId: ClassId, seed?: string): RunState {
+  /** Start a run from the character-select choices; the Tome supplies the pools and the known pages. */
+  newRun(choices: Omit<RunSetup, 'seed' | 'pool' | 'known'>, seed?: string): RunState {
     const s = seed?.trim() || formatSeed((Math.random() * 0xffffffff) >>> 0);
-    this.run = createRun(this.content, { classId, seed: s });
+    const profile = profileStore().profile;
+    const u = unlocks(profile, this.content);
+    this.run = createRun(this.content, {
+      ...choices,
+      seed: s,
+      pool: { cards: [...u.cards], relics: [...u.relics] },
+      known: Object.entries(profile.bestiary).filter(([, b]) => b.kills > 0).map(([id]) => id),
+    });
     this.save();
     return this.run;
+  }
+
+  /** The fight is over: the Tome remembers it, then the run moves on. */
+  finishFight(): void {
+    const run = this.run;
+    if (!run?.fight) return;
+    const store = profileStore();
+    recordFight(store.profile, run.fight.state);
+    finishFight(run, this.content);
+    store.save();
+    this.save();
+  }
+
+  lore(): number {
+    return profileStore().profile.lore;
+  }
+
+  /** Bank an ended run (won, lost, or abandoned) exactly once. */
+  settle(): RunLedger | null {
+    const run = this.run;
+    if (!run) return null;
+    const store = profileStore();
+    const ledger = recordRun(store.profile, run, new Date().toISOString());
+    store.save();
+    this.save();
+    return ledger;
   }
 
   save(): void {

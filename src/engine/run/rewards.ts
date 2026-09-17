@@ -13,9 +13,9 @@ function weightedKey<K extends string>(rng: Rng, weights: Record<K, number>): K 
   return rng.weighted(keys, keys.map((k) => weights[k]));
 }
 
-/** The pool a class draws rewards from: its own cards plus neutrals, never starters, statuses or curses. */
-export function rewardPool(content: Content, classId: string, rarity: Rarity, neutral: boolean): Card[] {
-  return Object.values(content.cards).filter((c) => c.rarity === rarity && (neutral ? c.class === 'neutral' : c.class === classId));
+/** The pool a class draws rewards from: its own cards plus neutrals, never starters, statuses or curses. `allowed` is the profile's unlocked set. */
+export function rewardPool(content: Content, classId: string, rarity: Rarity, neutral: boolean, allowed?: readonly string[]): Card[] {
+  return Object.values(content.cards).filter((c) => c.rarity === rarity && (neutral ? c.class === 'neutral' : c.class === classId) && (!allowed || allowed.includes(c.id)));
 }
 
 export interface CardOffer {
@@ -25,7 +25,7 @@ export interface CardOffer {
 }
 
 /** Three distinct cards: class 80% / neutral 20%, rarity by node kind, with a 1%-per-miss Rare pity. */
-export function offerCards(rng: Rng, content: Content, classId: string, kind: 'fight' | 'elite' | 'boss', pity: number, count = 3): CardOffer {
+export function offerCards(rng: Rng, content: Content, classId: string, kind: 'fight' | 'elite' | 'boss', pity: number, count = 3, allowed?: readonly string[]): CardOffer {
   const out: string[] = [];
   let p = pity;
   for (let i = 0; i < count; i++) {
@@ -39,31 +39,31 @@ export function offerCards(rng: Rng, content: Content, classId: string, kind: 'f
     if (rarity === 'rare') p = 0;
     else p += 1;
     const neutral = rng.chance(0.2);
-    let pool = rewardPool(content, classId, rarity, neutral).filter((c) => !out.includes(c.id));
-    if (!pool.length) pool = rewardPool(content, classId, rarity, !neutral).filter((c) => !out.includes(c.id));
-    if (!pool.length) pool = rewardPool(content, classId, 'common', false).filter((c) => !out.includes(c.id));
+    let pool = rewardPool(content, classId, rarity, neutral, allowed).filter((c) => !out.includes(c.id));
+    if (!pool.length) pool = rewardPool(content, classId, rarity, !neutral, allowed).filter((c) => !out.includes(c.id));
+    if (!pool.length) pool = rewardPool(content, classId, 'common', false, allowed).filter((c) => !out.includes(c.id));
     if (pool.length) out.push(rng.pick(pool).id);
   }
   return { cards: out, pity: p };
 }
 
-export function relicPool(content: Content, classId: string, tier: RelicTier, owned: string[]): Relic[] {
-  return Object.values(content.relics ?? {}).filter((r) => r.tier === tier && (!r.class || r.class === classId) && !owned.includes(r.id));
+export function relicPool(content: Content, classId: string, tier: RelicTier, owned: string[], allowed?: readonly string[]): Relic[] {
+  return Object.values(content.relics ?? {}).filter((r) => r.tier === tier && (!r.class || r.class === classId) && !owned.includes(r.id) && (!allowed || allowed.includes(r.id)));
 }
 
 /** One relic by tier weights, never one you own; falls to a lower tier if a pool is empty. */
-export function rollRelic(rng: Rng, content: Content, classId: string, source: 'elite' | 'treasure', owned: string[]): string | null {
+export function rollRelic(rng: Rng, content: Content, classId: string, source: 'elite' | 'treasure', owned: string[], allowed?: readonly string[]): string | null {
   const tier = weightedKey(rng, RELIC_TIER[source]) as RelicTier;
   const order: RelicTier[] = tier === 'rare' ? ['rare', 'uncommon', 'common'] : tier === 'uncommon' ? ['uncommon', 'common', 'rare'] : ['common', 'uncommon', 'rare'];
   for (const t of order) {
-    const pool = relicPool(content, classId, t, owned);
+    const pool = relicPool(content, classId, t, owned, allowed);
     if (pool.length) return rng.pick(pool).id;
   }
   return null;
 }
 
-export function rollBossRelics(rng: Rng, content: Content, classId: string, owned: string[], count = 3): string[] {
-  const pool = rng.shuffle(relicPool(content, classId, 'boss', owned));
+export function rollBossRelics(rng: Rng, content: Content, classId: string, owned: string[], count = 3, allowed?: readonly string[]): string[] {
+  const pool = rng.shuffle(relicPool(content, classId, 'boss', owned, allowed));
   return pool.slice(0, count).map((r) => r.id);
 }
 

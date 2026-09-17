@@ -35,7 +35,9 @@ describe('run', () => {
     const r = run.reward!;
     expect(r.gold).toBeGreaterThanOrEqual(25);
     expect(new Set(r.cards).size).toBe(3);
-    for (const id of r.cards) expect(['mage', 'neutral']).toContain(content.cards[id]!.class);
+    // The Ink Slime's page was just written, so as an "elite" its Secret is one of the three.
+    expect(r.cards).toContain('ink-splash');
+    for (const id of r.cards) expect(['mage', 'neutral', 'secret']).toContain(content.cards[id]!.class);
     expect(r.relic).toBeTruthy();
     const gold = run.hero.gold;
     takeCard(run, content, r.cards[0]!);

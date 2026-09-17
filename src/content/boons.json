@@ -1,0 +1,15 @@
+[
+  { "id": "bright-start", "name": "Bright Start", "text": "+10 max HP.", "effects": [{ "do": "maxHp", "amount": 10 }] },
+  { "id": "full-purse", "name": "Full Purse", "text": "+120 gold.", "effects": [{ "do": "gold", "amount": 120 }] },
+  { "id": "rare-find", "name": "Rare Find", "text": "A random Rare card of your class.", "effects": [{ "do": "rareCard" }] },
+  { "id": "trinket", "name": "Trinket", "text": "A random Common relic.", "effects": [{ "do": "relic", "tier": "common" }] },
+  { "id": "lighter-pack", "name": "Lighter Pack", "text": "Remove a Starter Attack and a Starter Skill.", "effects": [{ "do": "removeStarters" }] },
+  { "id": "transmute", "name": "Transmute", "text": "Transform two random Starter cards into cards of your class.", "effects": [{ "do": "transform", "count": 2 }] },
+  { "id": "sharpened", "name": "Sharpened", "text": "Upgrade three random Starter cards.", "effects": [{ "do": "upgradeStarters", "count": 3 }] },
+  { "id": "stocked", "name": "Stocked", "text": "Two random vials.", "effects": [{ "do": "vials", "count": 2 }] },
+  { "id": "enemy-lore", "name": "Enemy Lore", "text": "Secrets are always offered in Chapter 1.", "effects": [{ "do": "runFlag", "flag": "enemyLore" }] },
+  { "id": "blood-price", "name": "Blood Price", "text": "−10 max HP. A random boss relic.", "effects": [{ "do": "maxHp", "amount": -10 }, { "do": "relic", "tier": "boss" }] },
+  { "id": "zealots-start", "name": "Zealot's Start", "class": "paladin", "text": "Start each fight with 2 Holy Power.", "effects": [{ "do": "resource", "name": "holyPower", "amount": 2 }] },
+  { "id": "runic-start", "name": "Runic Start", "class": "mage", "text": "Start each fight with 2 Charges.", "effects": [{ "do": "resource", "name": "charge", "amount": 2 }] },
+  { "id": "companions-heart", "name": "Companion's Heart", "class": "tracker", "text": "Your Companion starts each fight Enraged.", "effects": [{ "do": "fightFlag", "flag": "companionEnraged" }] }
+]

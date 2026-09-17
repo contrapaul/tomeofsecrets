@@ -1,9 +1,12 @@
-import { CardSet, ClassSet, EncounterPools, Enemy, EnemySet, RelicSet, VialSet, type Card, type ClassDef, type Relic, type Vial } from './schema';
+import { BoonSet, CardSet, ClassSet, EncounterPools, Enemy, EnemySet, OriginSet, PageSet, RelicSet, VialSet, type Boon, type Card, type ClassDef, type Origin, type Page, type Relic, type Vial } from './schema';
 import { CreditSet, type Credit } from './schema/art';
 import credits from './credits.json';
 import classes from './classes.json';
 import relics from './relics.json';
 import vials from './vials.json';
+import boons from './boons.json';
+import origins from './origins.json';
+import pages from './pages.json';
 import testCards from './test/cards.json';
 import testEnemies from './test/enemies.json';
 
@@ -27,6 +30,9 @@ export interface ContentRegistry {
   vials: Record<string, Vial>;
   encounters: Record<number, EncounterPools>;
   events: Record<string, string>;
+  boons: Record<string, Boon>;
+  origins: Record<string, Origin>;
+  pages: Record<string, Page>;
 }
 
 function index<T extends { id: string }>(items: T[], what: string): Record<string, T> {
@@ -79,6 +85,12 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
   if (!vl.success) fail('vials.json', vl.error.issues);
   const cls = ClassSet.safeParse(classes);
   if (!cls.success) throw new Error(`classes.json: ${cls.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
+  const bo = BoonSet.safeParse(boons);
+  if (!bo.success) fail('boons.json', bo.error.issues);
+  const og = OriginSet.safeParse(origins);
+  if (!og.success) fail('origins.json', og.error.issues);
+  const pg = PageSet.safeParse(pages);
+  if (!pg.success) fail('pages.json', pg.error.issues);
   const cr = CreditSet.safeParse(credits);
   if (!cr.success) throw new Error(`credits.json: ${cr.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
   const registry: ContentRegistry = {
@@ -90,6 +102,9 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
     vials: index(vl.success ? vl.data : [], 'vial'),
     encounters,
     events: eventSources(),
+    boons: index(bo.success ? bo.data : [], 'boon'),
+    origins: index(og.success ? og.data : [], 'origin'),
+    pages: index(pg.success ? pg.data : [], 'page'),
   };
   for (const c of cards) if (c.artist && !registry.credits[c.artist]) throw new Error(`card ${c.id} credits unknown artist ${c.artist}`);
   for (const e of enemies) {
@@ -101,5 +116,19 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
     for (const pool of [pools.easy, pools.normal, pools.elite, pools.boss]) for (const group of pool) for (const id of group) if (!registry.enemies[id]) throw new Error(`encounters chapter ${pools.chapter} names unknown enemy ${id}`);
   }
   for (const c of cls.data) for (const id of c.starter) if (!registry.cards[id]) throw new Error(`class ${c.id} starter references unknown card ${id}`);
+  for (const o of Object.values(registry.origins)) {
+    if (!registry.relics[o.relic]) throw new Error(`origin ${o.id} names unknown relic ${o.relic}`);
+    for (const [out, into] of o.swaps) {
+      if (!registry.classes[o.class]?.starter.includes(out)) throw new Error(`origin ${o.id} swaps out ${out}, which is not in the ${o.class} starter deck`);
+      if (!registry.cards[into]) throw new Error(`origin ${o.id} swaps in unknown card ${into}`);
+    }
+  }
+  for (const p of Object.values(registry.pages)) {
+    if (p.requires && !registry.pages[p.requires]) throw new Error(`page ${p.id} requires unknown page ${p.requires}`);
+    for (const id of p.unlocks) {
+      const known = p.kind === 'cards' ? registry.cards[id] : p.kind === 'relics' ? registry.relics[id] : p.kind === 'boon' ? registry.boons[id] : p.kind === 'origin' ? registry.origins[id] : ['wolf', 'bear', 'hawk', 'serpent', 'boar'].includes(id);
+      if (!known) throw new Error(`page ${p.id} unlocks unknown ${p.kind} ${id}`);
+    }
+  }
   return registry;
 }

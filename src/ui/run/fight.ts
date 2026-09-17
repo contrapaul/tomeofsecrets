@@ -3,7 +3,6 @@ import type { Scene, SceneContext } from '../../app/router';
 import { audio } from '../../app/audio';
 import { runController } from '../../app/runController';
 import { tutorialPending } from '../../app/tutorial';
-import { finishFight } from '../../engine/run/run';
 import { combatScene } from '../scenes/combat';
 
 /** #/run/fight — the run's current fight, resumed from the save if it was mid-way. */
@@ -31,8 +30,7 @@ export function runFightScene(ctx: SceneContext): Scene {
     tips: tutorialPending('fight'),
     onStep: () => controller.save(),
     onEnd: () => {
-      finishFight(run, controller.content);
-      controller.save();
+      controller.finishFight();
       setTimeout(() => ctx.router.go(controller.route()), 900);
     },
   });

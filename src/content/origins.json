@@ -1,0 +1,13 @@
+[
+  { "id": "oath-of-the-shield", "class": "paladin", "name": "Oath of the Shield", "default": true, "blurb": "The standard kit: hammers, shields, Sunbrand Libram.", "swaps": [], "relic": "sunbrand-libram" },
+  { "id": "oath-of-vengeance", "class": "paladin", "name": "Oath of Vengeance", "blurb": "Two Hammer Blows become Judgment and Templar's Verdict. The Ashen Libram burns brighter and costs you 5 HP.", "swaps": [["hammer-blow", "judgment"], ["hammer-blow", "templars-verdict"]], "relic": "ashen-libram" },
+  { "id": "oath-of-light", "class": "paladin", "name": "Oath of Light", "blurb": "A Hammer Blow and a Raise Shield become Holy Shock and Flash of Light. The Beacon Libram heals after every fight.", "swaps": [["hammer-blow", "holy-shock"], ["raise-shield", "flash-of-light"]], "relic": "beacon-libram" },
+
+  { "id": "beastmaster", "class": "tracker", "name": "Beastmaster", "default": true, "blurb": "The standard kit, with the Wolf at your side.", "swaps": [], "relic": "bone-whistle", "companion": "wolf" },
+  { "id": "marksman", "class": "tracker", "name": "Marksman", "blurb": "Two Arrows become Aimed Shot and Tracking. The Hawk marks what you shoot.", "swaps": [["arrow", "aimed-shot"], ["arrow", "tracking"]], "relic": "bone-whistle", "companion": "hawk" },
+  { "id": "survivalist", "class": "tracker", "name": "Survivalist", "blurb": "An Arrow and a Brace become Snake Trap and Camouflage. The Serpent poisons, and the worn whistle sends your Companion in before you draw.", "swaps": [["arrow", "snake-trap"], ["brace", "camouflage"]], "relic": "bone-whistle-worn", "companion": "serpent" },
+
+  { "id": "arcanist", "class": "mage", "name": "Arcanist", "default": true, "blurb": "The standard kit: three schools, Runed Focus.", "swaps": [], "relic": "runed-focus" },
+  { "id": "pyromancer", "class": "mage", "name": "Pyromancer", "blurb": "Two Arcane Bolts become Scorch and Fire Blast. The Ember Focus makes every Burn you apply deeper.", "swaps": [["arcane-bolt", "scorch"], ["arcane-bolt", "fire-blast"]], "relic": "ember-focus" },
+  { "id": "cryomancer", "class": "mage", "name": "Cryomancer", "blurb": "Two Arcane Bolts become Frostbolt and Frost Nova. The Rime Focus makes every Chill you apply colder.", "swaps": [["arcane-bolt", "frostbolt"], ["arcane-bolt", "frost-nova"]], "relic": "rime-focus" }
+]

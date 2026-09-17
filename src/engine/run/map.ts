@@ -35,7 +35,7 @@ export function nodeId(floor: number, col: number): string {
   return `f${floor}c${col}`;
 }
 
-export function generateMap(rng: Rng, chapter: number): RunMap {
+export function generateMap(rng: Rng, chapter: number, opts: { moreElites?: boolean } = {}): RunMap {
   // 1. Paths. Each is a column per floor; step -1/0/+1. Two links on the same
   //    floor cross when one starts left of the other and ends right of it.
   const links: [number, number][][] = Array.from({ length: MAP_FLOORS - 1 }, () => []);
@@ -88,7 +88,8 @@ export function generateMap(rng: Rng, chapter: number): RunMap {
         const parents = parentsOf(node);
         const grandparents = parents.flatMap(parentsOf);
         for (let attempt = 0; attempt < 12; attempt++) {
-          const t = rng.weighted(WEIGHTS.map((w) => w[0]), WEIGHTS.map((w) => w[1]));
+          // Seal 1: elites appear more often.
+          const t = rng.weighted(WEIGHTS.map((w) => w[0]), WEIGHTS.map((w) => (w[0] === 'elite' && opts.moreElites ? w[1] * 2 : w[1])));
           if (t === 'elite' && floor < 4) continue;
           if (t === 'camp' && floor <= 3) continue;
           if ((t === 'camp' || t === 'merchant' || t === 'elite') && parents.some((p) => p.type === t)) continue;

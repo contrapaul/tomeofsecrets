@@ -14,9 +14,11 @@ dialogue format, schemas, art spec). This file is the roadmap. Update the checkb
 and the status line as work lands so a new session can pick up without re-reading the
 conversation.
 
-**Status:** Phases 0–5 built. **The game is playable start to finish through Chapter 1**
-at https://tome.contrapaul.com. Next: **Checkpoint 1**, the first student playtest, then
-Phase 6. Students can start drawing now (`docs/CONTRIBUTING-ART.md`, `#/dev/enemy`).
+**Status:** Phases 0–6 built. **The game is playable start to finish through Chapter 1**
+at https://tome.contrapaul.com, and the Tome persists between runs: Bestiary pages,
+Secrets, Lore, Pages, Origins, Seals, Boons, Companions, save codes. Checkpoint 1
+happened (students wanted a stronger tutorial; done). Next: **Phase 7**, Chapters 2 and 3.
+Students can draw now (`docs/CONTRIBUTING-ART.md`) and record sound (`docs/CONTRIBUTING-AUDIO.md`).
 Last updated 2026-09-17.
 
 ---
@@ -423,28 +425,32 @@ Acceptance:
 cause of death, confusion points, and whether they asked to go again. Notes go into
 Handoff notes before Phase 6 starts.
 
-### Phase 6: Secrets, the Tome, and the meta
+### Phase 6: Secrets, the Tome, and the meta — Built 2026-09-17
 
 Goal: a lost run still moves the Tome forward, and the second run has more choices
 than the first.
 
-- [ ] Secrets per `design.md` §5: one colourless card per enemy; first kill writes the
+- [x] Secrets per `design.md` §5: one colourless card per enemy; first kill writes the
       page; afterwards Secrets appear in rewards (35% after a normal fight containing
       that enemy, always after an elite or boss). Distinct "stolen" frame.
-- [ ] Tome scene: **Bestiary** (silhouette until seen; full page after a kill: art,
+- [x] Tome scene: **Bestiary** (silhouette until seen; full page after a kill: art,
       artist, moves, Secret), **Cards** (by class, seen/unseen), **Relics**, **Pages**
       (the unlock tree), **Stats**, **Credits**.
-- [ ] Lore earned at run end by `design.md` §9; spent on Pages.
-- [ ] Boons (12), Origins (3 per class, 1 unlocked), Seals 1–10, Companions (5).
-- [ ] Character select becomes class → origin → companion (Tracker) → seal → boon.
-- [ ] Save codes: copy/load in Settings with a checksum error message.
-- [ ] Run history: last 20 runs with seed, class, result, floor.
+- [x] Lore earned at run end by `design.md` §9; spent on Pages.
+- [x] Boons (13), Origins (3 per class, 1 unlocked), Seals 1–10, Companions (5).
+      Seal 5 (chapter rests) waits for Phase 7's chapter transitions; Seal 10 (boss
+      Seal moves) waits for authored moves. Both are listed and selectable; they
+      simply do nothing yet.
+- [x] Character select becomes class → origin → companion (Tracker) → seal → boon.
+- [x] Save codes: copy/load in the Tome's Stats tab with a checksum error message.
+- [x] Run history: last 20 runs with seed, class, result, floor.
+- [ ] Card-back page (cosmetic): not built; nothing cosmetic to unlock yet.
 
 Acceptance:
-- Kill an Ink Slime → its page appears, its Secret is offered later, its artist is credited.
-- Lore accrues on a loss; buying a Page changes the next run's pool; a Boon visibly
-  alters the start.
-- A save code round-trips a profile between two browsers.
+- [x] Kill an Ink Slime → its page appears, its Secret is offered later, its artist is credited.
+- [x] Lore accrues on a loss; buying a Page changes the next run's pool; a Boon visibly
+      alters the start (Trinket hands over a relic on the map's bar).
+- [x] A save code round-trips a profile (unit test; two-browser check is Paul's).
 
 ### Phase 7: Chapters 2 and 3, the full pool, balance
 
@@ -782,3 +788,35 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   next drawing wants to use the template's height.
 - `layoutEnemies` still spaces by size class (220/300/380), not by art width, so wide
   blobs overlap a little in threes. Fine for slimes; revisit if it bothers anyone.
+
+### After Phase 6 (2026-09-17)
+
+- **The profile is `engine/meta/profile.ts`** (pure) stored by `app/profile.ts` under
+  `tome.profile.v1`. `unlocks(profile, content)` is the one place "what is in the pool"
+  is decided: anything no page claims is open from the start, a bought page opens what
+  it lists. New content is therefore unlocked by default until a page in
+  `content/pages.json` claims it.
+- **The run reads the Tome once, at creation.** `RunController.newRun` passes
+  `pool` (card and relic ids) and `known` (enemies with written pages) into
+  `createRun`; the run never touches the profile again. Rewards, shops, treasure and
+  boons all filter by `run.pool`; `stealSecret` in `run.ts` uses `run.known`, which
+  the run extends as it kills, so a first kill's Secret can appear the same run.
+- **Writing back**: `RunController.finishFight()` → `recordFight` (bestiary seen /
+  kills / moves, cards and relics seen) after every fight, saved immediately, so a
+  closed tab keeps the page. The end screen calls `settle()` → `recordRun`, which is
+  idempotent through `run.ledger`.
+- Seals live on the run (`run.seal`) and reach the engine through
+  `EncounterSetup.mods` → `state.mods` (enemy HP at spawn, enemy damage in resolution
+  and in the badge preview). Elite frequency is a `generateMap` option; prices and the
+  Doubt are run-layer.
+- Boons are a small DSL (`content/schema/meta.ts` `BoonEffect`) applied once in
+  `applyBoon`. `runFlag` writes `run.flags`, `fightFlag` rides `combatHooks` into
+  `hero.flags`, `resource` adds to `combatHooks().resources`.
+- Origins swap starters one-for-one and name their starter relic; the five origin
+  relics are `tier: starter` so they never roll as rewards. Ember/Rime Focus are the
+  `emberFocus`/`rimeFocus` hero flags in the status effect.
+- Save codes are `TOME1-<fnv1a>-<base64url json>`; `decodeProfile` names the failure.
+- The Tome's tabs are plain builders in `ui/scenes/tome.ts`; `#/tome?tab=pages` deep
+  links. Grids are sized for Chapter 1; Phase 7 will need paging or a chapter switch
+  in the Bestiary and a scroll for Cards.
+- Old saves (pre-6) revive with `seal 0`, no pool (everything), and no known pages.

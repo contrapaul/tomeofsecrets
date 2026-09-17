@@ -8,6 +8,7 @@ import { Button } from '../kit/button';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 import { audio } from '../../app/audio';
+import { profileStore } from '../../app/profile';
 import { runController } from '../../app/runController';
 
 export function titleScene(ctx: SceneContext): Scene {
@@ -37,7 +38,7 @@ export function titleScene(ctx: SceneContext): Scene {
       const buttons = [
         ...(controller.hasSave() ? [new Button({ label: 'Continue', onPress: () => ctx.router.go(controller.route()) })] : []),
         new Button({ label: 'New Run', variant: controller.hasSave() ? 'ghost' : 'gold', onPress: () => ctx.router.go('/run/new') }),
-        new Button({ label: 'The Tome', tag: 'soon', disabled: true, variant: 'ghost' }),
+        new Button({ label: 'The Tome', variant: 'ghost', onPress: () => ctx.router.go('/tome') }),
         new Button({ label: 'Settings', variant: 'ghost', onPress: () => ctx.router.go('/settings') }),
         new Button({ label: 'Credits', variant: 'ghost', onPress: () => ctx.router.go('/credits') }),
       ];
@@ -46,7 +47,7 @@ export function titleScene(ctx: SceneContext): Scene {
         view.addChild(b);
       });
 
-      const version = makeText('v0.0.1 · phase 0', { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+      const version = makeText(`v0.0.1 · phase 6 · ${profileStore().profile.lore} lore`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
       version.alpha = 0.6;
       version.position.set(24, DESIGN.height - 40);
       view.addChild(version);

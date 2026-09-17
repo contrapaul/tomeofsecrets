@@ -111,6 +111,7 @@ function resolveOne(state: CombatState, content: Content, effect: AnyEffect, ctx
           else if (src === 'enemy') {
             const attacker = enemy(state, ctx.source.kind === 'enemy' ? ctx.source.id : '');
             amount = attacker ? calcAttackDamage(base, attacker.statuses, target.statuses) : base;
+            amount = Math.floor(amount * (state.mods?.enemyDamage ?? 1));
           } else if (src === 'companion') {
             amount = getStatus(target.statuses, 'vulnerable') > 0 ? Math.floor(base * 1.5) : base;
           }
@@ -138,6 +139,8 @@ function resolveOne(state: CombatState, content: Content, effect: AnyEffect, ctx
       let amount = evalAmount(state, effect.amount, ctx);
       const heroSide = ctx.source.kind !== 'enemy' && ctx.source.kind !== 'system';
       if (effect.status === 'poison' && heroSide && amount > 0) amount += state.hero.flags.vipersKissPlus ? 2 : state.hero.flags.vipersKiss ? 1 : 0;
+      if (effect.status === 'burn' && heroSide && amount > 0 && state.hero.flags.emberFocus) amount += 1;
+      if (effect.status === 'chill' && heroSide && amount > 0 && state.hero.flags.rimeFocus) amount += 1;
       for (const id of resolveTargets(state, effect.target, ctx, 'target')) {
         if (id === COMPANION_ID) continue;
         applyStatus(state, content, id, effect.status, amount);
@@ -450,7 +453,7 @@ function summon(state: CombatState, content: Content, enemyId: string, count: nu
 export function spawnEnemy(state: CombatState, content: Content, enemyId: string): EnemyInstance {
   const def = content.enemies[enemyId];
   if (!def) throw new Error(`unknown enemy ${enemyId}`);
-  const hp = state.rng.encounters.int(def.hp[0], def.hp[1]);
+  const hp = Math.round(state.rng.encounters.int(def.hp[0], def.hp[1]) * (state.mods?.enemyHp ?? 1));
   const inst: EnemyInstance = {
     id: `e${state.nextUid++}`,
     enemyId,

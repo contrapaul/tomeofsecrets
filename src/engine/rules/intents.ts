@@ -77,7 +77,7 @@ export function previewIntent(state: CombatState, content: Content, e: EnemyInst
   const walk = (effects: Effect[]) => {
     for (const ef of effects) {
       if (ef.do === 'damage' && (ef.target === 'hero' || ef.target === 'target')) {
-        const per = calcAttackDamage(evalAmount(state, ef.amount, ctx), e.statuses, state.hero.statuses);
+        const per = Math.floor(calcAttackDamage(evalAmount(state, ef.amount, ctx), e.statuses, state.hero.statuses) * (state.mods?.enemyDamage ?? 1));
         const n = ef.times ?? 1;
         // Multi-hit badges show one hit's damage and the count, like StS.
         damage = damage ? damage : per;
