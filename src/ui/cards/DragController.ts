@@ -18,7 +18,11 @@ export interface DragHost {
   isTargeted(cardUid: number): boolean;
   /** The enemy instance id under a stage point, if any. */
   enemyAt(x: number, y: number): string | null;
+  /** The middle of a living enemy's body: where the aim arrow lands. */
+  enemyCenter(id: string): { x: number; y: number } | null;
   highlightEnemy(id: string | null): void;
+  /** Where a targeted card parks while you aim it. */
+  aimSpot: { x: number; y: number };
   /** Cards released above this line (stage y) are played. */
   playLineY: number;
   /** Attempt the play; false means the card comes back. */
@@ -31,10 +35,15 @@ export interface DragHost {
  * Pointer handling for cards in the hand: hover, click-to-inspect, drag with
  * lag and tilt, rearrange within the hand band, aim at an enemy or lift above
  * the play line to play, spring back otherwise.
+ *
+ * A targeted card, once lifted out of the hand, parks in the aim spot and an
+ * arrow runs from it to the pointer; over an enemy the arrow locks into the
+ * enemy's centre. Dragging back into the hand band unparks it.
  */
 export class DragController {
   private pressed: CardView | null = null;
   private dragging: CardView | null = null;
+  private aiming = false;
   private pressAt = { x: 0, y: 0 };
   private pointer = { x: 0, y: 0 };
   private velocity = 0;
@@ -95,6 +104,11 @@ export class DragController {
     hand.layout();
 
     this.tick = () => {
+      if (this.aiming) {
+        // Parked: the arrow follows the pointer, the card stays put.
+        this.paintAim(view);
+        return;
+      }
       const target = this.pointer;
       // Lag gives weight; the rotation follows horizontal velocity.
       view.x += (target.x - view.x) * 0.38;
@@ -114,6 +128,7 @@ export class DragController {
     const inBand = p.y > hand.bandTop;
     this.arrow.clear();
     if (inBand) {
+      if (this.aiming) this.unpark(view);
       hand.insertAt = hand.indexForX(p.x);
       hand.layout();
       this.host.highlightEnemy(null);
@@ -125,21 +140,65 @@ export class DragController {
       hand.layout();
     }
     if (this.host.isTargeted(view.cardUid)) {
+      if (!this.aiming) this.park(view);
       const enemyId = this.host.enemyAt(p.x, p.y);
       this.host.highlightEnemy(enemyId);
       this.setHint(false);
-      // A bezier from the card up and over to the pointer, with an arrowhead.
-      const x0 = view.x;
-      const y0 = view.y - (CARD_H * 0.95) / 2;
-      const cx = (x0 + p.x) / 2;
-      const cy = Math.min(y0, p.y) - 120;
-      const color = enemyId ? PALETTE.goldBright : PALETTE.parchmentDim;
-      this.arrow.moveTo(x0, y0).quadraticCurveTo(cx, cy, p.x, p.y).stroke({ color, width: 6, alpha: 0.9, cap: 'round' });
-      const ang = Math.atan2(p.y - cy, p.x - cx);
-      this.arrow.poly([p.x, p.y, p.x - 22 * Math.cos(ang - 0.5), p.y - 22 * Math.sin(ang - 0.5), p.x - 22 * Math.cos(ang + 0.5), p.y - 22 * Math.sin(ang + 0.5)]).fill(color);
+      const end = (enemyId && this.host.enemyCenter(enemyId)) || p;
+      this.drawArrow(view.x, view.y - (CARD_H * view.scale.y) / 2, end.x, end.y, !!enemyId);
     } else {
       this.host.highlightEnemy(null);
       this.setHint(p.y < this.host.playLineY);
+    }
+  }
+
+  /** Lift the card into the aim spot; the pointer is free to go find a target. */
+  private park(view: CardView): void {
+    this.aiming = true;
+    const spot = this.host.aimSpot;
+    gsap.to(view, { x: spot.x, y: spot.y, rotation: 0, duration: d(0.16), ease: 'power2.out', overwrite: 'auto' });
+    gsap.to(view.scale, { x: 1, y: 1, duration: d(0.16), ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  /** Back under the pointer; the lag tween carries it there. */
+  private unpark(view: CardView): void {
+    this.aiming = false;
+    gsap.killTweensOf(view);
+    gsap.killTweensOf(view.scale);
+    gsap.to(view.scale, { x: 0.95, y: 0.95, duration: d(0.12) });
+    this.lastX = view.x;
+    this.velocity = 0;
+  }
+
+  /**
+   * The aim arrow: leaves the card straight up, bends toward the target and
+   * arrives pointing into it. Locked on an enemy it is bright and lands in a
+   * pulsing bullseye; otherwise it trails the pointer, dimmer.
+   */
+  private drawArrow(x0: number, y0: number, x1: number, y1: number, locked: boolean): void {
+    const g = this.arrow;
+    const dist = Math.hypot(x1 - x0, y1 - y0);
+    if (dist < 30) return;
+    const cx = x0;
+    const cy = y0 - Math.max(80, dist * 0.45);
+    const color = locked ? PALETTE.goldBright : PALETTE.parchmentDim;
+    const alpha = locked ? 1 : 0.6;
+    // Tangent at the end: from the control point into the target.
+    const ang = Math.atan2(y1 - cy, x1 - cx);
+    const head = locked ? 30 : 24;
+    const baseX = x1 - Math.cos(ang) * head * 0.7;
+    const baseY = y1 - Math.sin(ang) * head * 0.7;
+    g.moveTo(x0, y0).quadraticCurveTo(cx, cy, baseX, baseY).stroke({ color, width: 16, alpha: 0.16 * alpha, cap: 'round' });
+    g.moveTo(x0, y0).quadraticCurveTo(cx, cy, baseX, baseY).stroke({ color, width: 6, alpha: 0.95 * alpha, cap: 'round' });
+    g.poly([
+      x1, y1,
+      x1 - head * Math.cos(ang - 0.45), y1 - head * Math.sin(ang - 0.45),
+      x1 - head * Math.cos(ang + 0.45), y1 - head * Math.sin(ang + 0.45),
+    ]).fill({ color, alpha });
+    if (locked) {
+      const pulse = 1 + 0.12 * Math.sin(performance.now() / 110);
+      g.circle(x1, y1, 30 * pulse).stroke({ color, width: 3, alpha: 0.9 });
+      g.circle(x1, y1, 46 * pulse).stroke({ color, width: 2, alpha: 0.35 });
     }
   }
 
@@ -197,6 +256,8 @@ export class DragController {
     if (this.tick) this.host.stage.app.ticker.remove(this.tick);
     this.tick = null;
     this.dragging = null;
+    this.aiming = false;
+    gsap.killTweensOf(view);
     this.host.hand.dragging = null;
     this.arrow.clear();
     this.setHint(false);

@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import type { ClassId } from '../../content/schema';
 import type { HeroState } from '../../engine/rules';
 import { FONT } from '../../app/fonts';
+import { hitIntensity } from '../fx/impact';
 import { floatNumber, shake } from '../fx/numbers';
 import { d, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
@@ -100,7 +101,7 @@ export class PlayerPanel extends Container {
     const y = this.y - 40;
     if (blocked > 0 && hpDamage === 0) void floatNumber(this.fxLayer, x, y, `${blocked}`, 'blocked');
     else void floatNumber(this.fxLayer, x, y, `${hpDamage}`, 'damage', hpDamage >= 15);
-    if (amount > 0 && spatial()) await shake(this.portrait, Math.min(16, 5 + hpDamage / 2));
+    if (amount > 0 && spatial()) await shake(this.portrait, 4 + 16 * hitIntensity(hpDamage, blocked), 4);
   }
 
   heal(amount: number): void {

@@ -4,7 +4,8 @@ import type { Enemy } from '../../content/schema';
 import type { EnemyInstance, Intent } from '../../engine/rules';
 import type { EnemyTextures } from '../../app/art';
 import { FONT } from '../../app/fonts';
-import { floatNumber, shake } from '../fx/numbers';
+import { hitIntensity, impactBurst } from '../fx/impact';
+import { floatNumber } from '../fx/numbers';
 import { d, done, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText } from '../kit/text';
@@ -192,7 +193,15 @@ export class EnemyView extends Container {
     this.idleTl?.resume();
   }
 
-  /** Flash white, shake, float the number. */
+  /** The middle of the body, in the parent's space: where an aimed card points. */
+  get center(): { x: number; y: number } {
+    return { x: this.x, y: this.y - this.bodyH * 0.5 };
+  }
+
+  /**
+   * Flash white, burst at the point of impact, knock the body back with a
+   * squash, settle with a wobble. Everything scales with how hard it hit.
+   */
   async hit(amount: number, blocked: number, hpDamage: number): Promise<void> {
     const x = this.x;
     const y = this.y - this.bodyH * 0.6;
@@ -200,13 +209,24 @@ export class EnemyView extends Container {
     else void floatNumber(this.fxLayer, x, y, `${hpDamage}`, 'damage', hpDamage >= 15);
     if (amount === 0) return;
     if (!spatial()) return;
+    const i = hitIntensity(hpDamage, blocked);
     this.pose('hurt', 0.3);
     this.matrix.reset();
-    this.matrix.brightness(2.2, false);
-    await Promise.all([
-      shake(this.body, Math.min(14, 4 + hpDamage / 3)),
-      done(gsap.to({ t: 0 }, { t: 1, duration: d(0.1), onComplete: () => this.matrix.reset() })),
-    ]);
+    this.matrix.brightness(1.6 + i, false);
+    void impactBurst(this.fxLayer, x + (Math.random() - 0.5) * this.bodyW * 0.3, this.y - this.bodyH * (0.4 + Math.random() * 0.3), i);
+    this.idleTl?.pause();
+    const knock = 8 + 36 * i;
+    const squash = 0.03 + 0.09 * i;
+    const tl = gsap.timeline();
+    tl.to(this.body, { x: knock, duration: d(0.05), ease: 'power3.out' }, 0)
+      .to(this.body.scale, { x: 1 + squash, y: 1 - squash, duration: d(0.05), ease: 'power3.out' }, 0)
+      .to(this.body, { x: -knock * 0.35, duration: d(0.07) })
+      .to(this.body, { x: knock * 0.15, duration: d(0.06) })
+      .to(this.body, { x: 0, duration: d(0.1), ease: 'power2.out' })
+      .to(this.body.scale, { x: 1, y: 1, duration: d(0.22), ease: 'elastic.out(1, 0.5)' }, d(0.05));
+    gsap.delayedCall(d(0.07 + 0.08 * i), () => this.matrix.reset());
+    await done(tl);
+    this.idleTl?.resume();
   }
 
   negated(by: string): void {

@@ -720,3 +720,24 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   `hourglass`, `quillOfHaste`, `aspectOfTheHawk`, `bestialWrath`, `trueshot`,
   `trappersKit`, `blessedBeads`, `beacon`, `reviveOnce`, `negateNextAttack`,
   `negateBuff`, `retainHand`, `scholarsCap`). Phase 3 and 5 content sets them.
+
+### Feel pass after Phase 5 (2026-09-17, from Paul's first look)
+
+- **Aiming is StS-style now.** A targeted card lifted out of the hand parks in
+  `LAYOUT.aimSpot` and the arrow runs from its top to the pointer; over an enemy it
+  locks into `EnemyView.center` with a pulsing bullseye. Dragging back into the hand
+  band unparks it. The old card-follows-pointer arrow read as a glitch because the
+  card was always under the pointer.
+- **One intensity scale for impacts**: `ui/fx/impact.ts` `hitIntensity(hp, blocked)`
+  (0..1, ~0.44 for 6 damage, 1 at 20+). Enemy hits: knockback + squash + white flash
+  + `impactBurst`, and a screen shake at 0.8×. Hero hits: screen shake, portrait shake,
+  and a vignette flash coloured by the new `kind` on the `damage` event (`attack` red,
+  `poison` green, `effect` orange). The vignette is a canvas sprite (`ui/fx/vignette.ts`)
+  because Pixi's `FillGradient` pre-fills radial gradients opaque, so alpha stops
+  cannot fade to transparent.
+- **End Turn glows** (`Button.setGlow`) when energy is 0 or nothing is playable.
+- Map title sits above the boss node now (`top = 200`); the run bar says
+  `DECK · 10 CARDS`.
+- `window.__tome.gsap` is exposed in dev so animations can be paused and seeked from
+  the console (`gsap.globalTimeline.pause(); ...time(t + 0.06)`) to inspect a frame.
+- Paul will supply a player-frame border graphic later; the red flash stands in.

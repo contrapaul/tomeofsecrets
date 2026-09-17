@@ -19,6 +19,8 @@ export interface ButtonOptions {
 /** A parchment-and-gold button. Hover lifts, press dips, disabled greys. */
 export class Button extends Container {
   private readonly bg = new Graphics();
+  private readonly glow = new Graphics();
+  private glowTween: gsap.core.Tween | null = null;
   private readonly w: number;
   private readonly h: number;
   private readonly variant: 'gold' | 'ghost';
@@ -30,7 +32,10 @@ export class Button extends Container {
     this.h = opts.height ?? 72;
     this.variant = opts.variant ?? 'gold';
     this.disabled = opts.disabled ?? false;
-    this.addChild(this.bg);
+    this.glow.roundRect(-9, -9, this.w + 18, this.h + 18, 18).stroke({ color: PALETTE.goldBright, width: 10, alpha: 0.35 });
+    this.glow.roundRect(-4, -4, this.w + 8, this.h + 8, 13).stroke({ color: PALETTE.goldBright, width: 4, alpha: 0.9 });
+    this.glow.alpha = 0;
+    this.addChild(this.glow, this.bg);
     this.paint(0);
 
     const label = makeText(opts.label, { ...STYLE.display(opts.fontSize ?? 30), fill: this.variant === 'gold' ? PALETTE.ink : PALETTE.parchment });
@@ -57,6 +62,20 @@ export class Button extends Container {
     this.on('pointerup', () => gsap.to(this.scale, { x: 1.03, y: 1.03, duration: 0.1 }));
     this.on('pointerupoutside', () => this.hover(false));
     this.on('pointertap', () => opts.onPress?.());
+    this.on('destroyed', () => this.glowTween?.kill());
+  }
+
+  /** A pulsing halo: "this is what you do next". */
+  setGlow(on: boolean): void {
+    if (on === (this.glowTween !== null)) return;
+    if (!on) {
+      this.glowTween?.kill();
+      this.glowTween = null;
+      gsap.to(this.glow, { alpha: 0, duration: 0.15, overwrite: true });
+      return;
+    }
+    this.glow.alpha = 0.3;
+    this.glowTween = gsap.to(this.glow, { alpha: 1, duration: 0.55, yoyo: true, repeat: -1, ease: 'sine.inOut', overwrite: true });
   }
 
   private hover(on: boolean): void {

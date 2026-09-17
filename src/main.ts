@@ -87,7 +87,7 @@ async function boot(): Promise<void> {
 
   if (import.meta.env.DEV) {
     // Poke at the running game from the console: __tome.stage, __tome.settings.
-    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi };
+    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi, gsap };
   }
 }
 

@@ -25,14 +25,14 @@ export function mapScene(ctx: SceneContext): Scene {
     const map = run.map;
     const left = 380;
     const colW = (DESIGN.width - left * 2) / (MAP_COLS - 1);
-    const top = 150;
+    const top = 200;
     const rowH = (DESIGN.height - top - 110) / MAP_FLOORS;
     const pos = (n: MapNode) => ({ x: left + n.col * colW, y: DESIGN.height - 110 - (n.floor - 1) * rowH });
     const bossPos = { x: DESIGN.width / 2, y: top - 40 };
 
     const title = makeText(`CHAPTER ${run.chapter} · THE MOSS HALLS`, { ...STYLE.display(30), fill: PALETTE.gold, letterSpacing: 4 });
     title.anchor.set(0.5, 0);
-    title.position.set(DESIGN.width / 2, 80);
+    title.position.set(DESIGN.width / 2, 76);
     view.addChild(title);
 
     const lines = new Graphics();

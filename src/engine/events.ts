@@ -4,6 +4,9 @@ import type { StatusId, ResourceName, IntentKind } from '../content/schema';
  * Presentation cues. The engine appends one at every mutation; the combat
  * scene drains them on a timeline. A test asserts each mutation site emits.
  */
+/** How the hit landed, for the screen flash colour: a swing, poison ticking, or something else (Thorns, a bomb). */
+export type DamageKind = 'attack' | 'poison' | 'effect';
+
 export type CombatEvent =
   | { t: 'fightStart' }
   | { t: 'turnStart'; turn: number; side: 'hero' | 'enemy' }
@@ -11,7 +14,7 @@ export type CombatEvent =
   | { t: 'shuffle'; count: number }
   | { t: 'play'; uid: number; cardId: string; targetId?: string }
   | { t: 'cardMoved'; uid: number; to: 'hand' | 'discard' | 'exhaust' | 'draw' | 'powers' | 'gone' }
-  | { t: 'damage'; target: string; amount: number; blocked: number; hp: number; source?: string; killed: boolean }
+  | { t: 'damage'; target: string; amount: number; blocked: number; hp: number; source?: string; killed: boolean; kind: DamageKind }
   | { t: 'negated'; target: string; by: 'images' | 'trap' | 'intangible' }
   | { t: 'block'; target: string; amount: number; total: number }
   | { t: 'status'; target: string; status: StatusId; delta: number; total: number }

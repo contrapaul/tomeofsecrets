@@ -63,18 +63,19 @@ export class RunBar extends Container {
 
     let rx = DESIGN.width - 24;
     const deck = new Container();
-    const dg = new Graphics();
-    dg.roundRect(-70, -20, 140, 40, 8).fill({ color: PALETTE.parchment, alpha: 0.08 }).stroke({ color: PALETTE.gold, width: 2 });
-    deck.addChild(dg);
-    const dt = makeText(`DECK ${run.hero.deck.length}`, { ...STYLE.display(18), fill: PALETTE.parchment });
+    const n = run.hero.deck.length;
+    const dt = makeText(`DECK · ${n} CARD${n === 1 ? '' : 'S'}`, { ...STYLE.display(18), fill: PALETTE.parchment });
     dt.anchor.set(0.5);
-    deck.addChild(dt);
-    deck.position.set(rx - 70, 32);
+    const dw = Math.ceil(dt.width) + 36;
+    const dg = new Graphics();
+    dg.roundRect(-dw / 2, -20, dw, 40, 8).fill({ color: PALETTE.parchment, alpha: 0.08 }).stroke({ color: PALETTE.gold, width: 2 });
+    deck.addChild(dg, dt);
+    deck.position.set(rx - dw / 2, 32);
     deck.eventMode = 'static';
     deck.cursor = 'pointer';
     deck.on('pointertap', this.onDeck);
     this.items.addChild(deck);
-    rx -= 160;
+    rx -= dw + 20;
     for (let i = run.hero.vialSlots - 1; i >= 0; i--) {
       const id = run.hero.vials[i];
       const vial = id ? this.content.vials[id] : undefined;

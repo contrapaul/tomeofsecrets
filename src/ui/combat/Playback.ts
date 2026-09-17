@@ -1,10 +1,11 @@
 import type { Container } from 'pixi.js';
 import gsap from 'gsap';
-import type { CombatEvent } from '../../engine/events';
+import type { CombatEvent, DamageKind } from '../../engine/events';
 import type { CombatState, Content } from '../../engine/rules';
 import { CARD_H, type CardView } from '../cards/CardView';
 import type { HandLayout } from '../cards/HandLayout';
 import type { PileView } from '../cards/PileView';
+import { hitIntensity } from '../fx/impact';
 import { floatNumber } from '../fx/numbers';
 import { d, done, spatial } from '../kit/motion';
 import type { CompanionView } from './CompanionView';
@@ -31,7 +32,10 @@ export interface World {
   addEnemy(id: string): EnemyView | null;
   layoutEnemies(): void;
   banner(text: string, sub?: string): Promise<void>;
-  shakeScreen(px: number): void;
+  /** Rattle the table, 0..1. */
+  shakeScreen(intensity: number): void;
+  /** The hero-was-hit flash, coloured by the kind of damage. */
+  screenFlash(kind: DamageKind, intensity: number): void;
   slowMo(): Promise<void>;
   positions: { draw: { x: number; y: number }; discard: { x: number; y: number }; exhaust: { x: number; y: number }; center: { x: number; y: number }; powers: { x: number; y: number } };
   onEnd(result: 'won' | 'lost'): void;
@@ -210,10 +214,12 @@ export class Playback {
       }
       case 'damage': {
         const hpDamage = ev.amount - ev.blocked;
+        const intensity = hitIntensity(hpDamage, ev.blocked);
         if (ev.target === 'hero') {
           this.blocks.set('hero', Math.max(0, this.block('hero') - ev.blocked));
           w.player.hp.set(ev.hp, w.state.hero.maxHp, this.block('hero'));
-          if (hpDamage >= 15) w.shakeScreen(Math.min(18, hpDamage / 2));
+          w.shakeScreen(intensity);
+          w.screenFlash(ev.kind, intensity);
           await w.player.hit(ev.amount, ev.blocked, hpDamage);
         } else {
           const e = w.enemies.get(ev.target);
@@ -221,6 +227,7 @@ export class Playback {
           this.blocks.set(ev.target, Math.max(0, this.block(ev.target) - ev.blocked));
           e.hp.set(ev.hp, e.hp.maximum, this.block(ev.target));
           if (ev.killed) await w.slowMo();
+          w.shakeScreen(intensity * 0.8);
           await e.hit(ev.amount, ev.blocked, hpDamage);
         }
         return;

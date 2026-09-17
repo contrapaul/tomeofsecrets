@@ -85,6 +85,7 @@ export function dealDamage(state: CombatState, content: Content, targetId: strin
     hp: target.hp,
     source: sourceId(opts.source),
     killed,
+    kind: opts.attack ? 'attack' : 'effect',
   });
 
   // Thorns hits back at whoever swung, as plain damage.
@@ -140,7 +141,7 @@ export function loseHp(state: CombatState, content: Content, target: Combatant, 
   if (isEnemy(target) && !target.alive) return;
   target.hp = Math.max(0, target.hp - amount);
   const killed = target.hp <= 0;
-  state.events.push({ t: 'damage', target: idOf(target), amount, blocked: 0, hp: target.hp, killed });
+  state.events.push({ t: 'damage', target: idOf(target), amount, blocked: 0, hp: target.hp, killed, kind: 'poison' });
   if (killed) die(state, content, target);
 }
 

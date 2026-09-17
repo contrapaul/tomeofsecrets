@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
 import { DESIGN } from '../../app/fit';
 import type { Scene, SceneContext } from '../../app/router';
+import type { DamageKind } from '../../engine/events';
 import type { Card } from '../../content/schema';
 import {
   cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, legalPlays, playCard, respondPrompt, useVial,
@@ -22,6 +23,7 @@ import { TrapRow } from '../combat/TrapRow';
 import { backdrop } from '../kit/backdrop';
 import { ParallaxBackdrop } from '../kit/parallax';
 import { Button } from '../kit/button';
+import { vignetteSprite } from '../fx/vignette';
 import { KEYWORD_INFO } from '../kit/glossary';
 import { d, done, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
@@ -52,6 +54,7 @@ const LAYOUT = {
   enemyCenterX: 1330,
   player: { x: 250, y: 420 },
   hand: { centerX: 960, baseY: 945, scale: 0.8, hoverScale: 1.15, maxSpread: 1000 },
+  aimSpot: { x: 960, y: 790 },
   draw: { x: 110, y: 960 },
   discard: { x: 1810, y: 960 },
   exhaust: { x: 1690, y: 985 },
@@ -90,6 +93,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     floating: new Container({ label: 'floating' }),
     fx: new Container({ label: 'fx' }),
     ui: new Container({ label: 'ui' }),
+    /** Full-screen flashes; above the table, not shaken, under banners. */
+    screenFx: new Container({ label: 'screen-fx' }),
     overlay: new Container({ label: 'combat-overlay' }),
   };
   const enemies = new Map<string, EnemyView>();
@@ -104,6 +109,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
   const shakeRoot = new Container({ label: 'shake' });
+  const vignette = vignetteSprite();
   let enemyArt = new Map<string, EnemyTextures>();
   let cardArt = new Map<string, Texture>();
 
@@ -140,6 +146,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       cv.setGlow(!busy && !state.prompt && legal.has(cv.cardUid));
     }
     endTurnBtn.alpha = busy ? 0.5 : 1;
+    // Nothing left to do this turn: point at End Turn.
+    endTurnBtn.setGlow(!busy && !state.prompt && state.phase === 'player' && (state.hero.energy === 0 || legal.size === 0));
   }
 
   function layoutEnemies(): void {
@@ -236,11 +244,29 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     await done(tl);
   }
 
-  function shakeScreen(px: number): void {
-    if (!spatial() || !ctx.settings.get().shake) return;
+  /** Rattle the whole table; `intensity` 0..1 sets how far and how long. */
+  function shakeScreen(intensity: number): void {
+    if (!spatial() || !ctx.settings.get().shake || intensity <= 0) return;
+    const px = 3 + 18 * intensity;
+    const n = 3 + Math.round(4 * intensity);
+    gsap.killTweensOf(shakeRoot);
     const tl = gsap.timeline({ onComplete: () => shakeRoot.position.set(0, 0) });
-    for (let i = 0; i < 4; i++) tl.to(shakeRoot, { x: (Math.random() - 0.5) * px * 2, y: (Math.random() - 0.5) * px, duration: d(0.04) });
+    for (let i = 0; i < n; i++) {
+      const s = px * (1 - i / n);
+      tl.to(shakeRoot, { x: (Math.random() - 0.5) * 2 * s, y: (Math.random() - 0.5) * 1.4 * s, duration: d(0.035) });
+    }
     tl.to(shakeRoot, { x: 0, y: 0, duration: d(0.05) });
+  }
+
+  const FLASH_COLOR: Record<DamageKind, number> = { attack: 0xc8102e, poison: 0x6fbf3f, effect: PALETTE.ember };
+
+  /** The hero was hit: a diffuse flash from the edges, coloured by what hit them. */
+  function screenFlash(kind: DamageKind, intensity: number): void {
+    if (intensity <= 0) return;
+    vignette.tint = FLASH_COLOR[kind];
+    gsap.killTweensOf(vignette);
+    vignette.alpha = 0.3 + 0.55 * intensity;
+    gsap.to(vignette, { alpha: 0, duration: Math.max(0.2, d(0.3 + 0.5 * intensity)), ease: 'power2.out' });
   }
 
   async function slowMo(): Promise<void> {
@@ -513,7 +539,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
 
       layers.hand = new HandLayout(LAYOUT.hand);
       shakeRoot.addChild(layers.hand, layers.floating, layers.fx, layers.ui);
-      view.addChild(layers.overlay);
+      view.addChild(layers.screenFx, layers.overlay);
+      layers.screenFx.addChild(vignette);
       ctx.stage.overlay.addChild(tooltip);
 
       player = new PlayerPanel(state.hero, tooltip, layers.fx);
@@ -566,6 +593,11 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
           }
           return null;
         },
+        enemyCenter: (id) => {
+          const v = enemies.get(id);
+          return v && !v.dead ? v.center : null;
+        },
+        aimSpot: LAYOUT.aimSpot,
         highlightEnemy: (id) => {
           for (const [eid, v] of enemies) v.setHighlight(eid === id);
         },
@@ -601,6 +633,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         layoutEnemies,
         banner,
         shakeScreen,
+        screenFlash,
         slowMo,
         positions: { draw: LAYOUT.draw, discard: LAYOUT.discard, exhaust: LAYOUT.exhaust, center: LAYOUT.center, powers: LAYOUT.powers },
         onEnd: endFight,
