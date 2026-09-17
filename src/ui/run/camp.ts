@@ -1,4 +1,5 @@
 import type { Scene, SceneContext } from '../../app/router';
+import { audio } from '../../app/audio';
 import { canRest, leaveCamp, rest, smith, smithUpgrades, upgradeable } from '../../engine/run/run';
 import { DESIGN } from '../../app/fit';
 import { Button } from '../kit/button';
@@ -21,6 +22,7 @@ export function campScene(ctx: SceneContext): Scene {
       disabled: !canRest(run),
       onPress: () => {
         if (rest(run, content)) {
+          audio().play('rest');
           save();
           sync();
           leaveCamp(run);

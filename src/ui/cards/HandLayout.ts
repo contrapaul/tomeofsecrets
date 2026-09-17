@@ -1,5 +1,6 @@
 import { Container } from 'pixi.js';
 import gsap from 'gsap';
+import { audio } from '../../app/audio';
 import { d } from '../kit/motion';
 import { CARD_H, CARD_W, type CardView } from './CardView';
 
@@ -107,6 +108,7 @@ export class HandLayout extends Container {
   setHover(view: CardView | null): void {
     if (this.hovered === view) return;
     this.hovered = view;
+    if (view) audio().play('card-hover', { volume: 0.5 });
     this.layout();
   }
 

@@ -1,7 +1,9 @@
 import { Container, Graphics, type Texture } from 'pixi.js';
 import gsap from 'gsap';
 import { loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
+import { audio } from '../../app/audio';
 import { DESIGN } from '../../app/fit';
+import { markTutorial } from '../../app/tutorial';
 import type { Scene, SceneContext } from '../../app/router';
 import type { DamageKind } from '../../engine/events';
 import type { Card } from '../../content/schema';
@@ -9,7 +11,7 @@ import {
   cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, legalPlays, playCard, respondPrompt, useVial,
   type CombatState, type Content, type EncounterSetup, type HeroSetup, type Unplayable,
 } from '../../engine/rules';
-import { CardView, type CardDisplay } from '../cards/CardView';
+import { CARD_H, CardView, type CardDisplay } from '../cards/CardView';
 import { DragController } from '../cards/DragController';
 import { HandLayout } from '../cards/HandLayout';
 import { PileView } from '../cards/PileView';
@@ -23,12 +25,12 @@ import { TrapRow } from '../combat/TrapRow';
 import { backdrop } from '../kit/backdrop';
 import { ParallaxBackdrop } from '../kit/parallax';
 import { Button } from '../kit/button';
+import { Coach } from '../kit/coach';
 import { vignetteSprite } from '../fx/vignette';
 import { KEYWORD_INFO } from '../kit/glossary';
 import { d, done, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
-import { toast } from '../kit/toast';
 import { Tooltip } from '../kit/tooltip';
 
 export interface CombatSetup {
@@ -45,7 +47,7 @@ export interface CombatSetup {
   onEnd?: (result: 'won' | 'lost', state: CombatState) => void;
   /** Hide the dev "Again / Title" overlay and let onEnd take over. */
   quietEnd?: boolean;
-  /** Show the three first-fight tips (the run does this once per browser). */
+  /** Run the guided first-fight walkthrough (the run does this once per browser). */
   tips?: boolean;
 }
 
@@ -108,6 +110,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let drag: DragController;
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
+  let coach: Coach | null = null;
   const shakeRoot = new Container({ label: 'shake' });
   const vignette = vignetteSprite();
   let enemyArt = new Map<string, EnemyTextures>();
@@ -148,6 +151,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     endTurnBtn.alpha = busy ? 0.5 : 1;
     // Nothing left to do this turn: point at End Turn.
     endTurnBtn.setGlow(!busy && !state.prompt && state.phase === 'player' && (state.hero.energy === 0 || legal.size === 0));
+    if (state.hero.energy === 0) coach?.notify('energy-zero');
   }
 
   function layoutEnemies(): void {
@@ -281,11 +285,13 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     if (busy) return;
     busy = true;
     refreshHand();
+    const turnBefore = state.turn;
     fn();
     const events = drainEvents(state);
     setup.onStep?.(state);
     await playback.play(events);
     busy = false;
+    if (state.turn > turnBefore) coach?.notify('hero-turn');
     if (state.phase === 'won' || state.phase === 'lost') {
       busy = true;
       return;
@@ -366,16 +372,61 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     layers.overlay.addChild(overlay);
   }
 
-  async function runTips(): Promise<void> {
-    const lines = [
-      'Drag a card onto an enemy to attack it. Skills play by dragging them up.',
-      'The badge above an enemy shows what it will do next. Hover it for the numbers.',
-      'Press End Turn when you are done. Unused energy is lost, and so is your hand.',
-    ];
-    for (const line of lines) {
-      if (state.phase !== 'player') return;
-      await toast(layers.overlay, line, 4);
-    }
+  function doEndTurn(): void {
+    if (busy || state.prompt) return;
+    coach?.notify('end-turn');
+    audio().play('turn-end');
+    void act(() => endTurn(state, content));
+  }
+
+  /**
+   * The first-fight walkthrough. Each step waits for the player to do the
+   * thing it describes; the chevrons follow the card, the orb, the enemy.
+   */
+  function startCoach(): void {
+    const firstCard = (targeted: boolean) => {
+      const legal = new Set(legalPlays(state, content).map((p) => p.uid));
+      const cv = layers.hand.cards.find((c) => legal.has(c.cardUid) && (cardDef(c.cardUid)?.target === 'enemy') === targeted);
+      return cv ? { x: layers.hand.x + cv.x, y: layers.hand.y + cv.y - (CARD_H * cv.scale.y) / 2 } : null;
+    };
+    const firstEnemy = () => [...enemies.values()].find((v) => !v.dead) ?? null;
+    const orbTop = { x: LAYOUT.player.x - 130, y: LAYOUT.player.y + 230 - 58 };
+    const endTurnTop = { x: LAYOUT.endTurn.x, y: LAYOUT.endTurn.y - 36 };
+    coach = new Coach(ctx.stage, [
+      {
+        title: 'Attack',
+        text: 'Attack cards need a target. Drag the glowing card onto an enemy and let go.',
+        until: ['play-targeted'],
+        point: () => [firstCard(true), firstEnemy()?.top ?? null],
+      },
+      {
+        title: 'Energy',
+        text: 'Every card costs energy: the number in its corner. The orb shows what you have left this turn; it refills every turn. Skills need no target. Drag one straight up, past the line.',
+        until: ['play-untargeted', 'energy-zero'],
+        point: () => [orbTop, firstCard(false)],
+      },
+      {
+        title: 'What the enemy will do',
+        text: 'The badge above an enemy is its next move. A sword means an attack, and the number is the damage it will deal. Block from your skills soaks damage before it reaches your health, and lasts until your next turn.',
+        point: () => [firstEnemy()?.top ?? null],
+      },
+      {
+        title: 'End your turn',
+        text: 'Out of energy, or out of moves? Press End Turn. Cards you did not play go to the discard pile.',
+        until: ['end-turn'],
+        point: () => [endTurnTop],
+      },
+      {
+        title: 'Your turn again',
+        text: 'A new hand of five and full energy, every turn. When the draw pile runs out, the discard pile shuffles back in. Hover anything for details. Right-click an enemy to see the moves it has shown. Now win this fight.',
+        after: 'hero-turn',
+      },
+    ], { x: 60, y: 64 }, () => {
+      markTutorial('fight');
+      coach = null;
+    });
+    layers.overlay.addChild(coach);
+    coach.start();
   }
 
   function endFight(result: 'won' | 'lost'): void {
@@ -446,7 +497,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       for (const v of enemies.values()) v.setHighlight(false);
     }
     if (busy || state.prompt) return;
-    if (e.key === 'e' || e.key === 'E') void act(() => endTurn(state, content));
+    if (e.key === 'e' || e.key === 'E') doEndTurn();
     const n = Number(e.key);
     if (n >= 1 && n <= 9) {
       const cv = layers.hand.cards[n - 1];
@@ -503,6 +554,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       return false;
     }
     // The engine has already run; play it back.
+    coach?.notify(targetId ? 'play-targeted' : 'play-untargeted');
     busy = true;
     refreshHand();
     const events = drainEvents(state);
@@ -574,7 +626,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       bar.sync(state.hero);
       layers.ui.addChild(bar);
 
-      endTurnBtn = new Button({ label: 'End Turn', width: 240, height: 64, onPress: () => void act(() => endTurn(state, content)) });
+      endTurnBtn = new Button({ label: 'End Turn', width: 240, height: 64, onPress: doEndTurn });
       endTurnBtn.position.set(LAYOUT.endTurn.x, LAYOUT.endTurn.y);
       layers.ui.addChild(endTurnBtn);
 
@@ -665,6 +717,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         busy = false;
         if (state.prompt) showPrompt();
         refreshHand();
+        if (setup.tips) startCoach();
         return;
       }
       // The opening: the engine already drew; play those events.
@@ -672,7 +725,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       await playback.play(events);
       busy = false;
       refreshHand();
-      if (setup.tips) void runTips();
+      if (setup.tips) startCoach();
     },
     exit() {
       window.removeEventListener('keydown', onKey);

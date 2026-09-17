@@ -1,5 +1,6 @@
 import { Container } from 'pixi.js';
 import type { Scene, SceneContext } from '../../app/router';
+import { audio } from '../../app/audio';
 import { buy, leaveShop, removeCard } from '../../engine/run/run';
 import { DESIGN } from '../../app/fit';
 import { Button } from '../kit/button';
@@ -29,6 +30,7 @@ export function shopScene(ctx: SceneContext): Scene {
         const x = DESIGN.width / 2 + (i - 2) * 250;
         const cv = offerCard(content, item.id, i, 0.78, () => {
           if (buy(run, content, 'cards', i)) {
+            audio().play('shop-buy');
             save();
             sync();
             refresh();
@@ -47,6 +49,7 @@ export function shopScene(ctx: SceneContext): Scene {
         const x = DESIGN.width / 2 - 520 + i * 180;
         const t = relicToken(content, item.id, tooltip, () => {
           if (buy(run, content, 'relics', i)) {
+            audio().play('shop-buy');
             save();
             sync();
             refresh();
@@ -61,6 +64,7 @@ export function shopScene(ctx: SceneContext): Scene {
         const x = DESIGN.width / 2 + 140 + i * 200;
         const t = vialToken(content, item.id, tooltip, () => {
           if (buy(run, content, 'vials', i)) {
+            audio().play('shop-buy');
             save();
             sync();
             refresh();

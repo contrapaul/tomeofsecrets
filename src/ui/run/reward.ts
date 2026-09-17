@@ -1,5 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
 import type { Scene, SceneContext } from '../../app/router';
+import { audio } from '../../app/audio';
 import { finishReward, skipCard, takeCard, takeRewardRelic, takeVial } from '../../engine/run/run';
 import { DESIGN } from '../../app/fit';
 import { Button } from '../kit/button';
@@ -55,6 +56,7 @@ export function rewardScene(ctx: SceneContext): Scene {
         cards.addChild(label);
         r.cards.forEach((id, i) => {
           const cv = offerCard(content, id, i, 0.95, () => {
+            audio().play('card-pick');
             takeCard(run, content, id);
             save();
             sync();

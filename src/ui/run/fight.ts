@@ -1,19 +1,10 @@
 import { Container } from 'pixi.js';
 import type { Scene, SceneContext } from '../../app/router';
+import { audio } from '../../app/audio';
 import { runController } from '../../app/runController';
+import { tutorialPending } from '../../app/tutorial';
 import { finishFight } from '../../engine/run/run';
 import { combatScene } from '../scenes/combat';
-
-/** True once per browser: the three tips play on the very first fight. */
-function firstFightTips(): boolean {
-  try {
-    if (window.localStorage.getItem('tome.tips.v1')) return false;
-    window.localStorage.setItem('tome.tips.v1', '1');
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 /** #/run/fight — the run's current fight, resumed from the save if it was mid-way. */
 export function runFightScene(ctx: SceneContext): Scene {
@@ -29,7 +20,7 @@ export function runFightScene(ctx: SceneContext): Scene {
     };
   }
   const fight = run.fight;
-  const tips = firstFightTips();
+  audio().music(fight.kind === 'boss' ? 'boss' : fight.kind === 'elite' ? 'elite' : run.chapter > 1 ? `fight-${run.chapter}` : 'fight');
   return combatScene(ctx, controller.content, {
     hero: { classId: run.hero.classId, maxHp: run.hero.maxHp, deck: [] },
     encounter: { enemies: fight.encounter },
@@ -37,7 +28,7 @@ export function runFightScene(ctx: SceneContext): Scene {
     resume: fight.state,
     background: `chapter${run.chapter}`,
     quietEnd: true,
-    tips,
+    tips: tutorialPending('fight'),
     onStep: () => controller.save(),
     onEnd: () => {
       finishFight(run, controller.content);

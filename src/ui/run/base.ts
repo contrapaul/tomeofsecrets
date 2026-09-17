@@ -1,5 +1,6 @@
 import { Container } from 'pixi.js';
 import type { Scene, SceneContext } from '../../app/router';
+import { audio } from '../../app/audio';
 import { runController } from '../../app/runController';
 import type { RunPhase, RunState } from '../../engine/run/run';
 import type { ContentRegistry } from '../../content';
@@ -40,6 +41,7 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
         ctx.router.go(controller.route());
         return;
       }
+      audio().music(run.phase === 'won' || run.phase === 'lost' ? null : 'map');
       if (opts.bg !== false) view.addChild(backdrop());
       ctx.stage.overlay.addChild(tooltip);
       const deps: RunSceneDeps = {

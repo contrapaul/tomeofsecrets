@@ -198,6 +198,11 @@ export class EnemyView extends Container {
     return { x: this.x, y: this.y - this.bodyH * 0.5 };
   }
 
+  /** Above the intent badge, in the parent's space. */
+  get top(): { x: number; y: number } {
+    return { x: this.x, y: this.y - this.bodyH - 70 };
+  }
+
   /**
    * Flash white, burst at the point of impact, knock the body back with a
    * squash, settle with a wobble. Everything scales with how hard it hit.

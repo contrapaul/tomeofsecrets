@@ -3,7 +3,10 @@ import gsap from 'gsap';
 import type { Scene, SceneContext } from '../../app/router';
 import { MAP_COLS, MAP_FLOORS, findNode, type MapNode, type NodeType } from '../../engine/run/map';
 import { abandon, availableNodes, enterNode } from '../../engine/run/run';
+import { audio } from '../../app/audio';
+import { markTutorial, tutorialPending } from '../../app/tutorial';
 import { Button } from '../kit/button';
+import { Coach } from '../kit/coach';
 import { DESIGN } from '../../app/fit';
 import { icon, type IconName } from '../kit/icons';
 import { d, spatial } from '../kit/motion';
@@ -79,6 +82,7 @@ export function mapScene(ctx: SceneContext): Scene {
         c.cursor = 'pointer';
         if (spatial()) gsap.to(g, { alpha: 0.7, duration: 0.7, yoyo: true, repeat: -1, ease: 'sine.inOut' });
         c.on('pointertap', () => {
+          audio().play('map-move');
           enterNode(run, content, n.id);
           next();
         });
@@ -117,6 +121,20 @@ export function mapScene(ctx: SceneContext): Scene {
     abandonBtn.alpha = 0.6;
     abandonBtn.position.set(150, DESIGN.height - 40);
     view.addChild(abandonBtn);
+
+    // First time on a map: what the icons mean, and where to click.
+    if (tutorialPending('map')) {
+      const coach = new Coach(ctx.stage, [{
+        title: 'The map',
+        text: 'A run climbs this map. Click a glowing node to travel there; the paths decide what you can reach next. Swords are fights. Question marks are events. Stars are merchants and treasure. Shields are camps, where you heal or upgrade a card. Skulls are elites, harder fights with a relic at the end, and the skull at the top is the chapter boss. Hover any node to see what it is.',
+        point: () => available.map((id) => {
+          const p = pos(findNode(map, id)!);
+          return { x: p.x, y: p.y - 30 };
+        }),
+      }], { x: DESIGN.width / 2 - 350, y: 300 }, () => markTutorial('map'));
+      view.addChild(coach);
+      coach.start();
+    }
 
     // The hero marker.
     if (run.position) {

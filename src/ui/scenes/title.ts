@@ -7,6 +7,7 @@ import { backdrop } from '../kit/backdrop';
 import { Button } from '../kit/button';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
+import { audio } from '../../app/audio';
 import { runController } from '../../app/runController';
 
 export function titleScene(ctx: SceneContext): Scene {
@@ -15,6 +16,7 @@ export function titleScene(ctx: SceneContext): Scene {
   return {
     view,
     enter() {
+      audio().music('title');
       view.addChild(backdrop());
 
       const wordmark = makeText('TOME OF SECRETS', { ...STYLE.display(96), fill: PALETTE.gold, letterSpacing: 10 });

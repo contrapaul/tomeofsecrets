@@ -4,6 +4,7 @@ import { initAssets, loadBundle } from './app/assets';
 import { DESIGN } from './app/fit';
 import { loadFonts } from './app/fonts';
 import { Router } from './app/router';
+import { audio, initAudio } from './app/audio';
 import { defaultSettings, SettingsStore } from './app/settings';
 import { Stage } from './app/stage';
 import { devCardsScene } from './dev/cards';
@@ -61,6 +62,7 @@ async function boot(): Promise<void> {
   const settings = new SettingsStore(storage, defaultSettings(window.matchMedia('(prefers-reduced-motion: reduce)').matches));
   setMotion(settings.get().motion);
   settings.on((s) => setMotion(s.motion));
+  initAudio(settings);
 
   const router = new Router({ stage, settings })
     .register('/', titleScene)
@@ -87,7 +89,7 @@ async function boot(): Promise<void> {
 
   if (import.meta.env.DEV) {
     // Poke at the running game from the console: __tome.stage, __tome.settings.
-    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi, gsap };
+    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi, gsap, audio: audio() };
   }
 }
 

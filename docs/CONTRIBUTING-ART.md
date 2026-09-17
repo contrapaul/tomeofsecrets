@@ -80,6 +80,20 @@ public/art/enemies/<your-enemy-id>/
 lowercase with a dash (`sam-t`). Your **display name** in that file is whatever you want
 shown in the game. Ask if you want a different one.
 
+## Backgrounds
+
+A fight background is **1920 × 1080 PNG**, in `public/art/backgrounds/<key>/`:
+
+- `far.png` — required. The whole scene: walls, sky, the far shelves. Opaque.
+- `near.png` — optional. Foreground things with a **transparent** background:
+  pillars, hanging vines, a table edge. It drifts against the pointer more than the
+  far layer, which is what gives the depth.
+
+The key is the chapter (`chapter1`, `chapter2`, `chapter3`). Both layers are drawn
+slightly larger than the screen so the drift never shows an edge; keep important
+detail away from the outer 40 px. Enemies stand on a line 640 px from the top, so
+the floor should read as floor around there, and the hand covers the bottom 250 px.
+
 ## Card art and portraits
 
 - Card art: 500 × 380, no text, no border ([template](../public/art/templates/card.png)).

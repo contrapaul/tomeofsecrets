@@ -1,5 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
 import gsap from 'gsap';
+import { audio } from '../../app/audio';
 import { PALETTE } from './palette';
 import { makeText, STYLE } from './text';
 
@@ -61,7 +62,10 @@ export class Button extends Container {
     this.on('pointerdown', () => gsap.to(this.scale, { x: 0.97, y: 0.97, duration: 0.06 }));
     this.on('pointerup', () => gsap.to(this.scale, { x: 1.03, y: 1.03, duration: 0.1 }));
     this.on('pointerupoutside', () => this.hover(false));
-    this.on('pointertap', () => opts.onPress?.());
+    this.on('pointertap', () => {
+      audio().play('ui-click');
+      opts.onPress?.();
+    });
     this.on('destroyed', () => this.glowTween?.kill());
   }
 

@@ -405,7 +405,8 @@ Goal: a full Chapter 1 run, saved and resumed, live at the URL. **Checkpoint 1 f
       mid-fight, Continue on the title, Abandon.
 - [x] Run end: floor, fights, deck/relics/gold, the seed, kills, cause of death.
 - [x] Character select (class only; Origin/Boon/Seal are Phase 6).
-- [x] First-fight tips: three toasts, once per browser.
+- [x] First-fight tips: three toasts, once per browser. Replaced after Checkpoint 1 by
+      the gated walkthrough (`ui/kit/coach.ts`); see the handoff below.
 - [x] `npm run sim -- run`: whole-chapter runs with the heuristic. Baseline over 300
       runs per class (seed `sim`): Paladin 17% wins, Tracker 19%, Mage 7%; median
       run reaches the boss; deaths are the bosses and the Ogre Bookkeeper.
@@ -488,12 +489,20 @@ beats and an ending; nothing blocks a player who mashes skip.
 
 ### Phase 9: Sound and music
 
-- [ ] Audio module: Web Audio, unlock on first pointer, SFX sprite sheet, per-category volume.
-- [ ] SFX: card draw/hover/pick/play/discard/exhaust; hit light/heavy/killing; block;
-      heal; buff/debuff; death; UI; map move; reward; shop; rest; Secret stolen.
-- [ ] Music: title, map, three chapter fight themes, elite and boss variants, Tome.
-      Student compositions via `docs/CONTRIBUTING-AUDIO.md`; credits through `credits.json`.
-- [ ] Settings: master / music / sfx; mute on hidden tab.
+Pulled forward on 2026-09-17: the module, the hooks, the scanner and the guide exist;
+the files do not. Paul records the sounds and drops them in.
+
+- [x] Audio module: Web Audio, unlock on first pointer, per-category volume
+      (`app/audio.ts`). One file per sound rather than a sprite sheet: the manifest is
+      generated, files are small, and students can add one without touching a sheet.
+- [x] SFX hooks: card draw/hover/pick/play/discard/exhaust; hit light/heavy/blocked;
+      hero hurt; block; heal; buff/debuff; enemy attack and death; turn start/end; UI;
+      map move; gold; shop; rest; victory/defeat; `secret` reserved for Phase 6.
+- [x] Music hooks: title, map (all non-fight run screens), fight / fight-2 / fight-3,
+      elite, boss; `tome` reserved. Crossfade on scene change, loop points from meta.
+      `docs/CONTRIBUTING-AUDIO.md`; credits through `credits.json`.
+- [x] Settings: music / sound levels; mute on hidden tab. Master stays at its default.
+- [ ] The sounds and the music themselves (Paul, then students).
 
 Acceptance: sound off loses nothing; sound on, a hit lands. No clipping, no
 double-triggers when animations overlap.
@@ -741,3 +750,22 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
 - `window.__tome.gsap` is exposed in dev so animations can be paused and seeked from
   the console (`gsap.globalTimeline.pause(); ...time(t + 0.06)`) to inspect a frame.
 - Paul will supply a player-frame border graphic later; the red flash stands in.
+
+### Tutorial and sound scaffolding (2026-09-17, after Checkpoint 1 feedback)
+
+- Students asked for a stronger tutorial. `ui/kit/coach.ts` is a step panel that
+  advances only when the scene reports the action it asked for (`coach.notify(...)`),
+  or on Got it for the read-only steps; chevrons bob over whatever the step is about.
+  The first fight has five steps (attack → energy/skill → intent → end turn → turn two),
+  the map has one. Progress is in `tome.tutorial.v1` (`app/tutorial.ts`); Settings →
+  Tutorial → Replay resets it. `#/dev/fight?...&coach=1` runs the fight steps anywhere.
+- Add a walkthrough to another screen the same way: build a `Coach` with steps, add
+  it to the view, call `notify` where the action happens, `markTutorial` on done.
+- Sound: `app/audio.ts` is the service; `audio().play(id)` / `audio().music(key)` are
+  the whole API and are silent until files exist. `npm run audio` scans
+  `public/audio/{sfx,music}` into `content/generated/audio.json` (part of `npm run
+  check`). Formats and the id list are in `docs/CONTRIBUTING-AUDIO.md`; the id list
+  itself is `SFX_IDS` in `content/schema/audio.ts`, and the scanner rejects anything
+  else so a typo cannot silently do nothing.
+- `docs/CONTRIBUTING-ART.md` now has the background spec (1920×1080 `far.png`,
+  optional transparent `near.png`, per chapter key).

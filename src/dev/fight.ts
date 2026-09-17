@@ -21,7 +21,7 @@ function parseDeck(spec: string, content: ReturnType<typeof loadContent>): { car
   return out;
 }
 
-/** #/dev/fight?class=mage&enemies=dummy-brute,dummy-cur&seed=abc[&deck=strike*5,defend*5] */
+/** #/dev/fight?class=mage&enemies=dummy-brute,dummy-cur&seed=abc[&deck=strike*5,defend*5][&coach=1] */
 export function devFightScene(ctx: SceneContext): Scene {
   const content = loadContent({ fixtures: true });
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
@@ -35,5 +35,6 @@ export function devFightScene(ctx: SceneContext): Scene {
     hero: { classId, maxHp: cls.hp, deck, companion: cls.companion },
     encounter: { enemies: enemies.length ? enemies : ['dummy-brute'] },
     seed,
+    tips: params.get('coach') === '1',
   });
 }

@@ -15,9 +15,10 @@
     "deploy": "npm run build && wrangler deploy",
     "sim": "vite-node tools/sim.ts --",
     "art": "tsx tools/scan-art.ts",
-    "lint:content": "tsx tools/scan-art.ts --check && vitest run src/content",
+    "lint:content": "tsx tools/scan-art.ts --check && tsx tools/scan-audio.ts --check && vitest run src/content",
     "art:templates": "tsx tools/make-templates.ts",
-    "art:aseprite": "tsx tools/import-aseprite.ts"
+    "art:aseprite": "tsx tools/import-aseprite.ts",
+    "audio": "tsx tools/scan-audio.ts"
   },
   "type": "module",
   "dependencies": {

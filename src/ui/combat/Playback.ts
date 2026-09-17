@@ -1,5 +1,7 @@
 import type { Container } from 'pixi.js';
 import gsap from 'gsap';
+import { audio } from '../../app/audio';
+import { DEBUFFS } from '../../content/schema';
 import type { CombatEvent, DamageKind } from '../../engine/events';
 import type { CombatState, Content } from '../../engine/rules';
 import { CARD_H, type CardView } from '../cards/CardView';
@@ -97,8 +99,10 @@ export class Playback {
       case 'fightStart':
         return;
       case 'turnStart':
-        if (ev.side === 'hero') await w.banner('YOUR TURN', `turn ${ev.turn}`);
-        else await w.banner('ENEMY TURN');
+        if (ev.side === 'hero') {
+          audio().play('turn-start');
+          await w.banner('YOUR TURN', `turn ${ev.turn}`);
+        } else await w.banner('ENEMY TURN');
         return;
       case 'draw': {
         for (const [k, uid] of ev.uids.entries()) {
@@ -106,6 +110,7 @@ export class Playback {
           this.showCounts();
           const view = w.makeCardView(uid);
           if (!view) continue;
+          audio().play('card-draw', { volume: 0.7 });
           view.position.set(w.positions.draw.x - w.hand.x, w.positions.draw.y - w.hand.y);
           view.scale.set(0.3);
           view.rotation = -0.4;
@@ -135,6 +140,7 @@ export class Playback {
         }
         view.setShadow(0);
         this.inPlay = view;
+        audio().play('card-play');
         w.hand.layout();
         gsap.killTweensOf(view);
         gsap.killTweensOf(view.scale);
@@ -187,6 +193,7 @@ export class Playback {
           view.destroy({ children: true });
           this.showCounts();
         };
+        audio().play(ev.to === 'exhaust' ? 'card-exhaust' : 'card-discard', { volume: 0.6 });
         if (ev.to === 'exhaust') {
           const p = w.positions.exhaust;
           const tl = gsap.timeline({ onComplete: finish });
@@ -218,6 +225,7 @@ export class Playback {
         if (ev.target === 'hero') {
           this.blocks.set('hero', Math.max(0, this.block('hero') - ev.blocked));
           w.player.hp.set(ev.hp, w.state.hero.maxHp, this.block('hero'));
+          audio().play(hpDamage > 0 ? 'hero-hurt' : 'hit-blocked');
           w.shakeScreen(intensity);
           w.screenFlash(ev.kind, intensity);
           await w.player.hit(ev.amount, ev.blocked, hpDamage);
@@ -226,6 +234,7 @@ export class Playback {
           if (!e) return;
           this.blocks.set(ev.target, Math.max(0, this.block(ev.target) - ev.blocked));
           e.hp.set(ev.hp, e.hp.maximum, this.block(ev.target));
+          audio().play(hpDamage <= 0 ? 'hit-blocked' : hpDamage >= 12 ? 'hit-heavy' : 'hit-light');
           if (ev.killed) await w.slowMo();
           w.shakeScreen(intensity * 0.8);
           await e.hit(ev.amount, ev.blocked, hpDamage);
@@ -241,6 +250,7 @@ export class Playback {
       }
       case 'block': {
         this.blocks.set(ev.target, ev.total);
+        if (ev.amount > 0) audio().play('block');
         if (ev.target === 'hero') {
           w.player.hp.setBlock(ev.total);
           w.player.blockGain(ev.amount);
@@ -260,10 +270,14 @@ export class Playback {
           e.statuses.set(ev.status, ev.total);
           if (ev.delta > 0 && (ev.status === 'strength' || ev.status === 'ritual' || ev.status === 'regen')) e.buff();
         }
-        if (ev.delta > 0) await wait(d(0.14));
+        if (ev.delta > 0) {
+          audio().play(DEBUFFS.includes(ev.status) ? 'debuff' : 'buff', { volume: 0.7 });
+          await wait(d(0.14));
+        }
         return;
       }
       case 'heal': {
+        if (ev.amount > 0) audio().play('heal');
         if (ev.target === 'hero') {
           w.player.hp.set(ev.hp, w.state.hero.maxHp, this.block('hero'));
           if (ev.amount > 0) w.player.heal(ev.amount);
@@ -303,6 +317,7 @@ export class Playback {
         return;
       }
       case 'gold':
+        audio().play('gold');
         void floatNumber(w.fx, w.player.x, w.player.y - 80, `${ev.delta > 0 ? '+' : ''}${ev.delta} gold`, 'status');
         await wait(d(0.1));
         return;
@@ -322,6 +337,7 @@ export class Playback {
         if (ev.target === 'hero') return;
         const e = w.enemies.get(ev.target);
         if (!e) return;
+        audio().play('enemy-die');
         await e.die();
         w.enemies.delete(ev.target);
         e.destroy({ children: true });
@@ -345,7 +361,10 @@ export class Playback {
         void kind;
         const move = w.content.enemies[w.state.enemies.find((x) => x.id === ev.enemy)?.enemyId ?? '']?.moves[ev.move];
         e.setIntent(null);
-        if (move?.intent === 'attack') await e.attack();
+        if (move?.intent === 'attack') {
+          audio().play('enemy-attack');
+          await e.attack();
+        }
         else {
           e.buff();
           await wait(d(0.25));
@@ -369,6 +388,7 @@ export class Playback {
       }
       case 'end':
         await wait(d(0.3));
+        audio().play(ev.result === 'won' ? 'victory' : 'defeat');
         await w.banner(ev.result === 'won' ? 'VICTORY' : 'DEFEAT');
         w.onEnd(ev.result);
         return;
