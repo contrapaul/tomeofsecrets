@@ -17,9 +17,11 @@ conversation.
 **Status:** Phases 0–6 built. **The game is playable start to finish through Chapter 1**
 at https://tome.contrapaul.com, and the Tome persists between runs: Bestiary pages,
 Secrets, Lore, Pages, Origins, Seals, Boons, Companions, save codes. Checkpoint 1
-happened (students wanted a stronger tutorial; done). Next: **Phase 7**, Chapters 2 and 3.
-Students can draw now (`docs/CONTRIBUTING-ART.md`) and record sound (`docs/CONTRIBUTING-AUDIO.md`).
-Last updated 2026-09-17.
+happened (students wanted a stronger tutorial; done, and the game is a hit). Next:
+**Phases 6.1–6.3** from the student feedback (explain on hover/tap, the Tome of
+Knowledge, accounts), then **Phase 7**, Chapters 2 and 3. Students can draw now
+(`docs/CONTRIBUTING-ART.md`) and record sound (`docs/CONTRIBUTING-AUDIO.md`).
+Last updated 2026-09-18.
 
 ---
 
@@ -452,6 +454,273 @@ Acceptance:
       alters the start (Trinket hands over a relic on the map's bar).
 - [x] A save code round-trips a profile (unit test; two-browser check is Paul's).
 
+### Phases 6.1–6.3: what the students asked for (added 2026-09-18)
+
+Checkpoint 1 was a hit. Three things came out of it, in the order Paul raised them:
+accounts, a guide to everything, and explanations on hover/tap. They are written up
+here as three phases that sit between 6 and 7. **Recommended order: 6.1 → 6.3 → 6.2**:
+the explainer is a one-session win and produces the glossary the guide is built from;
+accounts protect the thing students now care about losing; the guide is mostly
+writing, which Paul can do while accounts are being built.
+
+---
+
+### Phase 6.1: Explain everything (hover and tap)
+
+**Goal:** nothing in the game is a mystery until it happens. Every keyword, status,
+resource, intent, relic, vial and map node explains itself where the player is
+looking, on hover with a mouse and on tap with a finger, in the same words everywhere.
+
+**Why:** students could not find out what Weak or Vulnerable did until it was on them.
+Today the words live in `ui/kit/glossary.ts` and reach the player in exactly two places:
+the status-row tooltip (after it is applied) and the click-to-inspect card (which most
+students never found).
+
+**Design**
+
+- **One glossary, in content.** `src/content/glossary.json`, validated by
+  `schema/glossary.ts`: `{ id, kind: 'status' | 'keyword' | 'resource' | 'intent' |
+  'node' | 'term', name, text, short?, related?: string[] }`. Numbers in the text are
+  tokens (`{FREEZE_AT}`, `{SHATTER_DAMAGE}`, `{MARK_BONUS}`, `{HAND_LIMIT}`) filled from
+  the engine's exported constants at load, so the words cannot drift from the rules. A
+  content test asserts an entry exists for every `StatusId`, every card keyword, every
+  resource, every intent kind, every map node type, and that every token resolves.
+  `STATUS_NAMES` in `engine/rules/text.ts` comes from the same file.
+- **`explain()` is a rules function.** `engine/rules/explain.ts` (pure):
+  `termsOfEffects(effects)` walks a card's effects, including nested `then` and `if`
+  branches, and returns the glossary ids it touches: statuses it applies, resources it
+  spends or gains, `Armed` plus the trap's trigger, companion actions, X costs, "ALL
+  enemies". `explainCard(resolved, live?)`, `explainRelic`, `explainVial`,
+  `explainIntent(enemy, move)` ("Yank: 8 damage; Stuns your Companion"), and
+  `explainStatus(id, amount)` all return the same shape:
+  `{ title, body: Segment[], notes: GlossaryEntry[] }`. Tests: Judgment →
+  [Holy Power, Vulnerable]; Snake Trap → [Armed, on enemy attack, Poison]; Ink Trap
+  intent → [Stun]; every card, relic, vial and enemy move in content resolves to
+  entries that exist.
+- **Terms glow in the text.** `Segment` gains `term?: string`; `describeResolved`
+  sets it on status names and keyword lines, and `richText` draws those runs in gold.
+  Students see what is hoverable.
+- **The Explainer** (`ui/kit/explainer.ts`) is one component for every surface: a
+  column of small note cards (name in gold, text beneath, 300 px wide) that anchors
+  beside the thing being looked at — right of a hand card (left when the card is near
+  the right edge), below an intent badge, beside a relic or vial token, under a map
+  node. 350 ms delay on hover (the StS timing, so a sweep across the hand does not
+  flicker), no delay on tap, fades in 120 ms. It lives in `stage.overlay`, never
+  captures pointer events, and one instance per scene replaces the current `Tooltip`
+  for anything that has notes (plain one-liners keep the tooltip).
+- **Touch.** Pointer events carry `pointerType`. On touch, a tap on a hand card lifts
+  it (the hover state) and shows the Explainer; dragging from a lifted card plays or
+  aims as now; tapping elsewhere lowers it. Intent badges, statuses and tokens explain
+  on tap and dismiss on the next tap anywhere. Keyboard: the card lifted with 1–9 shows
+  the Explainer too.
+- **Where it plugs in:** hand (via `HandLayout.setHover`), the inspector (its keyword
+  lines become the Explainer, and it gains a "more in the Tome of Knowledge" line once
+  6.2 exists), reward, shop, treasure and deck-overlay cards (`offerCard`), intent
+  badges (move effects, not just the number), status rows on both sides, relic and
+  vial tokens in fights and on the run bar, the energy orb and resource widgets, map
+  nodes, Bestiary pages, character select.
+- **A tutorial step:** after "What the enemy will do", one more: "Hover any word in
+  gold to learn what it means" (tap on touch), gated on the first Explainer shown.
+
+**Steps**
+
+1. `content/glossary.json`, its schema, the loader, `STATUS_NAMES` from it, the
+   coverage test. Delete `ui/kit/glossary.ts` when nothing imports it.
+2. `engine/rules/explain.ts` with tests.
+3. `term` on segments; gold runs in `richText`.
+4. `ui/kit/explainer.ts`: layout, anchoring, delay, pointerType, fade.
+5. Wire every surface listed above; the tutorial step.
+6. Touch pass in the pane's mobile emulation, then on an iPad.
+
+**Acceptance**
+
+- A first-time player hovers Judgment and reads what Vulnerable and Holy Power are
+  before playing it.
+- An intent badge for Yank says it will Stun the Companion; hovering Stunned says what
+  that means.
+- On an iPad: tap a card, read it; tap again or drag, play it.
+- The coverage test proves every term used by any card, relic, vial or enemy move has
+  an entry, and every number in the glossary matches the engine.
+
+---
+
+### Phase 6.2: The Tome of Knowledge
+
+**Goal:** one place that explains the whole game, written for a Grade 9 reader,
+readable from the title screen, from the Tome, and from inside a fight without leaving it.
+
+**Design**
+
+- **Route and entry points.** `#/knowledge` from a title button, a Tome tab, a "?"
+  on the run bar, and a "?" button (and key) in combat that opens it as an overlay over
+  the paused-nothing fight (the engine is turn-based; nothing runs while it is open).
+  Deep links: `#/knowledge?chapter=statuses&term=weak`; the Explainer's notes carry a
+  "more" link to the matching chapter.
+- **Chapters are Markdown in content.** `src/content/guide/*.md` with front matter
+  `{ id, title, section, order }`, loaded like events (`import.meta.glob` with
+  `?raw`). Sections and chapters:
+  - *The Basics*: a run, a fight, a turn, energy, draw and discard, block, death and
+    what survives (Lore).
+  - *Cards*: types, cost, upgrades, rarity, keywords, targeting, curses and statuses
+    as cards, Secrets.
+  - *Statuses*: the table, generated, plus three worked examples ("Weak on you", "Poison
+    on them", "Chill to Frozen").
+  - *Classes*: one chapter each; resource, three archetypes, starter deck, origins,
+    the Companion (Tracker).
+  - *The Map*: node types, paths, elites, the boss, the "?" node.
+  - *After a Fight*: gold, cards, relics, vials, Secrets and the 35% rule.
+  - *Merchant, Camp, Events, Vials, Relics*: one chapter each.
+  - *Enemies*: how intents work, hidden intents, phases, minions, the Bestiary.
+  - *The Tome*: Lore (the formula), Pages, Seals (the table), Boons, Origins,
+    Companions, save codes.
+  - *Tips*: a page of strategy in plain words ("block before the big hit", "a smaller
+    deck draws its best cards more", "take the elite when you are healthy").
+  - *Every term*: generated A–Z index of the glossary.
+- **Generated parts never get written twice.** Directives in the Markdown render from
+  content: `{{statuses}}`, `{{keywords}}`, `{{seals}}`, `{{boons}}`, `{{starter:paladin}}`,
+  `{{card:judgment}}` (an inline card), `{{relic:iron-bookmark}}`, `{{lore-formula}}`.
+  `[[Weak]]` renders a gold term with the Explainer on hover. A content test asserts
+  every chapter parses, every directive is known, and every `[[term]]` exists.
+- **Rendering.** `ui/kit/markdown.ts`: a deliberately small parser (headings,
+  paragraphs, bold and italic, bullet lists, two- and three-column tables, terms,
+  directives) into Pixi containers via `richText`. `ui/kit/scroll.ts`: the game's
+  first scrolling surface (mask, wheel, drag with inertia, touch, a slim scrollbar,
+  keyboard PageUp/PageDown), built to be reused by the Bestiary and Cards tabs when
+  Chapters 2 and 3 arrive.
+- **Layout.** Left column: sections and chapters (the current one lit). Right: the
+  chapter, 1100 px wide, scrolling. Top: "THE TOME OF KNOWLEDGE" and a Back/Close.
+  Overlay mode in a fight dims the table, keeps the fight underneath, Esc closes.
+- **Voice.** Short paragraphs, second person, no jargon before it is defined, one idea
+  per paragraph, tables for numbers. Paul writes and edits; Claude drafts every chapter
+  first so there is something to react to. Chapters under 300 words plus tables.
+
+**Steps**
+
+1. `ui/kit/scroll.ts`, tested in the pane with a long dummy chapter.
+2. Guide loader, front matter, directives, `[[term]]`, the content test.
+3. `ui/kit/markdown.ts`.
+4. `ui/scenes/knowledge.ts` and the overlay variant; the four entry points.
+5. Draft all chapters. Paul edits.
+6. Link the Explainer's "more" into it.
+
+**Acceptance**
+
+- A student who has never played reads *The Basics* and *Statuses* and can explain
+  Weak and block to a classmate.
+- The status table is generated: change a number in the engine and the page changes.
+- Open it mid-fight, scroll, close: the fight is untouched.
+- Scrolling holds 60 fps on a school laptop.
+
+---
+
+### Phase 6.3: Accounts
+
+**Goal:** students sign in; the Tome follows them between school and home and cannot be
+lost to a cleared browser; Paul sees his class; quests give a reason to come back.
+
+**Pattern:** the Flashstone / `time` / `bloodbowl` accounts stack. D1; username and
+password with a salted hash; sessions as hashed tokens in an HttpOnly cookie; verify
+and reset tokens; rate limits. Port `flashstone/src/lib/server/{crypto,session,
+ratelimit,email}.ts` near-verbatim. What is different here: this app is a static Vite
+site on an assets-only Worker, so accounts add a `main` Worker script
+(`worker/index.ts`) to the same deployment — `run_worker_first: ["/api/*"]` in
+`wrangler.jsonc`, everything else falls through to the assets. No SvelteKit, no Pages,
+no Durable Objects (nothing here is real-time).
+
+**Kids and privacy.** Grade 9, so the least data that works. Recommended: sign up with
+**username + password + class code**; email optional (for self-serve reset only).
+Teachers create classes and get a code; a student joins with it; the teacher can reset
+a student's password from the class view, so no email loop is required. Sign-up copy
+asks for a username that is not a full name; the teacher can rename or remove. No
+public leaderboard; per-class views are teacher-only unless a class opts in. The
+decision Paul owns before step 2: class codes (recommended) or email verification.
+
+**Data (D1, `db/migrations/0001_init.sql`, append-only from then on)**
+
+- `users(id, username UNIQUE NOCASE, password_hash, email NULL UNIQUE NOCASE,
+  role 'student' | 'teacher', class_id NULL, created_at, last_seen)`
+- `sessions`, `auth_tokens`, `rate_limits` exactly as Flashstone.
+- `classes(id, code UNIQUE, name, teacher_id, created_at)`
+- `profiles(user_id PK, data TEXT, updated_at)` — the Tome as one JSON document,
+  validated on write with the same zod `Profile` from `content/schema/meta.ts` (the
+  boundary rule already keeps it DOM-free, so it runs in the Worker unchanged).
+- `run_saves(user_id PK, data TEXT, updated_at)` — the in-progress run, for resume on
+  another device. Same document the browser saves today.
+- `runs(id, user_id, seed, character, result, floor, seal, lore, started_at, ended_at)`
+  — one row per finished run, for history and the class view.
+- Later, for quests: `quests(user_id, day, quest_id, progress, claimed)` and
+  `awards(user_id, source, ref, lore)` with a primary key on `(user_id, source, ref)`
+  so every award is idempotent — the Flashstone gold rule, applied to Lore.
+
+**Sync model.** Playing signed out stays exactly as it is today. Signed in, the browser
+still plays the game; the server is the durable copy.
+
+- *v1, document sync (ship first):* pull on sign-in, push the profile (debounced two
+  seconds after any change) and the run save (after every step, coalesced). Merge on
+  pull: union for sets (bestiary seen/kills as max, moves, cards and relics seen, pages,
+  history by seed+date), max for counters, `lore = max(local, server)`. Nothing is lost,
+  nothing is double-counted, offline play merges later. Weakness: a student who edits
+  localStorage can grant themselves Lore. For a classroom game that is tolerable.
+- *v2, server-authoritative Lore (with quests):* the client reports each finished run
+  (`POST /api/runs` with the ledger); the server awards Lore idempotently by run seed;
+  `POST /api/pages/buy` checks the balance server-side. The profile's `lore` becomes a
+  read-only mirror. Do this when quests give Lore a reason to be trustworthy.
+
+**API (`worker/routes/`)**
+
+`POST /api/auth/signup`, `/login`, `/logout`; `GET /api/me`; `GET|PUT /api/profile`;
+`GET|PUT|DELETE /api/run`; `POST /api/runs`; `GET /api/class` (teacher: roster with
+runs, wins, best floor, Lore, Bestiary %, last seen), `POST /api/class` (create),
+`POST /api/class/reset-password`; later `/api/quests/*`. JSON in and out, sessions by
+cookie, 401 for anything signed out, rate limits on auth.
+
+**Client.** `app/account.ts` (session cache, fetch wrapper with credentials, the sync
+queue). Sign-in and sign-up are the game's only **DOM UI**: an HTML form floated over
+the canvas in the palette's colours, because password managers, autofill and mobile
+keyboards need real inputs and Pixi has none. The title shows "signed in as …" and
+Sign out; the Tome shows "saved to the cloud · just now". Save codes stay for the
+signed-out.
+
+**Teacher tooling.** `#/class` for teachers: roster table, per-student runs, reset
+password, rename, remove, CSV export. Teacher accounts are made by Paul with
+`npm run admin -- make-teacher <username>` (talks to D1 through wrangler); no
+self-serve teacher sign-up.
+
+**Quests and incentives (after v1 is stable).** Daily quests as a pure function of the
+UTC day (Flashstone's `quests.ts`): three a day such as "Steal a Secret", "Win a fight
+untouched", "Play 15 Skills", each paying Lore. A class goal on the teacher view
+("Bestiary 17/17 by Friday"). A weekly seeded challenge: the class shares one seed,
+ranked by floor, which is also the first piece of Phase 10's custom mode.
+
+**Deployment.** `wrangler.jsonc`: `main`, `d1_databases: [{ binding: "DB",
+database_name: "tomeofsecrets-db" }]`, `run_worker_first`, secrets only if email is
+on (`RESEND_API_KEY`). Migrations with `wrangler d1 migrations apply tomeofsecrets-db
+--local | --remote`. Landmine from Flashstone: `d1 execute --remote --file` fails with
+an OAuth token; use `migrations apply` or `--command`. The boundary rule extends:
+`worker/` may import `src/content/schema` and `src/engine/meta/profile`, never `src/ui`
+or `src/app`. Worker routes get vitest coverage the way Flashstone's `gold` and
+`collection` do.
+
+**Steps**
+
+1. Decisions with Paul: class codes vs email; v1 document sync confirmed; how much
+   teacher tooling in the first cut.
+2. Worker skeleton, D1, migration 0001, the auth port, tests; deploy with `/api/me`
+   answering 401.
+3. The DOM form, `app/account.ts`, title integration; signed-out play unchanged.
+4. Profile and run-save sync with the merge; resume on a second device.
+5. Run records, the class view, the admin CLI.
+6. Quests (v2 Lore).
+
+**Acceptance**
+
+- A student signs up on a school laptop, plays, dies; at home they sign in and the
+  Bestiary page and Lore are there and Continue resumes the run mid-map.
+- Clearing browser storage loses nothing for a signed-in student.
+- Paul opens `#/class` and sees the roster with best floors and last-played.
+- A student cannot read or change another student's data (tests on the routes).
+- Signed-out play is unchanged, save codes still work.
+
 ### Phase 7: Chapters 2 and 3, the full pool, balance
 
 Goal: the whole game exists and is tuned to be hard but winnable. **Checkpoint 2 follows.**
@@ -593,7 +862,6 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
 - Chapter 4 "The Last Page": a true final boss unlocked by three keys found across a run.
 - A fourth class (Warlock / Druid / Rogue).
 - Custom mode: modifiers and mutators; a weekly seeded challenge with a shareable link.
-- Accounts and cloud saves (D1, the Flashstone pattern) if save codes prove annoying.
 - Student-written events via a `.dlg` drop folder with a review step.
 - Achievements page in the Tome.
 - Run replay from seed + decision log.
