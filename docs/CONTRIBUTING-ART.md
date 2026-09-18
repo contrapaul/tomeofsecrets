@@ -103,24 +103,58 @@ shown in the game. Ask if you want a different one.
 
 ## Backgrounds
 
-A fight background is **1920 × 1080 PNG**, in `public/art/backgrounds/<key>/`:
+A fight background is **two pieces of art, with an optional third**, each
+**1920 × 1080 PNG**, in `public/art/backgrounds/<key>/`
+([template with the guide lines](../public/art/templates/background.png)):
 
-- `far.png` — required. The whole scene: walls, sky, the far shelves. Opaque.
-- `near.png` — optional. Foreground things with a **transparent** background:
-  pillars, hanging vines, a table edge. It drifts against the pointer more than the
-  far layer, which is what gives the depth.
+- `far.png` — required. The whole scene, edge to edge, opaque: walls, sky, the far
+  shelves. This is the picture; on its own it already works.
+- `near.png` — optional but what makes the parallax. Foreground things on a
+  **transparent** background: pillars, hanging vines, a table edge, a doorway frame.
+  It drifts against the pointer more than the far layer, which is what gives the depth.
+- `mid.png` — optional. A middle distance on a transparent background, drifting
+  between the two. Only worth it when the scene has three real depths.
 
-The key is the chapter (`chapter1`, `chapter2`, `chapter3`). Both layers are drawn
-slightly larger than the screen so the drift never shows an edge; keep important
-detail away from the outer 40 px. Enemies stand on a line 640 px from the top, so
-the floor should read as floor around there, and the hand covers the bottom 250 px.
+The key is the chapter (`chapter1`, `chapter2`, `chapter3`). Layers are drawn
+slightly larger than the screen so the drift never shows an edge, so keep anything
+important out of the outer 40 px. On the template: enemies stand on the gold line 640
+px from the top (the floor should read as floor there), the hero stands at the left,
+the hand covers the bottom 270 px (keep that band quiet), and relics sit along the top
+64 px. Dark and low-contrast is right — the cards and enemies have to read on top.
 
-## Card art and portraits
+## Spell and card art
 
-- Card art: 500 × 380, no text, no border ([template](../public/art/templates/card.png)).
-  It is cropped to a wide strip on the card, so keep the subject in the middle band.
-- Portraits for dialogue: 700 × 900 bust, transparent, facing inward
-  ([template](../public/art/templates/portrait.png)).
+Every card can have a picture: **500 × 380 PNG, no text, no border**
+([template](../public/art/templates/card.png)). Two things to know:
+
+- **Only the middle band shows.** The card's art slot is wide and short, so the game
+  keeps all 500 px of width but only the middle **282 px** of height (rows 49–331,
+  the gold box on the template). Put the subject there; the top and bottom strips
+  are safe margins, not canvas.
+- **It is small on the card.** The slot is drawn at 216 × 122, about 43% of your
+  drawing. Big shapes and strong contrast read; fine detail and thin lines vanish.
+  Think "icon", not "illustration".
+
+Name the file after the card id: `public/art/cards/judgment.png`. The ids and names
+are in `src/content/cards/*.json`, or run `npm run art -- --wanted` for the list of
+what has no art yet. Attack cards read best with the action (the swing, the bolt);
+skills with the effect (the shield, the trap); powers with a symbol.
+
+## Portraits
+
+Portraits for dialogue: 700 × 900 bust, transparent, facing inward
+([template](../public/art/templates/portrait.png)). These arrive with the story in
+Phase 8; ask before drawing one.
+
+## What is wanted
+
+```
+npm run art -- --wanted
+```
+
+prints every enemy and card without art, with the template size for each. Enemies
+are the biggest win per drawing (a fight is mostly enemy); bosses and elites most of
+all. Backgrounds are one per chapter. Cards are many and small.
 
 ## What happens next
 

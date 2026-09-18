@@ -102,12 +102,12 @@ export async function loadCardArtFor(ids: string[]): Promise<Map<string, Texture
   return out;
 }
 
-export async function loadBackground(key: string): Promise<{ far: Texture; near?: Texture } | null> {
+export async function loadBackground(key: string): Promise<{ far: Texture; mid?: Texture; near?: Texture } | null> {
   const entry = ART.backgrounds[key];
   if (!entry) return null;
-  const [far, near] = await Promise.all([safe<Texture>(entry.far), safe<Texture>(entry.near)]);
+  const [far, mid, near] = await Promise.all([safe<Texture>(entry.far), safe<Texture>(entry.mid), safe<Texture>(entry.near)]);
   if (!far) return null;
-  return { far, near };
+  return { far, mid, near };
 }
 
 /** Build enemy textures from an image the user dropped on a dev page. */

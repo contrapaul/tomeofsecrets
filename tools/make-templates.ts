@@ -32,9 +32,15 @@ async function write(svg: string, file: string): Promise<void> {
 await write(template(400, 400, 'small enemy'), join(T, 'enemy-small.png'));
 await write(template(600, 600, 'medium enemy'), join(T, 'enemy-medium.png'));
 await write(template(700, 900, 'large enemy'), join(T, 'enemy-large.png'));
+// Card art is cropped to the slot's 216:122 ratio: of a 500×380 drawing the middle 282 rows show.
 await write(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="380"><rect x="0.5" y="0.5" width="499" height="379" fill="none" stroke="#7a7a7a" stroke-dasharray="8 6"/><text x="250" y="200" font-family="Helvetica, Arial" font-size="20" fill="#7a7a7a" text-anchor="middle">card art · 500×380 · no text, no border</text></svg>`,
+  `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="380"><rect x="0.5" y="0.5" width="499" height="379" fill="none" stroke="#7a7a7a" stroke-dasharray="8 6"/><rect x="1" y="49" width="498" height="282" fill="none" stroke="#d4a83b" stroke-width="2"/><text x="250" y="40" font-family="Helvetica, Arial" font-size="18" fill="#7a7a7a" text-anchor="middle">card art · 500×380 · no text, no border</text><text x="250" y="195" font-family="Helvetica, Arial" font-size="20" fill="#d4a83b" text-anchor="middle">only the gold band shows on the card</text><text x="250" y="222" font-family="Helvetica, Arial" font-size="16" fill="#d4a83b" text-anchor="middle">it is drawn about half this size · big shapes, strong contrast</text></svg>`,
   join(T, 'card.png'),
+);
+// A fight background: where the floor is, where the hand covers, and the drift margin.
+await write(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><rect x="0.5" y="0.5" width="1919" height="1079" fill="none" stroke="#7a7a7a" stroke-dasharray="8 6"/><rect x="40" y="40" width="1840" height="1000" fill="none" stroke="#7a7a7a" stroke-dasharray="4 8"/><line x1="0" y1="640" x2="1920" y2="640" stroke="#d4a83b" stroke-width="3"/><rect x="0" y="810" width="1920" height="270" fill="#000" opacity="0.18"/><rect x="0" y="0" width="1920" height="64" fill="#000" opacity="0.18"/><text x="960" y="630" font-family="Helvetica, Arial" font-size="22" fill="#d4a83b" text-anchor="middle">enemies stand on this line · the hero stands at the left, around x 250</text><text x="960" y="950" font-family="Helvetica, Arial" font-size="22" fill="#9a9a9a" text-anchor="middle">the hand covers this band · keep it simple here</text><text x="960" y="44" font-family="Helvetica, Arial" font-size="18" fill="#9a9a9a" text-anchor="middle">relics and vials sit along the top</text><text x="960" y="360" font-family="Helvetica, Arial" font-size="22" fill="#7a7a7a" text-anchor="middle">background · 1920×1080 · far.png opaque, near.png transparent foreground, mid.png optional · nothing important inside the outer 40 px</text></svg>`,
+  join(T, 'background.png'),
 );
 await write(
   `<svg xmlns="http://www.w3.org/2000/svg" width="700" height="900"><rect x="0.5" y="0.5" width="699" height="899" fill="none" stroke="#7a7a7a" stroke-dasharray="8 6"/><text x="350" y="450" font-family="Helvetica, Arial" font-size="22" fill="#7a7a7a" text-anchor="middle">portrait · 700×900 · bust, faces inward</text></svg>`,

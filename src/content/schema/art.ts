@@ -48,6 +48,6 @@ export const ArtManifest = z.strictObject({
   ),
   cards: z.record(z.string(), z.strictObject({ url: z.string(), artist: z.string().optional() })),
   portraits: z.record(z.string(), z.string()),
-  backgrounds: z.record(z.string(), z.strictObject({ far: z.string(), near: z.string().optional() })),
+  backgrounds: z.record(z.string(), z.strictObject({ far: z.string(), mid: z.string().optional(), near: z.string().optional() })),
 });
 export type ArtManifest = z.infer<typeof ArtManifest>;

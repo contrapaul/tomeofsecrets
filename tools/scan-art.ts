@@ -3,6 +3,7 @@
  *
  *   npm run art            scan and write the manifest
  *   npm run art -- --check scan and fail on any problem, write nothing
+ *   npm run art -- --wanted list the enemies and cards that still have no art
  *
  * Rules (docs/CONTRIBUTING-ART.md):
  *   enemies/<id>/idle.png       required, plus meta.json { id, size, artist }
@@ -10,7 +11,7 @@
  *   enemies/<id>/idle.json      optional Pixi spritesheet (from tools/import-aseprite.ts)
  *   cards/<id>.png|webp         500×380
  *   portraits/<id>.png|webp     700×900
- *   backgrounds/<key>/far.png   1920×1080, optional near.png
+ *   backgrounds/<key>/far.png   1920×1080, optional mid.png and near.png (transparent)
  * Every artist id must exist in src/content/credits.json.
  */
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -22,6 +23,7 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const ART = join(ROOT, 'public', 'art');
 const OUT = join(ROOT, 'src', 'content', 'generated', 'art.json');
 const check = process.argv.includes('--check');
+const wanted = process.argv.includes('--wanted');
 
 const SIZES = { small: [400, 400], medium: [600, 600], large: [700, 900] } as const;
 const problems: string[] = [];
@@ -118,7 +120,13 @@ for (const key of listDirs(join(ART, 'backgrounds'))) {
   const d = await dims(join(dir, far));
   if (d.width !== 1920 || d.height !== 1080) note(`backgrounds/${key}/${far} is ${d.width}×${d.height}; a background is 1920×1080`);
   const near = ['near.png', 'near.webp'].find((f) => existsSync(join(dir, f)));
-  manifest.backgrounds[key] = { far: `art/backgrounds/${key}/${far}`, ...(near ? { near: `art/backgrounds/${key}/${near}` } : {}) };
+  const mid = ['mid.png', 'mid.webp'].find((f) => existsSync(join(dir, f)));
+  for (const layer of [near, mid]) {
+    if (!layer) continue;
+    const ld = await dims(join(dir, layer));
+    if (ld.width !== 1920 || ld.height !== 1080) note(`backgrounds/${key}/${layer} is ${ld.width}×${ld.height}; a background layer is 1920×1080`);
+  }
+  manifest.backgrounds[key] = { far: `art/backgrounds/${key}/${far}`, ...(mid ? { mid: `art/backgrounds/${key}/${mid}` } : {}), ...(near ? { near: `art/backgrounds/${key}/${near}` } : {}) };
 }
 
 ArtManifest.parse(manifest);
@@ -126,6 +134,28 @@ ArtManifest.parse(manifest);
 if (problems.length) {
   console.error(problems.map((p) => `art: ${p}`).join('\n'));
   process.exit(1);
+}
+if (wanted) {
+  // Content is plain JSON, so the list needs no Vite: read the files directly.
+  const read = (rel: string) => JSON.parse(readFileSync(join(ROOT, 'src', 'content', rel), 'utf8')) as Record<string, unknown>[];
+  const enemyDir = join(ROOT, 'src', 'content', 'enemies');
+  const enemies: { id: string; name: string; size: string; rank?: string }[] = [];
+  for (const chapter of listDirs(enemyDir)) for (const f of listFiles(join(enemyDir, chapter), ['.json'])) enemies.push(JSON.parse(readFileSync(join(enemyDir, chapter, f), 'utf8')));
+  const cards = ['paladin', 'tracker', 'mage', 'neutral', 'secrets'].flatMap((f) => read(`cards/${f}.json`)) as { id: string; name: string; class: string; rarity: string }[];
+  const drawnEnemies = enemies.filter((e) => manifest.enemies[e.id] && manifest.enemies[e.id]!.artist !== 'placeholder').length;
+  console.log(`\nENEMIES WANTED (${enemies.length - drawnEnemies} of ${enemies.length}) — template size in brackets\n`);
+  for (const e of enemies) {
+    if (manifest.enemies[e.id] && manifest.enemies[e.id]!.artist !== 'placeholder') continue;
+    console.log(`  ${e.id.padEnd(22)} ${e.name.padEnd(24)} [${e.size}${e.rank && e.rank !== 'normal' ? `, ${e.rank}` : ''}]`);
+  }
+  const drawnCards = cards.filter((c) => manifest.cards[c.id]).length;
+  console.log(`\nCARDS WANTED (${cards.length - drawnCards} of ${cards.length}) — 500×380, only the middle band shows\n`);
+  for (const c of cards) {
+    if (manifest.cards[c.id]) continue;
+    console.log(`  ${c.id.padEnd(24)} ${c.name.padEnd(26)} ${c.class} · ${c.rarity}`);
+  }
+  console.log('');
+  process.exit(0);
 }
 const summary = `art: ${Object.keys(manifest.enemies).length} enemies, ${Object.keys(manifest.cards).length} cards, ${Object.keys(manifest.portraits).length} portraits, ${Object.keys(manifest.backgrounds).length} backgrounds`;
 if (check) {

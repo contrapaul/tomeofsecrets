@@ -3,29 +3,29 @@ import { DESIGN } from '../../app/fit';
 import type { Stage } from '../../app/stage';
 
 /**
- * Two background layers that drift a little against the pointer. The far
- * layer moves least. Nothing here reads the window; it listens to the stage.
+ * Up to three background layers that drift a little against the pointer:
+ * far (least), mid, near (most). Nothing here reads the window; it listens
+ * to the stage.
  */
 export class ParallaxBackdrop extends Container {
-  private readonly far: Sprite;
-  private readonly near: Sprite | null;
+  private readonly layers: { sprite: Sprite; dx: number; dy: number }[] = [];
   private target = { x: 0, y: 0 };
   private readonly tick: () => void;
 
-  constructor(textures: { far: Texture; near?: Texture }, private readonly stage: Stage) {
+  constructor(textures: { far: Texture; mid?: Texture; near?: Texture }, private readonly stage: Stage) {
     super({ label: 'parallax' });
-    this.far = new Sprite(textures.far);
-    this.far.anchor.set(0.5);
-    this.far.position.set(DESIGN.width / 2, DESIGN.height / 2);
-    this.far.scale.set(1.04);
-    this.addChild(this.far);
-    this.near = textures.near ? new Sprite(textures.near) : null;
-    if (this.near) {
-      this.near.anchor.set(0.5);
-      this.near.position.set(DESIGN.width / 2, DESIGN.height / 2);
-      this.near.scale.set(1.08);
-      this.addChild(this.near);
-    }
+    const add = (tex: Texture | undefined, scale: number, dx: number, dy: number) => {
+      if (!tex) return;
+      const sprite = new Sprite(tex);
+      sprite.anchor.set(0.5);
+      sprite.position.set(DESIGN.width / 2, DESIGN.height / 2);
+      sprite.scale.set(scale);
+      this.addChild(sprite);
+      this.layers.push({ sprite, dx, dy });
+    };
+    add(textures.far, 1.04, 12, 6);
+    add(textures.mid, 1.06, 22, 10);
+    add(textures.near, 1.08, 34, 14);
     this.eventMode = 'none';
     stage.app.stage.on('globalpointermove', (e) => {
       const p = stage.root.toLocal(e.global);
@@ -33,11 +33,9 @@ export class ParallaxBackdrop extends Container {
     });
     this.tick = () => {
       const k = 0.04;
-      this.far.x += (DESIGN.width / 2 - this.target.x * 12 - this.far.x) * k;
-      this.far.y += (DESIGN.height / 2 - this.target.y * 6 - this.far.y) * k;
-      if (this.near) {
-        this.near.x += (DESIGN.width / 2 - this.target.x * 34 - this.near.x) * k;
-        this.near.y += (DESIGN.height / 2 - this.target.y * 14 - this.near.y) * k;
+      for (const l of this.layers) {
+        l.sprite.x += (DESIGN.width / 2 - this.target.x * l.dx - l.sprite.x) * k;
+        l.sprite.y += (DESIGN.height / 2 - this.target.y * l.dy - l.sprite.y) * k;
       }
     };
     stage.app.ticker.add(this.tick);
