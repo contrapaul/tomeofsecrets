@@ -3,15 +3,20 @@
  * enemy PNG: key out the paper, trim, fit onto the template canvas with the
  * feet on the baseline.
  *
- *   npm run art:key -- <input.png> <small|medium|large> <enemy-id> [--artist paul-k] [--float 90]
+ *   npm run art:key -- <input.png> <small|medium|large> <enemy-id> [--artist paul-k] [--float 90] [--flip]
  *
  * `--float` leaves that many pixels of air under the drawing: a hovering creature.
+ * `--flip` mirrors it, for a creature drawn facing right (enemies face the hero, on the left).
  *
  * Writes public/art/enemies/<enemy-id>/idle.png and, if missing, meta.json.
  * The paper colour is sampled from the border and removed by flood fill, so
  * white highlights inside the drawing survive. Edge pixels get a soft alpha
  * and have the paper colour divided out, which stops the pale fringe scans
  * otherwise get on dark backgrounds.
+ *
+ * A PNG that already has a transparent border skips the keying: its alpha is
+ * the mask, and only the trim, fit and baseline steps run. So the same command
+ * takes a scan on paper or a clean export from Affinity.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -26,7 +31,7 @@ const KEY_TOLERANCE = 48;
 /** Distance over which edge pixels fade from transparent to opaque. */
 const EDGE_RANGE = 120;
 
-const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const args = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !(all[i - 1]?.startsWith('--') && all[i - 1] !== '--flip'));
 const flag = (name: string) => {
   const i = process.argv.indexOf(`--${name}`);
   return i >= 0 ? process.argv[i + 1] : undefined;
@@ -42,6 +47,11 @@ const W = info.width;
 const H = info.height;
 const px = (x: number, y: number) => (y * W + x) * 4;
 
+// A scan on paper is opaque everywhere; a cut-out has clear pixels. Use the alpha as the mask when it does.
+let clear = 0;
+for (let n = 0; n < W * H; n++) if (data[n * 4 + 3]! < 8) clear++;
+const transparent = clear > W * H * 0.02;
+
 // Paper colour: the median of the border pixels.
 const border: number[][] = [];
 for (let x = 0; x < W; x++) border.push([data[px(x, 0)]!, data[px(x, 0) + 1]!, data[px(x, 0) + 2]!], [data[px(x, H - 1)]!, data[px(x, H - 1) + 1]!, data[px(x, H - 1) + 2]!]);
@@ -50,31 +60,35 @@ const median = (k: number) => border.map((p) => p[k]!).sort((a, b) => a - b)[Mat
 const paper = [median(0), median(1), median(2)] as const;
 const dist = (i: number) => Math.hypot(data[i]! - paper[0], data[i + 1]! - paper[1], data[i + 2]! - paper[2]);
 
-// Flood fill the paper from the border.
+// Flood fill the paper from the border (or, for a cut-out, take every clear pixel).
 const isPaper = new Uint8Array(W * H);
-const stack: number[] = [];
-const push = (x: number, y: number) => {
-  const n = y * W + x;
-  if (isPaper[n] || dist(n * 4) > KEY_TOLERANCE) return;
-  isPaper[n] = 1;
-  stack.push(n);
-};
-for (let x = 0; x < W; x++) {
-  push(x, 0);
-  push(x, H - 1);
-}
-for (let y = 0; y < H; y++) {
-  push(0, y);
-  push(W - 1, y);
-}
-while (stack.length) {
-  const n = stack.pop()!;
-  const x = n % W;
-  const y = (n - x) / W;
-  if (x > 0) push(x - 1, y);
-  if (x < W - 1) push(x + 1, y);
-  if (y > 0) push(x, y - 1);
-  if (y < H - 1) push(x, y + 1);
+if (transparent) {
+  for (let n = 0; n < W * H; n++) if (data[n * 4 + 3]! < 8) isPaper[n] = 1;
+} else {
+  const stack: number[] = [];
+  const push = (x: number, y: number) => {
+    const n = y * W + x;
+    if (isPaper[n] || dist(n * 4) > KEY_TOLERANCE) return;
+    isPaper[n] = 1;
+    stack.push(n);
+  };
+  for (let x = 0; x < W; x++) {
+    push(x, 0);
+    push(x, H - 1);
+  }
+  for (let y = 0; y < H; y++) {
+    push(0, y);
+    push(W - 1, y);
+  }
+  while (stack.length) {
+    const n = stack.pop()!;
+    const x = n % W;
+    const y = (n - x) / W;
+    if (x > 0) push(x - 1, y);
+    if (x < W - 1) push(x + 1, y);
+    if (y > 0) push(x, y - 1);
+    if (y < H - 1) push(x, y + 1);
+  }
 }
 
 // Alpha: paper is clear; drawing pixels touching paper fade by how far from paper they are,
@@ -89,8 +103,8 @@ for (let y = 0; y < H; y++) {
       out[i + 3] = 0;
       continue;
     }
-    const nearPaper = (x > 0 && isPaper[n - 1]) || (x < W - 1 && isPaper[n + 1]) || (y > 0 && isPaper[n - W]) || (y < H - 1 && isPaper[n + W]);
-    let a = 1;
+    const nearPaper = !transparent && ((x > 0 && isPaper[n - 1]) || (x < W - 1 && isPaper[n + 1]) || (y > 0 && isPaper[n - W]) || (y < H - 1 && isPaper[n + W]));
+    let a = transparent ? data[i + 3]! / 255 : 1;
     if (nearPaper) {
       a = Math.max(0.15, Math.min(1, dist(i) / EDGE_RANGE));
       for (let k = 0; k < 3; k++) out[i + k] = Math.max(0, Math.min(255, Math.round((data[i + k]! - (1 - a) * paper[k]!) / a)));
@@ -115,11 +129,11 @@ const bh = maxY - minY + 1;
 const scale = Math.min((cw - MARGIN * 2) / bw, (ch - BASELINE - float - MARGIN) / bh);
 const tw = Math.max(1, Math.round(bw * scale));
 const th = Math.max(1, Math.round(bh * scale));
-const drawing = await sharp(out, { raw: { width: W, height: H, channels: 4 } })
+let pipeline = sharp(out, { raw: { width: W, height: H, channels: 4 } })
   .extract({ left: minX, top: minY, width: bw, height: bh })
-  .resize(tw, th, { kernel: scale > 1 ? 'lanczos3' : 'lanczos3' })
-  .png()
-  .toBuffer();
+  .resize(tw, th, { kernel: 'lanczos3' });
+if (process.argv.includes('--flip')) pipeline = pipeline.flop();
+const drawing = await pipeline.png().toBuffer();
 const dir = join(ROOT, 'public', 'art', 'enemies', id);
 mkdirSync(dir, { recursive: true });
 await sharp({ create: { width: cw, height: ch, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
@@ -132,4 +146,4 @@ const meta: Record<string, unknown> = existsSync(metaFile) ? (JSON.parse(readFil
 if (float) meta.float = float;
 else delete meta.float;
 writeFileSync(metaFile, `${JSON.stringify(meta, null, 2)}\n`);
-console.log(`key-scan: ${input} → enemies/${id}/idle.png (${size} ${cw}×${ch}; paper rgb(${paper.join(',')}); drawing ${bw}×${bh} scaled ×${scale.toFixed(2)} to ${tw}×${th})`);
+console.log(`key-scan: ${input} → enemies/${id}/idle.png (${size} ${cw}×${ch}; ${transparent ? 'already transparent' : `paper rgb(${paper.join(',')})`}; drawing ${bw}×${bh} scaled ×${scale.toFixed(2)} to ${tw}×${th}${float ? `; floats ${float}` : ''})`);

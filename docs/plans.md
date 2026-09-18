@@ -461,7 +461,8 @@ accounts, a guide to everything, and explanations on hover/tap. They are written
 here as three phases that sit between 6 and 7. **Recommended order: 6.1 → 6.3 → 6.2**:
 the explainer is a one-session win and produces the glossary the guide is built from;
 accounts protect the thing students now care about losing; the guide is mostly
-writing, which Paul can do while accounts are being built.
+writing, which Paul can do while accounts are being built. Accounts decisions were
+made on 2026-09-18 and are in 6.3.
 
 ---
 
@@ -615,111 +616,131 @@ readable from the title screen, from the Tome, and from inside a fight without l
 
 ### Phase 6.3: Accounts
 
-**Goal:** students sign in; the Tome follows them between school and home and cannot be
-lost to a cleared browser; Paul sees his class; quests give a reason to come back.
+**Goal:** a student can sign up, and from then on the Tome follows them between school
+and home and cannot be lost to a cleared browser. Progress made before signing up
+carries over. Nothing about the account is for the teacher: no roster, no play data,
+no class view. (Decided 2026-09-18: email verification yes; password reset yes; teacher
+tools none; play-data collection maybe later, and only as its own phase.)
 
-**Pattern:** the Flashstone / `time` / `bloodbowl` accounts stack. D1; username and
-password with a salted hash; sessions as hashed tokens in an HttpOnly cookie; verify
-and reset tokens; rate limits. Port `flashstone/src/lib/server/{crypto,session,
+**Pattern:** the Flashstone / `time` / `bloodbowl` accounts stack. D1; username, email
+and password with a salted hash; sessions as hashed tokens in an HttpOnly cookie;
+verify and reset tokens; rate limits. Port `flashstone/src/lib/server/{crypto,session,
 ratelimit,email}.ts` near-verbatim. What is different here: this app is a static Vite
 site on an assets-only Worker, so accounts add a `main` Worker script
 (`worker/index.ts`) to the same deployment — `run_worker_first: ["/api/*"]` in
 `wrangler.jsonc`, everything else falls through to the assets. No SvelteKit, no Pages,
-no Durable Objects (nothing here is real-time).
+no Durable Objects.
 
-**Kids and privacy.** Grade 9, so the least data that works. Recommended: sign up with
-**username + password + class code**; email optional (for self-serve reset only).
-Teachers create classes and get a code; a student joins with it; the teacher can reset
-a student's password from the class view, so no email loop is required. Sign-up copy
-asks for a username that is not a full name; the teacher can rename or remove. No
-public leaderboard; per-class views are teacher-only unless a class opts in. The
-decision Paul owns before step 2: class codes (recommended) or email verification.
+**Kids and privacy.** The least data that works: username, email, password hash, and
+the Tome document. No name, no class, no age. Sign-up copy asks for a username that is
+not a full name. Email is used for the verification link and password reset, nothing
+else; it is never shown to anyone. Sessions last 30 days. A student can delete their
+account from the Tome (one button, one confirm), which removes every row.
 
 **Data (D1, `db/migrations/0001_init.sql`, append-only from then on)**
 
-- `users(id, username UNIQUE NOCASE, password_hash, email NULL UNIQUE NOCASE,
-  role 'student' | 'teacher', class_id NULL, created_at, last_seen)`
-- `sessions`, `auth_tokens`, `rate_limits` exactly as Flashstone.
-- `classes(id, code UNIQUE, name, teacher_id, created_at)`
+- `users(id, username UNIQUE NOCASE, email UNIQUE NOCASE, password_hash,
+  email_verified, created_at)`
+- `sessions`, `auth_tokens` (kinds `verify` and `reset`), `rate_limits` exactly as
+  Flashstone.
 - `profiles(user_id PK, data TEXT, updated_at)` — the Tome as one JSON document,
   validated on write with the same zod `Profile` from `content/schema/meta.ts` (the
   boundary rule already keeps it DOM-free, so it runs in the Worker unchanged).
 - `run_saves(user_id PK, data TEXT, updated_at)` — the in-progress run, for resume on
-  another device. Same document the browser saves today.
-- `runs(id, user_id, seed, character, result, floor, seal, lore, started_at, ended_at)`
-  — one row per finished run, for history and the class view.
-- Later, for quests: `quests(user_id, day, quest_id, progress, claimed)` and
-  `awards(user_id, source, ref, lore)` with a primary key on `(user_id, source, ref)`
-  so every award is idempotent — the Flashstone gold rule, applied to Lore.
+  another device. The same document the browser saves today.
+
+That is the whole schema. Run history already lives inside the profile (last 20).
 
 **Sync model.** Playing signed out stays exactly as it is today. Signed in, the browser
-still plays the game; the server is the durable copy.
+still plays the game; the server is the durable copy. Pull on sign-in; push the profile
+two seconds after any change and the run save after every step (coalesced); merge on
+pull. `mergeProfiles(a, b)` in `engine/meta/profile.ts` (pure, tested): union for sets
+(pages, cards and relics seen, bestiary moves; bestiary seen and kills as max; history
+by seed and date, capped at 20), max for counters and best floors, `lore =
+max(a, b)`, `seals` as max per class. Merging is idempotent and never loses anything,
+which is what makes the carry-over below safe. Weakness: a student who edits
+localStorage can gift themselves Lore; the server takes their word. Acceptable for a
+classroom game with nothing to buy. If quests ever pay out, Lore moves server-side
+then (the Flashstone gold rule: idempotent awards keyed by run seed).
 
-- *v1, document sync (ship first):* pull on sign-in, push the profile (debounced two
-  seconds after any change) and the run save (after every step, coalesced). Merge on
-  pull: union for sets (bestiary seen/kills as max, moves, cards and relics seen, pages,
-  history by seed+date), max for counters, `lore = max(local, server)`. Nothing is lost,
-  nothing is double-counted, offline play merges later. Weakness: a student who edits
-  localStorage can grant themselves Lore. For a classroom game that is tolerable.
-- *v2, server-authoritative Lore (with quests):* the client reports each finished run
-  (`POST /api/runs` with the ledger); the server awards Lore idempotently by run seed;
-  `POST /api/pages/buy` checks the balance server-side. The profile's `lore` becomes a
-  read-only mirror. Do this when quests give Lore a reason to be trustworthy.
+**Carrying progress into a new account.** Yes. The local Tome (`tome.profile.v1`) is
+the anonymous Tome. Signed-in play uses a separate local cache per account
+(`tome.profile.<userId>`) mirrored to the server, so the anonymous Tome is never
+overwritten by someone else's account and signing out puts you back exactly where the
+anonymous Tome was.
+
+- **Sign-up** on a browser with an anonymous Tome: the form says "Your Tome so far
+  (23 Lore, 1 page, 4 Bestiary pages) will become this account's." and the whole
+  document is uploaded as the account's profile, the in-progress run with it. The
+  anonymous Tome is left in place, marked `carriedTo: <userId>` so it is not offered
+  again.
+- **Sign-in** on a browser with an anonymous Tome that has progress and no `carriedTo`:
+  a one-time prompt, because on a shared school laptop that progress may be a
+  classmate's — "This browser has a Tome that is not tied to an account yet (23 Lore,
+  1 page). Merge it into yours?" Merge → `mergeProfiles`, mark `carriedTo`. Leave it →
+  untouched, and the prompt does not return for this account (remembered per
+  `<userId>` locally). A different student signing in later on the same laptop gets
+  the same offer for their own account.
+- **Sign-in** elsewhere: pull the account Tome; if that device also holds a cache for
+  this account (played offline), merge.
+- **The run in progress** carries the same way: sign up mid-run and the run is now the
+  account's; sign in mid-run and the prompt covers it ("…and a run in progress on
+  floor 4").
 
 **API (`worker/routes/`)**
 
-`POST /api/auth/signup`, `/login`, `/logout`; `GET /api/me`; `GET|PUT /api/profile`;
-`GET|PUT|DELETE /api/run`; `POST /api/runs`; `GET /api/class` (teacher: roster with
-runs, wins, best floor, Lore, Bestiary %, last seen), `POST /api/class` (create),
-`POST /api/class/reset-password`; later `/api/quests/*`. JSON in and out, sessions by
-cookie, 401 for anything signed out, rate limits on auth.
+`POST /api/auth/signup {username, email, password, profile?, run?}` (creates the user,
+stores the carried documents, sends the verification email, starts a session);
+`POST /api/auth/login`; `POST /api/auth/logout`; `GET /api/auth/verify?token`;
+`POST /api/auth/resend-verify`; `POST /api/auth/request-reset {email}`;
+`POST /api/auth/reset-password {token, password}`; `GET /api/me`;
+`GET|PUT /api/profile`; `GET|PUT|DELETE /api/run`; `DELETE /api/account`.
+JSON in and out, sessions by cookie, 401 when signed out, rate limits on every auth
+route. Unverified accounts can play and sync (verification only gates password reset
+and is nagged, not enforced — a student who mistypes their email must not lose access).
 
-**Client.** `app/account.ts` (session cache, fetch wrapper with credentials, the sync
-queue). Sign-in and sign-up are the game's only **DOM UI**: an HTML form floated over
-the canvas in the palette's colours, because password managers, autofill and mobile
-keyboards need real inputs and Pixi has none. The title shows "signed in as …" and
-Sign out; the Tome shows "saved to the cloud · just now". Save codes stay for the
-signed-out.
+**Client.** `app/account.ts` (session cache, fetch wrapper with credentials, the
+debounced sync queue, offline retry). Sign-in, sign-up, reset and "check your email"
+are the game's only **DOM UI**: an HTML form floated over the canvas in the palette's
+colours, because password managers, autofill and mobile keyboards need real inputs and
+Pixi has none. Reached from a title button ("Sign in") and from the Tome. The title
+shows "signed in as …"; the Tome shows "saved to the cloud · just now" or "offline,
+will sync". Save codes stay for the signed-out.
 
-**Teacher tooling.** `#/class` for teachers: roster table, per-student runs, reset
-password, rename, remove, CSV export. Teacher accounts are made by Paul with
-`npm run admin -- make-teacher <username>` (talks to D1 through wrangler); no
-self-serve teacher sign-up.
-
-**Quests and incentives (after v1 is stable).** Daily quests as a pure function of the
-UTC day (Flashstone's `quests.ts`): three a day such as "Steal a Secret", "Win a fight
-untouched", "Play 15 Skills", each paying Lore. A class goal on the teacher view
-("Bestiary 17/17 by Friday"). A weekly seeded challenge: the class shares one seed,
-ranked by floor, which is also the first piece of Phase 10's custom mode.
+**Email.** Resend, as in Flashstone (`email.ts`). Needs `RESEND_API_KEY` as a Worker
+secret and a verified sender on contrapaul.com (DNS records in Cloudflare). Until the
+secret is set, email is a logged no-op and sign-up still works; verification is
+simply pending.
 
 **Deployment.** `wrangler.jsonc`: `main`, `d1_databases: [{ binding: "DB",
-database_name: "tomeofsecrets-db" }]`, `run_worker_first`, secrets only if email is
-on (`RESEND_API_KEY`). Migrations with `wrangler d1 migrations apply tomeofsecrets-db
---local | --remote`. Landmine from Flashstone: `d1 execute --remote --file` fails with
-an OAuth token; use `migrations apply` or `--command`. The boundary rule extends:
-`worker/` may import `src/content/schema` and `src/engine/meta/profile`, never `src/ui`
-or `src/app`. Worker routes get vitest coverage the way Flashstone's `gold` and
-`collection` do.
+database_name: "tomeofsecrets-db" }]`, `run_worker_first`, the secret. Migrations with
+`wrangler d1 migrations apply tomeofsecrets-db --local | --remote`. Landmine from
+Flashstone: `d1 execute --remote --file` fails with an OAuth token; use `migrations
+apply` or `--command`. The boundary rule extends: `worker/` may import
+`src/content/schema` and `src/engine/meta/profile`, never `src/ui` or `src/app`.
+Worker routes get vitest coverage the way Flashstone's do.
 
 **Steps**
 
-1. Decisions with Paul: class codes vs email; v1 document sync confirmed; how much
-   teacher tooling in the first cut.
+1. `mergeProfiles` with tests; the anonymous/account split of local storage in
+   `app/profile.ts` (`carriedTo`, per-user caches); no server yet.
 2. Worker skeleton, D1, migration 0001, the auth port, tests; deploy with `/api/me`
    answering 401.
-3. The DOM form, `app/account.ts`, title integration; signed-out play unchanged.
-4. Profile and run-save sync with the merge; resume on a second device.
-5. Run records, the class view, the admin CLI.
-6. Quests (v2 Lore).
+3. The DOM forms and `app/account.ts`; sign-up carries the Tome; title integration;
+   signed-out play unchanged.
+4. Profile and run-save sync with merge; the sign-in prompt; resume on a second device.
+5. Verification and reset emails; Resend set up; account deletion.
 
 **Acceptance**
 
-- A student signs up on a school laptop, plays, dies; at home they sign in and the
-  Bestiary page and Lore are there and Continue resumes the run mid-map.
+- A student plays signed out for a week, then signs up: the account starts with their
+  Lore, pages and Bestiary, and their run in progress.
+- They sign in at home: everything is there and Continue resumes the run.
+- Two students share a laptop: the second to sign in is asked before any merge, and
+  declining leaves both Tomes intact.
 - Clearing browser storage loses nothing for a signed-in student.
-- Paul opens `#/class` and sees the roster with best floors and last-played.
-- A student cannot read or change another student's data (tests on the routes).
-- Signed-out play is unchanged, save codes still work.
+- A student can reset a forgotten password by email, and can delete their account.
+- Signed-out play is unchanged; save codes still work.
 
 ### Phase 7: Chapters 2 and 3, the full pool, balance
 
@@ -1088,3 +1109,11 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   links. Grids are sized for Chapter 1; Phase 7 will need paging or a chapter switch
   in the Bestiary and a scroll for Cards.
 - Old saves (pre-6) revive with `seal 0`, no pool (everything), and no known pages.
+
+### Second art drop (2026-09-18)
+
+- Paul's cleaned exports (transparent) for the Bookwyrm, Ink Slime and Inkling, plus a
+  new Thornwood Sapling. `art:key` now detects a transparent input and uses its alpha
+  as the mask, so one command handles scans and clean exports alike; `--flip` mirrors a
+  right-facing drawing. Thornwood Sapling is `small` now (drawn on the small template).
+  The Sapling was flipped so its dagger leads toward the hero.
