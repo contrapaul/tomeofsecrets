@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import type { Stage } from '../../app/stage';
 import { d, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
-import { CARD_H, type CardView } from './CardView';
+import { CARD_H, CARD_W, type CardView } from './CardView';
 import type { HandLayout } from './HandLayout';
 
 export interface DragHost {
@@ -39,6 +39,12 @@ export interface DragHost {
  * A targeted card, once lifted out of the hand, parks in the aim spot and an
  * arrow runs from it to the pointer; over an enemy the arrow locks into the
  * enemy's centre. Dragging back into the hand band unparks it.
+ *
+ * Hover is decided from the pointer's position against the fan's resting
+ * slots, not from which card is under the pointer: lifting a card moves the
+ * cards, and deciding by their moving edges flickers. A hovered card keeps its
+ * hover while the pointer is anywhere over its lifted body. Touch never hovers;
+ * a tap inspects.
  */
 export class DragController {
   private pressed: CardView | null = null;
@@ -66,13 +72,6 @@ export class DragController {
 
   attach(view: CardView): void {
     view.cursor = 'grab';
-    view.on('pointerover', () => {
-      if (this.dragging || !this.host.canInteract()) return;
-      this.host.hand.setHover(view);
-    });
-    view.on('pointerout', () => {
-      if (this.host.hand.hovered === view && !this.dragging) this.host.hand.setHover(null);
-    });
     view.on('pointerdown', (e) => {
       if (!this.host.canInteract()) return;
       this.pressed = view;
@@ -220,6 +219,31 @@ export class DragController {
     // Aim on the pointer event itself, not only in the ticker, so a drop is
     // judged on where the pointer is even if frames are scarce.
     if (this.dragging) this.paintAim(this.dragging);
+    else if (e.pointerType !== 'touch') this.updateHover(p, e);
+  }
+
+  /** Which card the pointer means, from the resting fan; sticky while over the lifted card. */
+  private updateHover(p: { x: number; y: number }, e: FederatedPointerEvent): void {
+    const hand = this.host.hand;
+    if (!this.host.canInteract() || !hand.cards.length) {
+      if (hand.hovered) hand.setHover(null);
+      return;
+    }
+    const current = hand.hovered;
+    if (current && current.getBounds().containsPoint(e.global.x, e.global.y)) return;
+    const n = hand.cards.length;
+    const slots = hand.cards.map((_, i) => hand.slotFor(i, n));
+    const halfW = (CARD_W * slots[0]!.scale) / 2;
+    const left = hand.x + slots[0]!.x - halfW;
+    const right = hand.x + slots[n - 1]!.x + halfW;
+    const top = hand.y + hand.bandTop + 50;
+    if (p.y < top || p.x < left || p.x > right) {
+      if (current) hand.setHover(null);
+      return;
+    }
+    let best = 0;
+    for (let i = 1; i < n; i++) if (Math.abs(p.x - (hand.x + slots[i]!.x)) < Math.abs(p.x - (hand.x + slots[best]!.x))) best = i;
+    hand.setHover(hand.cards[best]!);
   }
 
   private onUp(e: FederatedPointerEvent): void {

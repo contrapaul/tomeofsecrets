@@ -345,18 +345,24 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const def = cardDef(uid);
     const disp = display(uid);
     if (!def || !disp) return;
-    layers.hand.setHover(null);
     const overlay = new Container();
     const dim = new Graphics();
     dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.7 });
     dim.eventMode = 'static';
-    dim.on('pointertap', () => overlay.destroy({ children: true }));
+    const close = () => {
+      dim.eventMode = 'none';
+      gsap.to(overlay, { alpha: 0, duration: d(0.12), onComplete: () => overlay.destroy({ children: true }) });
+    };
+    dim.on('pointertap', close);
     overlay.addChild(dim);
     const big = new CardView(uid, def, disp);
-    big.scale.set(2.2);
     big.position.set(DESIGN.width / 2 - 200, DESIGN.height / 2);
     big.eventMode = 'none';
     overlay.addChild(big);
+    // Grow in from a little smaller, over the fading dim: one motion, not a lift and a drop.
+    overlay.alpha = 0;
+    gsap.to(overlay, { alpha: 1, duration: d(0.15) });
+    gsap.fromTo(big.scale, { x: 1.9, y: 1.9 }, { x: 2.2, y: 2.2, duration: d(0.2), ease: 'power2.out' });
     const keys = disp.resolved.keywords.map((k) => k[0]!.toUpperCase() + k.slice(1));
     const armed = disp.resolved.effects.some((e) => e.do === 'trap');
     if (armed) keys.push('Armed');
@@ -364,7 +370,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const glossary = makeText(lines.join('\n\n') || 'No keywords.', { ...STYLE.body(24), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 480 });
     glossary.position.set(DESIGN.width / 2 + 120, DESIGN.height / 2 - 120);
     overlay.addChild(glossary);
-    const hint = makeText('click anywhere to close', STYLE.mono(16));
+    const hint = makeText('tap or click anywhere to close', STYLE.mono(16));
     hint.alpha = 0.6;
     hint.anchor.set(0.5);
     hint.position.set(DESIGN.width / 2, DESIGN.height - 60);
