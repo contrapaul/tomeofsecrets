@@ -110,7 +110,7 @@ export function devEnemyScene(ctx: SceneContext): Scene {
       const title = makeText('DEV · ENEMY PREVIEW', { ...STYLE.display(36), fill: PALETTE.gold });
       title.position.set(60, 50);
       view.addChild(title);
-      const hint = makeText('Drop a PNG anywhere on this page. It should be 400×400, 600×600 or 700×900 with the feet 40 px from the bottom, facing left.', { ...STYLE.body(22), wordWrap: true, wordWrapWidth: 700 });
+      const hint = makeText('Drop a PNG anywhere on this page. It should be 400×400, 600×600 or 700×640 with the feet 40 px from the bottom, facing left.', { ...STYLE.body(22), wordWrap: true, wordWrapWidth: 700 });
       hint.position.set(60, 110);
       view.addChild(hint);
       status.position.set(60, 190);

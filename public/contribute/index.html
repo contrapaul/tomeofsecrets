@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help build Tome of Secrets</title>
+<meta name="description" content="How to draw, record, design and write for Tome of Secrets: sizes, file types, tips for Procreate, and what the game needs.">
+<style>
+  @font-face { font-family: 'Cinzel'; src: url('/fonts/Cinzel.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
+  @font-face { font-family: 'Alegreya'; src: url('/fonts/Alegreya.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
+  @font-face { font-family: 'Alegreya'; src: url('/fonts/Alegreya-Italic.woff2') format('woff2'); font-weight: 400 900; font-style: italic; font-display: swap; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2'); font-display: swap; }
+  :root {
+    --ink: #0b0a0f; --ink-light: #1a1724; --parchment: #efe4c8; --parchment-dim: #bfb193;
+    --gold: #d4a83b; --gold-bright: #f2cf6b; --blood: #9b2335; --moss: #5d7a3a; --frost: #6fb3d9; --arcane: #8b6ad8;
+    --paladin: #d4a83b; --tracker: #6f8f3f; --mage: #6b5fd3;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--parchment); font-family: Alegreya, Georgia, serif; font-size: 20px; line-height: 1.45; }
+  a { color: var(--gold-bright); }
+  main { max-width: 900px; margin: 0 auto; padding: 32px 20px 96px; }
+  header { padding: 56px 20px 24px; text-align: center; background: radial-gradient(ellipse at 50% 0%, #1c2a22 0%, var(--ink) 70%); }
+  h1 { font-family: Cinzel, serif; font-weight: 700; color: var(--gold); letter-spacing: .08em; font-size: clamp(30px, 6vw, 52px); margin: 0 0 10px; }
+  .kicker { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--parchment-dim); letter-spacing: .12em; text-transform: uppercase; }
+  .lede { font-style: italic; color: var(--parchment-dim); max-width: 640px; margin: 8px auto 0; }
+  h2 { font-family: Cinzel, serif; font-weight: 700; letter-spacing: .06em; font-size: 26px; margin: 64px 0 18px; color: var(--gold); border-bottom: 1px solid rgba(212,168,59,.35); padding-bottom: 8px; }
+  h3 { font-family: Cinzel, serif; font-weight: 700; font-size: 19px; letter-spacing: .04em; margin: 34px 0 10px; color: var(--parchment); }
+  p, li { max-width: 72ch; }
+  ul { padding-left: 22px; }
+  li { margin: 4px 0; }
+  code, .mono { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--gold-bright); }
+  code { background: rgba(255,255,255,.05); padding: 1px 6px; border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font-size: 18px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(239,228,200,.12); vertical-align: top; }
+  th { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--parchment-dim); font-weight: normal; }
+  .note { background: rgba(212,168,59,.08); border-left: 3px solid var(--gold); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; }
+  .note.talk { background: rgba(155,35,53,.12); border-color: var(--blood); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 16px 0; }
+  .tile { background: var(--ink-light); border: 1px solid rgba(212,168,59,.3); border-radius: 12px; padding: 16px 18px; }
+  .tile h4 { margin: 0 0 6px; font-family: Cinzel, serif; font-size: 17px; letter-spacing: .04em; }
+  .tile p { margin: 0; font-size: 17px; color: var(--parchment-dim); }
+  .tile .size { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--gold-bright); display: block; margin-top: 8px; }
+  .class { border-top: 4px solid var(--c); }
+  .class h4 { color: var(--c); }
+  .tpl { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+  .tpl a { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 8px 12px; border: 1px solid var(--gold); border-radius: 8px; text-decoration: none; }
+  .tpl a:hover { background: rgba(212,168,59,.12); }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; margin: 22px auto 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+  nav.toc a { text-decoration: none; color: var(--parchment-dim); }
+  nav.toc a:hover { color: var(--gold-bright); }
+  .back { position: fixed; top: 14px; left: 14px; font-family: Cinzel, serif; font-size: 14px; letter-spacing: .06em; text-decoration: none; padding: 8px 14px; border: 1px solid var(--gold); border-radius: 8px; background: rgba(11,10,15,.85); }
+  figure { margin: 16px 0; }
+  figure img { max-width: 100%; border-radius: 8px; border: 1px solid rgba(239,228,200,.15); background: #fff; }
+  figcaption { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--parchment-dim); margin-top: 6px; }
+  .checklist li { list-style: none; position: relative; padding-left: 26px; }
+  .checklist li::before { content: '☐'; position: absolute; left: 0; color: var(--gold); }
+  @media (max-width: 600px) { body { font-size: 18px; } table { font-size: 16px; } th, td { padding: 6px; } .back { position: static; display: inline-block; margin: 12px 0 0 12px; } }
+</style>
+</head>
+<body>
+<a class="back" href="/">← Back to the game</a>
+<header>
+  <div class="kicker">Tome of Secrets</div>
+  <h1>Help build this game</h1>
+  <p class="lede">Tome of Secrets is being built by this class. The enemies, the pictures on the cards, the sounds, the numbers, the stories: any of it can be yours. Here is what the game needs and how to make it fit.</p>
+  <nav class="toc">
+    <a href="#start">Start here</a>
+    <a href="#art">Art</a>
+    <a href="#procreate">Procreate tips</a>
+    <a href="#classes">The heroes</a>
+    <a href="#sound">Sound</a>
+    <a href="#design">Design &amp; balance</a>
+    <a href="#writing">Writing</a>
+    <a href="#handin">Handing it in</a>
+  </nav>
+</header>
+
+<main>
+
+<h2 id="start">Start here</h2>
+<div class="note talk"><strong>Before you make anything, tell Mr. K what you'd like to contribute.</strong> He keeps the list of what is taken and what is wanted, so two people don't draw the same beetle, and so your thing has a place in the game before you start. A sentence is enough: "I want to draw the Ogre Bookkeeper" or "I want to design a new enemy for the swamp."</div>
+<p>Everything in the game is a file: a PNG for an enemy, a WAV for a hit sound, a small text file for a card. You make the file, Mr. K drops it into the game, and it is there the next time anyone plays. Your name goes in the credits, and on the Bestiary page of anything you drew.</p>
+<p>Four kinds of help, pick any:</p>
+<div class="grid">
+  <div class="tile"><h4>Art</h4><p>Enemies, backgrounds, card pictures, hero portraits. Drawn on paper or on a screen.</p></div>
+  <div class="tile"><h4>Sound</h4><p>Hits, card sounds, a victory sting, music for the map or a boss.</p></div>
+  <div class="tile"><h4>Design</h4><p>New enemies, cards, encounters, relics. Or playtesting: finding what is too hard, too easy, or boring.</p></div>
+  <div class="tile"><h4>Writing</h4><p>Events with choices, enemy flavour lines, the story between chapters.</p></div>
+</div>
+
+<h2 id="art">Art</h2>
+<p>The game is 1920 × 1080 and hand-drawn things are drawn at their real size, so the numbers below are pixels, not suggestions. Every picture is a <strong>PNG</strong>. Enemies, card art and foreground layers need a <strong>transparent background</strong>; backgrounds are solid.</p>
+<p>Style: mixed on purpose. Marker, watercolour, pencil, digital, flat colour: all of it lives together. What makes pictures sit together in this game is the size, the baseline, and the fact that they read on a dark table. Scary is good. Gore is not.</p>
+
+<h3>Enemies</h3>
+<p>The most useful thing you can draw. A fight is mostly enemy. Pick a size, download the template, draw on it.</p>
+<div class="grid">
+  <div class="tile"><h4>Small</h4><p>Swarmers and critters. Things that come in threes.</p><span class="size">400 × 400</span></div>
+  <div class="tile"><h4>Medium</h4><p>Most enemies.</p><span class="size">600 × 600</span></div>
+  <div class="tile"><h4>Large</h4><p>Elites, bosses, anything that should loom. As tall as the screen allows.</p><span class="size">700 × 640</span></div>
+</div>
+<div class="tpl">
+  <a href="/art/templates/enemy-small.png" download>enemy-small.png</a>
+  <a href="/art/templates/enemy-medium.png" download>enemy-medium.png</a>
+  <a href="/art/templates/enemy-large.png" download>enemy-large.png</a>
+</div>
+<ul>
+  <li><strong>Feet on the gold line</strong> (40 px up from the bottom). The game stands enemies on that line. Something that floats or flies can hang above it; say so when you hand it in.</li>
+  <li><strong>Face left.</strong> The hero stands on the left, and enemies lunge that way.</li>
+  <li><strong>No shadow, no border, no text.</strong> The game adds a shadow.</li>
+  <li>Bold outlines and clear shapes. It sits on a dark green table; thin pale lines vanish.</li>
+  <li>Optional extras on the same canvas, same size, feet in the same place: <code>attack.png</code> (wind-up, claws out), <code>hurt.png</code> (flinch), <code>dead.png</code>. The game swaps them in.</li>
+</ul>
+<div class="note">You can <strong>invent an enemy</strong>. It doesn't have to be one that already exists. Give it a name, a size, and a sentence about what it does ("a moth made of torn pages; it blinds you with dust"), and see <a href="#design">Design</a> for how to turn that into moves. New enemies are how the later chapters get filled.</div>
+<p><strong>Try it in the game before you hand it in.</strong> Open <a href="/#/dev/enemy">the enemy preview</a> and drag your PNG onto it. You'll see it breathe, lunge, get hit and die on the real table.</p>
+
+<h3>Backgrounds</h3>
+<p>One set per chapter. Two pieces, with an optional third, each <strong>1920 × 1080</strong>:</p>
+<ul>
+  <li><code>far.png</code>: the whole scene, edge to edge, solid. Walls, sky, the far shelves. Works on its own.</li>
+  <li><code>near.png</code>: foreground things on a transparent background: pillars, hanging vines, a doorframe. It drifts against the mouse more than the far layer, which is what makes the depth.</li>
+  <li><code>mid.png</code>: a middle distance, transparent, only if the scene really has three depths.</li>
+</ul>
+<div class="tpl"><a href="/art/templates/background.png" download>background.png (the guide lines)</a></div>
+<p>The template shows where the floor is (enemies stand on the gold line 640 px down), where the hero stands (left), the band the hand covers (bottom 270 px: keep it quiet), and the strip along the top where relics sit. Keep anything important out of the outer 40 px; the layers drift. Dark and low-contrast is right: the cards and enemies have to read on top.</p>
+
+<h3>Card pictures</h3>
+<p>Every card can have one. <strong>500 × 380</strong>, no text, no border. Two things to know first:</p>
+<ul>
+  <li><strong>Only the middle band shows.</strong> The card's art slot is wide and short, so the game keeps the full width but only the middle 282 px of height: the gold box on the template. The top and bottom strips are margin.</li>
+  <li><strong>It is small on the card</strong>, about 43% of your drawing. Big shapes, strong contrast. Think icon, not illustration. Attacks read best as the action (the swing, the bolt), skills as the effect (the shield, the trap), powers as a symbol.</li>
+</ul>
+<div class="tpl"><a href="/art/templates/card.png" download>card.png</a></div>
+
+<h3>Hero portraits</h3>
+<p><strong>700 × 900</strong>, a bust (head and shoulders), transparent, facing inward. These show in dialogue and, later, on the hero's panel in a fight. Read <a href="#classes">The heroes</a> below before drawing one: each class has three Origins, and eventually each Origin may get its own portrait, so an Oath of Vengeance Paladin can look different from an Oath of Light one.</p>
+<div class="tpl"><a href="/art/templates/portrait.png" download>portrait.png</a></div>
+
+<h3>Companions</h3>
+<p>The Tracker fights beside an animal: Wolf, Bear, Hawk, Serpent, Boar. They are drawn as placeholders right now. Same rules as a small enemy (<strong>400 × 400</strong>, feet on the line) but <strong>facing right</strong>, because the companion stands with the hero.</p>
+
+<h2 id="procreate">Drawing in Procreate</h2>
+<ul>
+  <li><strong>Make the canvas the exact size.</strong> New canvas → <em>Create custom size</em> → type the pixels (for a medium enemy, 600 × 600). DPI does not matter. Do not start from a screen-size or A4 canvas and crop later; the game reads the whole file.</li>
+  <li><strong>Put the template on the bottom layer.</strong> Import the template PNG as a layer, drop its opacity to 30%, draw on layers above it, and <strong>delete the template layer before you export</strong>. Otherwise the dashed box and the gold line ship with your drawing.</li>
+  <li><strong>Turn the Background Colour layer off</strong> (the bottom layer in the Layers panel, untick it) so the background is transparent. Then <em>Share → PNG</em>. If the export has a white or checkerboard-looking background baked in, that layer was still on.</li>
+  <li>Lines at least <strong>4 px wide</strong> at template size. Smaller than that turns to fuzz on a laptop screen.</li>
+  <li>Colour: the table is dark green. Mid-to-light values and a firm dark outline read; a dark grey creature with no outline disappears. Use a dark layer under your drawing while you work to check.</li>
+  <li>Draw at 100% zoom now and then. Fine detail you can only see zoomed in will not be in the game.</li>
+  <li><strong>Drawn on paper?</strong> That works too. Photograph or scan it on white paper, any size, and hand in the picture as is; Mr. K runs a tool that removes the paper, trims it, and fits it to the template. Keep the drawing away from the edges of the page.</li>
+</ul>
+
+<h2 id="classes">The heroes</h2>
+<p>Three classes, each with three Origins (a starting kit: a swapped pair of cards and a different starter relic). Companions are the Tracker's. If you draw a hero, say which class and which Origin, and check with Mr. K, because the plan is one portrait per Origin eventually.</p>
+<div class="grid">
+  <div class="tile class" style="--c: var(--paladin)"><h4>Paladin, the Oathbound</h4><p><strong>80 HP.</strong> Sturdy and rhythmic. Builds <em>Holy Power</em> with generator cards, spends it on Verdicts, and turns block into damage. Three ways to play: <em>Bulwark</em> (block that stays and hits back), <em>Verdict</em> (the generate-and-spend rhythm), <em>Radiance</em> (healing that overflows into block and burns enemies).</p><p style="margin-top:8px"><strong>Origins:</strong> Oath of the Shield · Oath of Vengeance (Ashen Libram, more Holy Power, less HP) · Oath of Light (Beacon Libram, heals after fights).</p><p style="margin-top:8px">Look: heavy, calm, gold and iron. A hammer and a shield. The light is theirs.</p></div>
+  <div class="tile class" style="--c: var(--tracker)"><h4>Tracker, the Warden of the Wild</h4><p><strong>70 HP.</strong> A second body on the field: a Companion that acts at the end of every turn. Marks a target, then rapid-fires; arms traps and lets enemies walk into them; poisons what it can't kill fast. <em>Beastmaster</em>, <em>Marksman</em>, <em>Survivalist</em>.</p><p style="margin-top:8px"><strong>Origins:</strong> Beastmaster (Wolf) · Marksman (Hawk) · Survivalist (Serpent, a worn whistle that sends the Companion in first).</p><p style="margin-top:8px">Look: leather, green and brown, a bow, an animal at heel. Quick, not heavy.</p></div>
+  <div class="tile class" style="--c: var(--mage)"><h4>Mage, the Arcanist</h4><p><strong>65 HP.</strong> Glass cannon with three schools that each want a different deck. <em>Pyromancer</em> stacks Burn then detonates it; <em>Cryomancer</em> Chills until things Freeze, then Shatters; <em>Arcanist</em> banks Charges and draws cards.</p><p style="margin-top:8px"><strong>Origins:</strong> Arcanist (Runed Focus) · Pyromancer (Ember Focus, deeper Burn) · Cryomancer (Rime Focus, colder Chill).</p><p style="margin-top:8px">Look: purple, ink-blue, a focus crystal or book. Fire, frost or arcane light depending on the Origin.</p></div>
+</div>
+<p>The world: a library that has gone wrong. Chapter 1 is <em>The Moss Halls</em>, overgrown and damp. Enemies are ink, paper, beetles, wasps, the things that live in a forgotten stack. Later chapters go deeper and drier. A creature that could plausibly live in, or be made of, a library belongs here.</p>
+
+<h2 id="sound">Sound</h2>
+<p>The game has a place for every sound and plays whatever file it finds; a missing sound is just silence, so one sound at a time is fine.</p>
+<table>
+  <tr><th>What</th><th>Format</th><th>Why</th></tr>
+  <tr><td>Sound effects</td><td><strong>WAV</strong>, 48 kHz, 16-bit, mono, under 2 seconds</td><td>Plays instantly everywhere. Compressed files add a delay at the start, which makes a hit land late.</td></tr>
+  <tr><td>Music</td><td><strong>MP3</strong> (192 kbps) or <strong>M4A</strong>, stereo</td><td>Small enough to load. Loops; tell us where the loop should start and end if the track has an intro.</td></tr>
+</table>
+<p>Trim the front tight (the sound should start in the first millisecond), leave a natural tail, no clipping. Every effect gets a small random pitch wobble in the game, so one good take is enough; three takes are better for hits and card draws, which play constantly.</p>
+<p>Sounds are named for when they play. The short list: <code>card-draw</code>, <code>card-play</code>, <code>card-discard</code>, <code>hit-light</code>, <code>hit-heavy</code>, <code>hit-blocked</code>, <code>hero-hurt</code>, <code>block</code>, <code>heal</code>, <code>buff</code>, <code>debuff</code>, <code>enemy-attack</code>, <code>enemy-die</code>, <code>turn-end</code>, <code>ui-click</code>, <code>victory</code>, <code>defeat</code>. Music: <code>title</code>, <code>map</code>, <code>fight</code>, <code>elite</code>, <code>boss</code>. The full list with what each one means is in <a href="https://github.com/contrapaul/tomeofsecrets/blob/main/docs/CONTRIBUTING-AUDIO.md">the sound guide</a>. You don't have to record on anything fancy: a phone in a quiet room, a desk, a book, a coin, a mouth.</p>
+
+<h2 id="design">Design and balance</h2>
+<p>You don't need to draw to shape the game. Everything the game knows about a card or an enemy is a small text file, and the rules are written down in plain words. Design work comes in on paper first; Mr. K turns it into the file.</p>
+
+<h3>Playtesting and balance</h3>
+<p>The most valuable thing a player can give: a specific complaint. "The Ogre Bookkeeper is unfair" is a start; "the Ogre Bookkeeper hit me for 22 on turn 2 and I had one block card" is something we can fix. When something feels wrong, note:</p>
+<ul class="checklist">
+  <li>The seed (on the run-end screen and the boon screen: <code>seed thorn-2861-cd37</code>). With it we can replay your exact run.</li>
+  <li>Your class and Origin, the floor, the enemy, and what happened.</li>
+  <li>Whether it was <em>unfair</em> (no way to play around it), <em>hard</em> (you'd do better next time), or <em>boring</em> (nothing to decide).</li>
+  <li>A card you never pick, or always pick. Both are problems.</li>
+</ul>
+<p>The game has a robot that plays thousands of runs and reports win rates per class and what kills most. It plays badly on purpose. Your runs tell us what a person does.</p>
+
+<h3>A new enemy</h3>
+<p>An enemy is: a name, a size, a range of HP, a set of moves, and a pattern for choosing them. Every move has an <em>intent</em> the player can see (attack, block, buff, debuff) and a number. The player always knows what's coming; the game is about what you do with that. A good enemy asks one clear question: "can you block 14 this turn?", "can you kill it before turn 3?", "which one do you hit first?" Fill this in:</p>
+<table>
+  <tr><th>Name</th><td>and a one-line description</td></tr>
+  <tr><th>Size</th><td>small / medium / large</td></tr>
+  <tr><th>HP</th><td>Chapter 1 normals are 25–66; elites 100–130; bosses 240–260</td></tr>
+  <tr><th>Moves</th><td>two to four. Each: a name, what it does, how much (Chapter 1 enemies hit for 6–10 a turn)</td></tr>
+  <tr><th>Pattern</th><td>how it picks: a fixed cycle, random with weights, or "does X until half HP, then Y"</td></tr>
+  <tr><th>Its Secret</th><td>the card a player steals by killing it: one small card that feels like the enemy</td></tr>
+  <tr><th>Flavour</th><td>one line for the Bestiary</td></tr>
+</table>
+
+<h3>An encounter</h3>
+<p>Fights are groups: one enemy, or two or three together. Good groups make a decision: a healer behind a tank, two fast things and one slow one, a swarm where killing one makes the others angry. Write the group, which pool it belongs to (easy, normal, elite, boss), and the question it asks.</p>
+
+<h3>A new card</h3>
+<p>A card is: a name, a class (or neutral), a type (attack, skill, power), a cost (0–3, or X), a rarity, what it does, and what its upgrade does. The game already knows how to do damage, block, statuses, draw, energy, healing, Holy Power, Charges, Marks, traps and Companion actions, so most ideas are a combination of those with numbers. Rules of thumb: 1 energy buys about 6 damage or 5 block in Chapter 1; a card should do one thing well; a Rare should change how you play, not just be bigger.</p>
+
+<h3>Relics, vials, a new class</h3>
+<p>A relic is a passive rule that lasts the run ("whenever an enemy dies, heal 3"). A vial is a one-use drink. A new class is the big one: a resource, three ways to play, a ten-card starter deck, about twenty-five cards, three Origins, and a reason it feels different from the other three. Bring the idea; that one is a term of work.</p>
+
+<h2 id="writing">Writing</h2>
+<p>Events are the "?" nodes on the map: a short scene, a choice, a consequence. They are written in a small script format, one line at a time, that Mr. K can show you; it handles portraits, choices, "if you have a relic" conditions, card picks and fights. Every enemy also has one Bestiary line, and every boss a phase line. Rules for all of it: short, second person, and it should make the player want to pick the risky option.</p>
+
+<h2 id="handin">Handing it in</h2>
+<ul class="checklist">
+  <li>You've told Mr. K what you're making, and it's on the list.</li>
+  <li>Art: a PNG at the template size, transparent where it should be, named after the thing (<code>moss-beetle.png</code>). Or a photo of the paper drawing.</li>
+  <li>Sound: a WAV named for when it plays (<code>hit-heavy.wav</code>).</li>
+  <li>Design and writing: on paper, a doc, or a message. Any form.</li>
+  <li>The name you want in the credits. It can be your first name and initial, a nickname, or nothing at all; your choice.</li>
+</ul>
+<p>Then it goes into the game, and you can go find it. Bestiary pages say "Drawn by" you.</p>
+<p style="margin-top:40px"><a href="/">← Back to the game</a> · <a href="https://github.com/contrapaul/tomeofsecrets">the code, if you're curious</a></p>
+
+</main>
+</body>
+</html>

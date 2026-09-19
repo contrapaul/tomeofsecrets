@@ -17,7 +17,7 @@ import { StatusRow } from './StatusRow';
 const SIZE_H = { small: 230, medium: 330, large: 440 } as const;
 const SIZE_W = { small: 200, medium: 260, large: 330 } as const;
 /** Real art is drawn at the spec size, 1:1 in design pixels. */
-const ART_H = { small: 400, medium: 600, large: 900 } as const;
+const ART_H = { small: 400, medium: 600, large: 640 } as const;
 const ART_W = { small: 400, medium: 600, large: 700 } as const;
 
 /**

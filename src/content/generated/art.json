@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-18",
+  "generated": "2026-09-19",
   "enemies": {
     "bookwyrm": {
       "idle": "art/enemies/bookwyrm/idle.png",
       "size": "large",
       "artist": "paul-k",
       "width": 700,
-      "height": 900,
-      "top": 413,
+      "height": 640,
+      "top": 153,
       "float": 110
     },
     "dummy-brute": {
@@ -15,8 +15,8 @@
       "size": "large",
       "artist": "placeholder",
       "width": 700,
-      "height": 900,
-      "top": 288,
+      "height": 640,
+      "top": 158,
       "attack": "art/enemies/dummy-brute/attack.png"
     },
     "dummy-cur": {
@@ -51,6 +51,15 @@
       "width": 600,
       "height": 600,
       "top": 258
+    },
+    "librarians-shade": {
+      "idle": "art/enemies/librarians-shade/idle.png",
+      "size": "large",
+      "artist": "paul-k",
+      "width": 700,
+      "height": 640,
+      "top": 60,
+      "float": 60
     },
     "thornwood-sapling": {
       "idle": "art/enemies/thornwood-sapling/idle.png",

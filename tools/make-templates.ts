@@ -31,7 +31,7 @@ async function write(svg: string, file: string): Promise<void> {
 
 await write(template(400, 400, 'small enemy'), join(T, 'enemy-small.png'));
 await write(template(600, 600, 'medium enemy'), join(T, 'enemy-medium.png'));
-await write(template(700, 900, 'large enemy'), join(T, 'enemy-large.png'));
+await write(template(700, 640, 'large enemy'), join(T, 'enemy-large.png'));
 // Card art is cropped to the slot's 216:122 ratio: of a 500×380 drawing the middle 282 rows show.
 await write(
   `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="380"><rect x="0.5" y="0.5" width="499" height="379" fill="none" stroke="#7a7a7a" stroke-dasharray="8 6"/><rect x="1" y="49" width="498" height="282" fill="none" stroke="#d4a83b" stroke-width="2"/><text x="250" y="40" font-family="Helvetica, Arial" font-size="18" fill="#7a7a7a" text-anchor="middle">card art · 500×380 · no text, no border</text><text x="250" y="195" font-family="Helvetica, Arial" font-size="20" fill="#d4a83b" text-anchor="middle">only the gold band shows on the card</text><text x="250" y="222" font-family="Helvetica, Arial" font-size="16" fill="#d4a83b" text-anchor="middle">it is drawn about half this size · big shapes, strong contrast</text></svg>`,
@@ -67,8 +67,8 @@ function creature(w: number, h: number, body: string, eye: string, extra = ''): 
 
 mkdirSync(join(ROOT, 'public', 'art', 'enemies', 'dummy-brute'), { recursive: true });
 mkdirSync(join(ROOT, 'public', 'art', 'enemies', 'dummy-cur'), { recursive: true });
-await write(creature(700, 900, '#7a7a6a', '#1a1207', `<path d="M 200 380 l -70 -90 l 40 110 z M 500 380 l 70 -90 l -40 110 z" fill="#5a5a4a" stroke="#1a1207" stroke-width="6"/>`), join(ROOT, 'public', 'art', 'enemies', 'dummy-brute', 'idle.png'));
-await write(creature(700, 900, '#8a8a7a', '#9b2335', `<path d="M 200 380 l -110 -60 l 80 90 z M 500 380 l 110 -60 l -80 90 z" fill="#5a5a4a" stroke="#1a1207" stroke-width="6"/>`), join(ROOT, 'public', 'art', 'enemies', 'dummy-brute', 'attack.png'));
+await write(creature(700, 640, '#7a7a6a', '#1a1207', `<path d="M 200 250 l -70 -90 l 40 110 z M 500 250 l 70 -90 l -40 110 z" fill="#5a5a4a" stroke="#1a1207" stroke-width="6"/>`), join(ROOT, 'public', 'art', 'enemies', 'dummy-brute', 'idle.png'));
+await write(creature(700, 640, '#8a8a7a', '#9b2335', `<path d="M 200 250 l -110 -60 l 80 90 z M 500 250 l 110 -60 l -80 90 z" fill="#5a5a4a" stroke="#1a1207" stroke-width="6"/>`), join(ROOT, 'public', 'art', 'enemies', 'dummy-brute', 'attack.png'));
 writeFileSync(join(ROOT, 'public', 'art', 'enemies', 'dummy-brute', 'meta.json'), JSON.stringify({ id: 'dummy-brute', size: 'large', artist: 'placeholder', notes: 'sample art from tools/make-templates.ts' }, null, 2) + '\n');
 await write(creature(400, 400, '#8a5a2a', '#1a1207', `<path d="M 120 190 l -30 -70 l 60 40 z M 250 190 l 30 -70 l -60 40 z" fill="#6a4a2a" stroke="#1a1207" stroke-width="5"/>`), join(ROOT, 'public', 'art', 'enemies', 'dummy-cur', 'idle.png'));
 writeFileSync(join(ROOT, 'public', 'art', 'enemies', 'dummy-cur', 'meta.json'), JSON.stringify({ id: 'dummy-cur', size: 'small', artist: 'placeholder', notes: 'sample art from tools/make-templates.ts' }, null, 2) + '\n');

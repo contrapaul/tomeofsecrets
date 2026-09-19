@@ -7,7 +7,7 @@ in the credits. Here is everything you need.
 
 1. Download a template: [small](../public/art/templates/enemy-small.png) (400×400),
    [medium](../public/art/templates/enemy-medium.png) (600×600) or
-   [large](../public/art/templates/enemy-large.png) (700×900).
+   [large](../public/art/templates/enemy-large.png) (700×640).
 2. Draw your creature on it. **Feet on the gold line. Facing left.** Transparent
    background. Delete the template layer before you export.
 3. Export a PNG at exactly the template's size.
@@ -25,7 +25,7 @@ That is a shippable enemy. Everything below is optional.
 |---|---|---|
 | small | 400 × 400 | swarmers, critters, things that come in threes |
 | medium | 600 × 600 | most enemies |
-| large | 700 × 900 | elites, bosses, anything that should loom |
+| large | 700 × 640 | elites, bosses, anything that should loom |
 
 Your creature does not have to fill the canvas, but the game reads the top of the
 visible pixels to place the intent badge, so leave no stray marks above the head.

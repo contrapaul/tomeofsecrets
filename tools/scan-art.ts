@@ -25,7 +25,7 @@ const OUT = join(ROOT, 'src', 'content', 'generated', 'art.json');
 const check = process.argv.includes('--check');
 const wanted = process.argv.includes('--wanted');
 
-const SIZES = { small: [400, 400], medium: [600, 600], large: [700, 900] } as const;
+const SIZES = { small: [400, 400], medium: [600, 600], large: [700, 640] } as const;
 const problems: string[] = [];
 const note = (s: string) => problems.push(s);
 

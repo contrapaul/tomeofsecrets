@@ -391,7 +391,7 @@ nothing but fills the hand), Ink Stain (costs 1: Exhaust it).
 ## 6. Enemies
 
 Rules for every enemy: 2–4 moves, a pattern a player can learn in one fight, one
-gimmick, a tag set, a size class (S 400², M 600², L 700×900), a Secret, and an artist
+gimmick, a tag set, a size class (S 400², M 600², L 700×640), a Secret, and an artist
 credit. HP is a range rolled from `rng.encounters`. Elites have a phase. Bosses have
 two or three phases and a signature move that is their Secret.
 
@@ -842,7 +842,7 @@ Full instructions for students go in `docs/CONTRIBUTING-ART.md`; this is the con
 |---|---|---|
 | Enemy, small | 400 × 400 | transparent PNG, feet on the baseline 40 px from the bottom, faces left |
 | Enemy, medium | 600 × 600 | same |
-| Enemy, large | 700 × 900 | same |
+| Enemy, large | 700 × 640 | same; enemies stand 640 px down the screen, so this is as tall as anything can be |
 | Enemy extra poses | same as idle | optional `attack.png`, `hurt.png`, `dead.png`; the puppet blends to them |
 | Enemy spritesheet | any | optional Aseprite export `idle.json` + png; tags `idle`, `attack`, `hurt`, `die` |
 | Card art | 500 × 380 | painted, no text, no border |

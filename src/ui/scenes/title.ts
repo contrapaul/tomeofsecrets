@@ -41,9 +41,12 @@ export function titleScene(ctx: SceneContext): Scene {
         new Button({ label: 'The Tome', variant: 'ghost', onPress: () => ctx.router.go('/tome') }),
         new Button({ label: 'Settings', variant: 'ghost', onPress: () => ctx.router.go('/settings') }),
         new Button({ label: 'Credits', variant: 'ghost', onPress: () => ctx.router.go('/credits') }),
+        // A plain page beside the game: sizes, formats, tips, what is wanted.
+        new Button({ label: 'Help build this', variant: 'ghost', onPress: () => window.open('/contribute/index.html', '_blank', 'noopener') }),
       ];
+      const step = buttons.length > 5 ? 82 : 90;
       buttons.forEach((b, i) => {
-        b.position.set(DESIGN.width / 2, 520 + i * 90);
+        b.position.set(DESIGN.width / 2, 500 + i * step);
         view.addChild(b);
       });
 

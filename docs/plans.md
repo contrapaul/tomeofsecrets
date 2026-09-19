@@ -986,7 +986,7 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   adds it. Loads fail soft: a bad image logs a warning and the placeholder draws.
 - The scanner records `top` (first visible row) per enemy so the intent badge sits
   above the head; `EnemyView.bodyH` is `height − baseline − top` for real art.
-- Real art is drawn 1:1 in design pixels: a large enemy really is 700×900 on the
+- Real art is drawn 1:1 in design pixels: a large enemy really is 700×640 on the
   1920×1080 stage. That is the spec; it looks right for elites and bosses.
 - `Enemy.chapter` (1–3) marks shipping enemies; the content test requires art, a
   credit and a Secret for each. Test dummies have no chapter and are exempt.
@@ -1117,3 +1117,17 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   as the mask, so one command handles scans and clean exports alike; `--flip` mirrors a
   right-facing drawing. Thornwood Sapling is `small` now (drawn on the small template).
   The Sapling was flipped so its dagger leads toward the hero.
+
+### Contribute page and the large template (2026-09-19)
+
+- `public/contribute/index.html` is the student-facing "Help build this" page, linked
+  from the title (opens in a new tab). Sizes, formats, Procreate tips, the three
+  classes and their Origins, sound, design and writing, how to hand in, and "talk to
+  Mr. K first". It is plain HTML in the palette; the technical references stay in
+  `docs/CONTRIBUTING-*.md`. Keep the two in step when a size changes.
+- **The large enemy template is 700×640 now, not 700×900.** Enemies stand 640 px
+  down a 1080 screen, so nothing can be taller than ~540 px above its feet without
+  pushing the intent badge off the top; the Librarian's Shade found that out. `art:key`
+  caps the fit at `VISIBLE_MAX = 540` minus the float. The Bookwyrm and the Shade were
+  refitted. Portraits stay 700×900.
+- Mid parallax layer (`mid.png`) is supported; `--flip` mirrors a right-facing drawing.

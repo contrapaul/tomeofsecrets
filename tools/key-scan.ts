@@ -23,7 +23,9 @@ import { join } from 'node:path';
 import sharp from 'sharp';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const SIZES = { small: [400, 400], medium: [600, 600], large: [700, 900] } as const;
+const SIZES = { small: [400, 400], medium: [600, 600], large: [700, 640] } as const;
+/** Enemies stand 640 px down the screen; taller than this and the intent badge leaves the top. */
+const VISIBLE_MAX = 540;
 const BASELINE = 40;
 const MARGIN = 12;
 /** RGB distance from the paper colour that still counts as paper. */
@@ -126,7 +128,7 @@ const [cw, ch] = SIZES[size];
 const float = Math.max(0, Number(flag('float') ?? 0) || 0);
 const bw = maxX - minX + 1;
 const bh = maxY - minY + 1;
-const scale = Math.min((cw - MARGIN * 2) / bw, (ch - BASELINE - float - MARGIN) / bh);
+const scale = Math.min((cw - MARGIN * 2) / bw, (Math.min(ch - BASELINE - MARGIN, VISIBLE_MAX) - float) / bh);
 const tw = Math.max(1, Math.round(bw * scale));
 const th = Math.max(1, Math.round(bh * scale));
 let pipeline = sharp(out, { raw: { width: W, height: H, channels: 4 } })

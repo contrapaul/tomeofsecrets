@@ -5,7 +5,7 @@
  *
  * In Aseprite: File → Export Sprite Sheet, with "JSON Data" on, "Hash" type,
  * and "Tags" as the meta data. Tag your animations `idle`, `attack`, `hurt`,
- * `die`. Every frame must be the enemy's full canvas (400², 600² or 700×900)
+ * `die`. Every frame must be the enemy's full canvas (400², 600² or 700×640)
  * with the feet 40 px from the bottom, like a still PNG.
  *
  * Writes `idle.json` next to the sheet image with Pixi's `animations` block
