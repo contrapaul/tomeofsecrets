@@ -345,7 +345,7 @@ export class Playback {
         return;
       }
       case 'intent': {
-        w.enemies.get(ev.enemy)?.setIntent({ move: '', kind: ev.kind, hidden: ev.hidden, damage: ev.damage, hits: ev.hits, block: ev.block });
+        w.enemies.get(ev.enemy)?.setIntent({ move: ev.move, kind: ev.kind, hidden: ev.hidden, damage: ev.damage, hits: ev.hits, block: ev.block });
         return;
       }
       case 'enemyAct': {

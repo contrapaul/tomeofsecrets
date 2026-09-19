@@ -9,7 +9,7 @@ import { floatNumber } from '../fx/numbers';
 import { d, done, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText } from '../kit/text';
-import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 import { HpBar } from './HpBar';
 import { IntentBadge } from './IntentBadge';
 import { StatusRow } from './StatusRow';
@@ -43,7 +43,7 @@ export class EnemyView extends Container {
   readonly artist: string | null;
   dead = false;
 
-  constructor(inst: EnemyInstance, def: Enemy, art: EnemyTextures | null, tooltip: Tooltip, private readonly fxLayer: Container) {
+  constructor(inst: EnemyInstance, def: Enemy, art: EnemyTextures | null, explainer: Explainer, private readonly fxLayer: Container) {
     super({ label: `enemy:${inst.id}` });
     this.id = inst.id;
     this.art = art;
@@ -93,11 +93,11 @@ export class EnemyView extends Container {
     // HpBar pivots at its top-left; centre it under the name.
     this.hp.position.set(-Math.max(150, this.bodyW * 0.7) / 2, 54);
 
-    this.statuses = new StatusRow(tooltip);
+    this.statuses = new StatusRow(explainer);
     this.statuses.position.set(0, 100);
     this.addChild(this.statuses);
 
-    this.intent = new IntentBadge(tooltip);
+    this.intent = new IntentBadge(explainer, def);
     this.intent.position.set(0, -this.bodyH - 40);
     this.addChild(this.intent);
 
@@ -108,6 +108,12 @@ export class EnemyView extends Container {
     this.body.eventMode = 'static';
     this.body.hitArea = { contains: (x, y) => Math.abs(x) <= this.bodyW / 2 && y <= 0 && y >= -this.bodyH };
     this.idle();
+    // The idle loop must not outlive the view: a tween on a destroyed body throws every frame.
+    this.once('destroyed', () => {
+      this.idleTl?.kill();
+      gsap.killTweensOf(this.body);
+      gsap.killTweensOf(this.body.scale);
+    });
   }
 
   private placeholder(def: Enemy): Container {

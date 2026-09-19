@@ -59,15 +59,30 @@ export class DragController {
   private readonly playHint = new Graphics();
   private tick: (() => void) | null = null;
 
+  private readonly handlers = {
+    move: (e: FederatedPointerEvent) => this.onMove(e),
+    up: (e: FederatedPointerEvent) => this.onUp(e),
+  };
+
   constructor(private readonly host: DragHost) {
     host.fx.addChild(this.arrow, this.playHint);
     this.playHint.alpha = 0;
     const root = host.stage.app.stage;
     root.eventMode = 'static';
     root.hitArea = host.stage.app.screen;
-    root.on('pointermove', (e) => this.onMove(e));
-    root.on('pointerup', (e) => this.onUp(e));
-    root.on('pointerupoutside', (e) => this.onUp(e));
+    root.on('pointermove', this.handlers.move);
+    root.on('pointerup', this.handlers.up);
+    root.on('pointerupoutside', this.handlers.up);
+  }
+
+  /** The scene is over: stop listening to the stage, or a dead hand gets pointer moves forever. */
+  dispose(): void {
+    if (this.tick) this.host.stage.app.ticker.remove(this.tick);
+    this.tick = null;
+    const root = this.host.stage.app.stage;
+    root.off('pointermove', this.handlers.move);
+    root.off('pointerup', this.handlers.up);
+    root.off('pointerupoutside', this.handlers.up);
   }
 
   attach(view: CardView): void {
@@ -225,6 +240,7 @@ export class DragController {
   /** Which card the pointer means, from the resting fan; sticky while over the lifted card. */
   private updateHover(p: { x: number; y: number }, e: FederatedPointerEvent): void {
     const hand = this.host.hand;
+    if (hand.destroyed) return;
     if (!this.host.canInteract() || !hand.cards.length) {
       if (hand.hovered) hand.setHover(null);
       return;

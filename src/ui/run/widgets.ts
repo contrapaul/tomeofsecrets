@@ -8,9 +8,10 @@ import { d } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 
 /** A card for a reward or shop row: hover lifts, click chooses. */
-export function offerCard(content: ContentRegistry, cardId: string, uid: number, scale: number, onPick: () => void): CardView | null {
+export function offerCard(content: ContentRegistry, cardId: string, uid: number, scale: number, onPick: () => void, explainer?: Explainer): CardView | null {
   const def = content.cards[cardId];
   if (!def) return null;
   const resolved = resolveCard(def, false);
@@ -20,12 +21,17 @@ export function offerCard(content: ContentRegistry, cardId: string, uid: number,
   cv.cursor = 'pointer';
   cv.on('pointerover', () => gsap.to(cv.scale, { x: scale * 1.08, y: scale * 1.08, duration: d(0.12) }));
   cv.on('pointerout', () => gsap.to(cv.scale, { x: scale, y: scale, duration: d(0.12) }));
-  cv.on('pointertap', onPick);
+  const hint = explainer?.attach(cv, () => explainer.forCard(resolved), { header: false });
+  cv.on('pointertap', (e) => {
+    // On touch the first tap explains the card; the second takes it.
+    if (hint && e.pointerType === 'touch' && !hint.explainedByTouch()) return;
+    onPick();
+  });
   return cv;
 }
 
 /** A relic as a round token with its name; hover explains it. */
-export function relicToken(content: ContentRegistry, id: string, tooltip: Tooltip, onPick?: () => void): Container {
+export function relicToken(content: ContentRegistry, id: string, tooltip: Tooltip, onPick?: () => void, explainer?: Explainer): Container {
   const relic = content.relics[id];
   const c = new Container();
   const g = new Graphics();
@@ -39,9 +45,12 @@ export function relicToken(content: ContentRegistry, id: string, tooltip: Toolti
   name.position.set(0, 56);
   c.addChild(name);
   c.eventMode = 'static';
+  const hint = explainer && relic ? explainer.attach(c, () => explainer.forRelic(relic)) : null;
   c.on('pointerover', () => {
-    const p = tooltip.parent!.toLocal(c.getGlobalPosition());
-    tooltip.show(relic?.name ?? id, relic?.text ?? '', p.x + 50, p.y);
+    if (!hint) {
+      const p = tooltip.parent!.toLocal(c.getGlobalPosition());
+      tooltip.show(relic?.name ?? id, relic?.text ?? '', p.x + 50, p.y);
+    }
     if (onPick) gsap.to(c.scale, { x: 1.08, y: 1.08, duration: d(0.12) });
   });
   c.on('pointerout', () => {
@@ -50,13 +59,16 @@ export function relicToken(content: ContentRegistry, id: string, tooltip: Toolti
   });
   if (onPick) {
     c.cursor = 'pointer';
-    c.on('pointertap', onPick);
+    c.on('pointertap', (e) => {
+      if (hint && e.pointerType === 'touch' && !hint.explainedByTouch()) return;
+      onPick();
+    });
   }
   return c;
 }
 
 /** A vial as a small flask token. */
-export function vialToken(content: ContentRegistry, id: string, tooltip: Tooltip, onPick?: () => void): Container {
+export function vialToken(content: ContentRegistry, id: string, tooltip: Tooltip, onPick?: () => void, explainer?: Explainer): Container {
   const vial = content.vials[id];
   const c = new Container();
   const g = new Graphics();
@@ -70,14 +82,20 @@ export function vialToken(content: ContentRegistry, id: string, tooltip: Tooltip
   name.position.set(0, 44);
   c.addChild(name);
   c.eventMode = 'static';
-  c.on('pointerover', () => {
-    const p = tooltip.parent!.toLocal(c.getGlobalPosition());
-    tooltip.show(vial?.name ?? id, vial?.text ?? '', p.x + 40, p.y);
-  });
-  c.on('pointerout', () => tooltip.hide());
+  const hint = explainer && vial ? explainer.attach(c, () => explainer.forVial(vial)) : null;
+  if (!hint) {
+    c.on('pointerover', () => {
+      const p = tooltip.parent!.toLocal(c.getGlobalPosition());
+      tooltip.show(vial?.name ?? id, vial?.text ?? '', p.x + 40, p.y);
+    });
+    c.on('pointerout', () => tooltip.hide());
+  }
   if (onPick) {
     c.cursor = 'pointer';
-    c.on('pointertap', onPick);
+    c.on('pointertap', (e) => {
+      if (hint && e.pointerType === 'touch' && !hint.explainedByTouch()) return;
+      onPick();
+    });
   }
   return c;
 }

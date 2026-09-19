@@ -1,4 +1,4 @@
-import { BoonSet, CardSet, ClassSet, EncounterPools, Enemy, EnemySet, OriginSet, PageSet, RelicSet, VialSet, type Boon, type Card, type ClassDef, type Origin, type Page, type Relic, type Vial } from './schema';
+import { BoonSet, CardSet, ClassSet, EncounterPools, Enemy, EnemySet, GlossarySet, OriginSet, PageSet, RelicSet, VialSet, type Boon, type Card, type ClassDef, type GlossaryEntry, type Origin, type Page, type Relic, type Vial } from './schema';
 import { CreditSet, type Credit } from './schema/art';
 import credits from './credits.json';
 import classes from './classes.json';
@@ -7,6 +7,7 @@ import vials from './vials.json';
 import boons from './boons.json';
 import origins from './origins.json';
 import pages from './pages.json';
+import glossary from './glossary.json';
 import testCards from './test/cards.json';
 import testEnemies from './test/enemies.json';
 
@@ -33,6 +34,7 @@ export interface ContentRegistry {
   boons: Record<string, Boon>;
   origins: Record<string, Origin>;
   pages: Record<string, Page>;
+  glossary: Record<string, GlossaryEntry>;
 }
 
 function index<T extends { id: string }>(items: T[], what: string): Record<string, T> {
@@ -91,6 +93,8 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
   if (!og.success) fail('origins.json', og.error.issues);
   const pg = PageSet.safeParse(pages);
   if (!pg.success) fail('pages.json', pg.error.issues);
+  const gl = GlossarySet.safeParse(glossary);
+  if (!gl.success) fail('glossary.json', gl.error.issues);
   const cr = CreditSet.safeParse(credits);
   if (!cr.success) throw new Error(`credits.json: ${cr.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
   const registry: ContentRegistry = {
@@ -105,7 +109,9 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
     boons: index(bo.success ? bo.data : [], 'boon'),
     origins: index(og.success ? og.data : [], 'origin'),
     pages: index(pg.success ? pg.data : [], 'page'),
+    glossary: index(gl.success ? gl.data : [], 'glossary entry'),
   };
+  for (const g of Object.values(registry.glossary)) for (const r of g.related ?? []) if (!registry.glossary[r]) throw new Error(`glossary ${g.id} relates to unknown ${r}`);
   for (const c of cards) if (c.artist && !registry.credits[c.artist]) throw new Error(`card ${c.id} credits unknown artist ${c.artist}`);
   for (const e of enemies) {
     if (e.artist && !registry.credits[e.artist]) throw new Error(`enemy ${e.id} credits unknown artist ${e.artist}`);

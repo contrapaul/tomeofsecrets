@@ -8,7 +8,7 @@ import { floatNumber, shake } from '../fx/numbers';
 import { d, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
-import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 import { HpBar } from './HpBar';
 import { StatusRow } from './StatusRow';
 
@@ -26,7 +26,7 @@ export class PlayerPanel extends Container {
   private readonly energyMax = makeText('/3', { fontFamily: FONT.mono, fontSize: 16, fill: PALETTE.ink });
   private readonly classId: ClassId;
 
-  constructor(hero: HeroState, tooltip: Tooltip, private readonly fxLayer: Container) {
+  constructor(hero: HeroState, explainer: Explainer, private readonly fxLayer: Container) {
     super({ label: 'player' });
     this.classId = hero.classId;
     const color = PALETTE.class[hero.classId];
@@ -51,7 +51,7 @@ export class PlayerPanel extends Container {
     this.hp.position.set(-110, 136);
     this.addChild(this.hp);
 
-    this.statuses = new StatusRow(tooltip);
+    this.statuses = new StatusRow(explainer);
     this.statuses.position.set(0, 190);
     this.addChild(this.statuses);
 
@@ -68,11 +68,7 @@ export class PlayerPanel extends Container {
     this.energyMax.position.set(14, 10);
     this.energyOrb.addChild(orb, this.energyText, this.energyMax);
     this.energyOrb.eventMode = 'static';
-    this.energyOrb.on('pointerover', () => {
-      const p = tooltip.parent!.toLocal(this.energyOrb.getGlobalPosition());
-      tooltip.show('Energy', 'Cards cost energy to play. It refills to your maximum at the start of each turn.', p.x, p.y);
-    });
-    this.energyOrb.on('pointerout', () => tooltip.hide());
+    explainer.attach(this.energyOrb, () => explainer.forResource('energy', Number(this.energyText.text)));
     this.addChild(this.energyOrb);
 
     this.sync(hero);

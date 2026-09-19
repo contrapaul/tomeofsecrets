@@ -1,19 +1,17 @@
 import { Container, Graphics } from 'pixi.js';
 import gsap from 'gsap';
-import type { IntentKind } from '../../content/schema';
+import type { Enemy, IntentKind } from '../../content/schema';
+import type { Intent } from '../../engine/rules';
 import { FONT } from '../../app/fonts';
 import { icon, type IconName } from '../kit/icons';
 import { d } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText } from '../kit/text';
-import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 
 const KIND_ICON: Record<IntentKind, IconName> = { attack: 'sword', defend: 'shield', buff: 'up', debuff: 'down', special: 'star', summon: 'summon' };
 const KIND_COLOR: Record<IntentKind, number> = {
   attack: PALETTE.type.attack, defend: PALETTE.type.skill, buff: PALETTE.type.power, debuff: PALETTE.type.curse, special: PALETTE.type.secret, summon: 0x5a5a6a,
-};
-const KIND_TEXT: Record<IntentKind, string> = {
-  attack: 'It will attack.', defend: 'It will gain block.', buff: 'It will make itself stronger.', debuff: 'It will weaken you.', special: 'Something else is coming.', summon: 'It will call for help.',
 };
 
 /** The bubble above an enemy: what it is about to do, with numbers. */
@@ -21,25 +19,18 @@ export class IntentBadge extends Container {
   private readonly bg = new Graphics();
   private readonly num = makeText('', { fontFamily: FONT.mono, fontSize: 20, fill: PALETTE.parchment });
   private glyph: Container | null = null;
-  private current: { kind: IntentKind; hidden: boolean; damage?: number; hits?: number; block?: number } | null = null;
+  private current: Intent | null = null;
 
-  constructor(private readonly tooltip: Tooltip) {
+  constructor(private readonly explainer: Explainer, private readonly def: Enemy) {
     super({ label: 'intent' });
     this.addChild(this.bg, this.num);
     this.num.anchor.set(0, 0.5);
     this.eventMode = 'static';
-    this.on('pointerover', () => {
-      if (!this.current) return;
-      const p = this.tooltip.parent!.toLocal(this.getGlobalPosition());
-      const c = this.current;
-      const body = c.hidden ? 'Its next move is hidden.' : c.damage !== undefined ? `It will hit for ${c.damage}${c.hits && c.hits > 1 ? `, ${c.hits} times` : ''}.` : c.block ? `It will gain ${c.block} block.` : KIND_TEXT[c.kind];
-      this.tooltip.show('Intent', body, p.x, p.y);
-    });
-    this.on('pointerout', () => this.tooltip.hide());
+    this.explainer.attach(this, () => (this.current ? this.explainer.forIntent(this.def, this.current) : null), { side: 'below' });
     this.visible = false;
   }
 
-  set(intent: { kind: IntentKind; hidden: boolean; damage?: number; hits?: number; block?: number } | null): void {
+  set(intent: Intent | null): void {
     this.current = intent;
     if (!intent) {
       this.visible = false;

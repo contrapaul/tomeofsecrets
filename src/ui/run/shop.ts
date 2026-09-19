@@ -11,7 +11,7 @@ import { heading, offerCard, relicToken, vialToken } from './widgets';
 
 /** The Merchant: five cards, three relics, three vials, one card removal. */
 export function shopScene(ctx: SceneContext): Scene {
-  return runScene(ctx, ['shop'], ({ view, run, content, tooltip, sync, next, save, showDeck }) => {
+  return runScene(ctx, ['shop'], ({ view, run, content, tooltip, explainer, sync, next, save, showDeck }) => {
     const shop = run.shop!;
     view.addChild(heading('The Merchant', 80, 'Prices are what they are.'));
     const stock = new Container();
@@ -35,7 +35,7 @@ export function shopScene(ctx: SceneContext): Scene {
             sync();
             refresh();
           }
-        });
+        }, explainer);
         if (!cv) return;
         cv.position.set(x, 340);
         if (item.sold) {
@@ -54,7 +54,7 @@ export function shopScene(ctx: SceneContext): Scene {
             sync();
             refresh();
           }
-        });
+        }, explainer);
         t.position.set(x, 640);
         if (item.sold) t.alpha = 0.3;
         stock.addChild(t);
@@ -69,7 +69,7 @@ export function shopScene(ctx: SceneContext): Scene {
             sync();
             refresh();
           }
-        });
+        }, explainer);
         t.position.set(x, 640);
         if (item.sold) t.alpha = 0.3;
         stock.addChild(t);

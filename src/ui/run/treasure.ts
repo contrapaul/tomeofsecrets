@@ -6,7 +6,7 @@ import { runScene } from './base';
 import { heading, relicToken } from './widgets';
 
 export function treasureScene(ctx: SceneContext): Scene {
-  return runScene(ctx, ['treasure'], ({ view, run, content, tooltip, sync, next, save }) => {
+  return runScene(ctx, ['treasure'], ({ view, run, content, tooltip, explainer, sync, next, save }) => {
     const t = run.treasure!;
     view.addChild(heading('Treasure', 160, t.relics.length > 1 ? 'Choose one.' : 'Something left behind on purpose.'));
     t.relics.forEach((id, i) => {
@@ -16,7 +16,7 @@ export function treasureScene(ctx: SceneContext): Scene {
         sync();
         leaveTreasure(run);
         next();
-      });
+      }, explainer);
       token.position.set(DESIGN.width / 2 + (i - (t.relics.length - 1) / 2) * 260, 500);
       view.addChild(token);
     });

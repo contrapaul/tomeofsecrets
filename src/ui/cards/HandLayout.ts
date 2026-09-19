@@ -32,6 +32,8 @@ export class HandLayout extends Container {
   dragging: CardView | null = null;
   /** While a drag hovers the hand band, the index the card would be inserted at. */
   insertAt: number | null = null;
+  /** The scene's hook: explain the hovered card, or clear. */
+  onHover: ((view: CardView | null) => void) | null = null;
 
   constructor(private readonly opts: HandOptions) {
     super({ label: 'hand' });
@@ -110,6 +112,7 @@ export class HandLayout extends Container {
     this.hovered = view;
     if (view) audio().play('card-hover', { volume: 0.5 });
     this.layout();
+    this.onHover?.(view);
   }
 
   /** Where in the fan a pointer x would insert a dragged card. */

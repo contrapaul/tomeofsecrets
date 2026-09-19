@@ -9,7 +9,7 @@ import { backdrop } from '../ui/kit/backdrop';
 import { Button } from '../ui/kit/button';
 import { PALETTE } from '../ui/kit/palette';
 import { makeText, STYLE } from '../ui/kit/text';
-import { Tooltip } from '../ui/kit/tooltip';
+import { Explainer } from '../ui/kit/explainer';
 
 const SIZES = ['small', 'medium', 'large'] as const;
 type Size = (typeof SIZES)[number];
@@ -22,7 +22,7 @@ type Size = (typeof SIZES)[number];
 export function devEnemyScene(ctx: SceneContext): Scene {
   const view = new Container({ label: 'dev-enemy' });
   const content = loadContent({ fixtures: true });
-  const tooltip = new Tooltip();
+  const explainer = new Explainer(content, ctx.stage);
   const fx = new Container();
   let enemy: EnemyView | null = null;
   let art: EnemyTextures | null = null;
@@ -40,7 +40,7 @@ export function devEnemyScene(ctx: SceneContext): Scene {
   function rebuild(): void {
     enemy?.destroy({ children: true });
     const inst = { id: 'preview', enemyId: 'preview', name: def().name, hp: 40, maxHp: 40, block: 0, statuses: {}, intent: { move: 'x', kind: 'attack' as const, hidden: false, damage: 7, hits: 1 }, history: [], usedOnce: [], flags: {}, phase: -1, alive: true, memory: {} };
-    enemy = new EnemyView(inst, def(), art, tooltip, fx);
+    enemy = new EnemyView(inst, def(), art, explainer, fx);
     enemy.position.set(DESIGN.width / 2 + 200, 700);
     view.addChild(enemy);
     view.addChild(fx);
@@ -106,7 +106,7 @@ export function devEnemyScene(ctx: SceneContext): Scene {
     view,
     async enter(params) {
       view.addChild(backdrop());
-      ctx.stage.overlay.addChild(tooltip);
+      ctx.stage.overlay.addChild(explainer);
       const title = makeText('DEV · ENEMY PREVIEW', { ...STYLE.display(36), fill: PALETTE.gold });
       title.position.set(60, 50);
       view.addChild(title);
@@ -172,7 +172,7 @@ export function devEnemyScene(ctx: SceneContext): Scene {
       window.removeEventListener('dragover', onDragOver);
       window.removeEventListener('drop', onDrop);
       form?.remove();
-      tooltip.destroy({ children: true });
+      explainer.destroy({ children: true });
     },
   };
 }

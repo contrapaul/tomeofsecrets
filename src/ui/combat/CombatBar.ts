@@ -1,17 +1,17 @@
 import { Container, Graphics } from 'pixi.js';
-import type { Content, HeroState } from '../../engine/rules';
+import { explainVial, type Content, type HeroState } from '../../engine/rules';
 import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
-import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 
 /** Relics and vials along the top of a fight. Vials are clickable. */
 export class CombatBar extends Container {
   private readonly items = new Container();
   selectedVial: number | null = null;
 
-  constructor(private readonly content: Content, private readonly tooltip: Tooltip, private readonly onVial: (index: number) => void) {
+  constructor(private readonly content: Content, private readonly explainer: Explainer, private readonly onVial: (index: number) => void) {
     super({ label: 'combat-bar' });
     const bg = new Graphics();
     bg.rect(0, 0, DESIGN.width, 56).fill({ color: 0x000000, alpha: 0.35 });
@@ -33,11 +33,7 @@ export class CombatBar extends Container {
       c.addChild(letter);
       c.position.set(x, 28);
       c.eventMode = 'static';
-      c.on('pointerover', () => {
-        const p = this.tooltip.parent!.toLocal(c.getGlobalPosition());
-        this.tooltip.show(relic.name, relic.text, p.x, p.y + 30);
-      });
-      c.on('pointerout', () => this.tooltip.hide());
+      this.explainer.attach(c, () => this.explainer.forRelic(relic), { side: 'below' });
       this.items.addChild(c);
       x += 44;
     }
@@ -56,12 +52,12 @@ export class CombatBar extends Container {
         c.addChild(l);
         c.eventMode = 'static';
         c.cursor = 'pointer';
-        c.on('pointerover', () => {
-          const p = this.tooltip.parent!.toLocal(c.getGlobalPosition());
-          this.tooltip.show(vial.name, `${vial.text}${vial.target === 'enemy' ? ' Click, then click an enemy.' : ' Click to drink.'}`, p.x - 300, p.y + 30);
+        const hint = this.explainer.attach(c, () => ({ ...explainVial(this.content, vial), body: [{ text: `${vial.text}${vial.target === 'enemy' ? ' Click, then click an enemy.' : ' Click to drink.'}` }] }), { side: 'below' });
+        c.on('pointertap', (e) => {
+          // On touch the first tap explains; the second drinks.
+          if (e.pointerType === 'touch' && !hint.explainedByTouch()) return;
+          this.onVial(i);
         });
-        c.on('pointerout', () => this.tooltip.hide());
-        c.on('pointertap', () => this.onVial(i));
       }
       c.position.set(rx - 16, 28);
       this.items.addChild(c);

@@ -5,7 +5,7 @@ import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
-import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 
 /**
  * The strip along the top of every run screen: HP, gold, floor, relics,
@@ -14,7 +14,7 @@ import type { Tooltip } from '../kit/tooltip';
 export class RunBar extends Container {
   private readonly items = new Container();
 
-  constructor(private readonly content: ContentRegistry, private readonly tooltip: Tooltip, private readonly onDeck: () => void) {
+  constructor(private readonly content: ContentRegistry, private readonly explainer: Explainer, private readonly onDeck: () => void) {
     super({ label: 'runbar' });
     const bg = new Graphics();
     bg.rect(0, 0, DESIGN.width, 64).fill({ color: 0x000000, alpha: 0.55 });
@@ -52,11 +52,7 @@ export class RunBar extends Container {
       c.addChild(letter);
       c.position.set(x + 20, 32);
       c.eventMode = 'static';
-      c.on('pointerover', () => {
-        const p = this.tooltip.parent!.toLocal(c.getGlobalPosition());
-        this.tooltip.show(relic.name, relic.text, p.x, p.y + 30);
-      });
-      c.on('pointerout', () => this.tooltip.hide());
+      this.explainer.attach(c, () => this.explainer.forRelic(relic), { side: 'below' });
       this.items.addChild(c);
       x += 48;
     }
@@ -88,11 +84,7 @@ export class RunBar extends Container {
         l.anchor.set(0.5);
         c.addChild(l);
         c.eventMode = 'static';
-        c.on('pointerover', () => {
-          const p = this.tooltip.parent!.toLocal(c.getGlobalPosition());
-          this.tooltip.show(vial.name, vial.text, p.x, p.y + 30);
-        });
-        c.on('pointerout', () => this.tooltip.hide());
+        this.explainer.attach(c, () => this.explainer.forVial(vial), { side: 'below' });
       }
       c.position.set(rx - 16, 32);
       this.items.addChild(c);

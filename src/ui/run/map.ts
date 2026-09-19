@@ -16,15 +16,10 @@ import { runScene } from './base';
 
 const ICON: Record<NodeType, IconName> = { fight: 'sword', elite: 'skull', event: 'question', merchant: 'star', camp: 'shield', treasure: 'star', unknown: 'question', boss: 'skull' };
 const COLOR: Record<NodeType, number> = { fight: PALETTE.type.attack, elite: 0xb03040, event: PALETTE.type.power, merchant: PALETTE.gold, camp: PALETTE.type.skill, treasure: PALETTE.goldBright, unknown: PALETTE.type.status, boss: PALETTE.blood };
-const LABEL: Record<NodeType, string> = { fight: 'Fight', elite: 'Elite', event: 'Event', merchant: 'Merchant', camp: 'Camp', treasure: 'Treasure', unknown: '?', boss: 'Boss' };
-const HINT: Record<NodeType, string> = {
-  fight: 'A normal fight. Gold and a card.', elite: 'A hard fight. A relic too.', event: 'Something to read, and a choice.', merchant: 'Cards, relics, vials, card removal.',
-  camp: 'Rest to heal, or Smith to upgrade a card.', treasure: 'A relic, free.', unknown: 'Could be anything.', boss: 'The chapter boss.',
-};
 
 /** The chapter map. Reachable nodes glow; click one to go. */
 export function mapScene(ctx: SceneContext): Scene {
-  return runScene(ctx, ['map'], ({ view, run, content, tooltip, next }) => {
+  return runScene(ctx, ['map'], ({ view, run, content, explainer, next }) => {
     const map = run.map;
     const left = 380;
     const colW = (DESIGN.width - left * 2) / (MAP_COLS - 1);
@@ -69,13 +64,13 @@ export function mapScene(ctx: SceneContext): Scene {
       c.addChild(ic);
       c.position.set(at.x, at.y);
       c.eventMode = 'static';
-      c.on('pointerover', () => {
-        const p = tooltip.parent!.toLocal(c.getGlobalPosition());
-        tooltip.show(LABEL[n.type], HINT[n.type], p.x, p.y);
+      // Hover explains the node; a touch goes straight to it, the icon is the explanation.
+      c.on('pointerover', (e) => {
+        if (e.pointerType !== 'touch') explainer.hover(e, c, explainer.forNode(n.type), { side: 'below' });
         if (canGo) gsap.to(c.scale, { x: 1.15, y: 1.15, duration: d(0.12) });
       });
       c.on('pointerout', () => {
-        tooltip.hide();
+        explainer.leave();
         gsap.to(c.scale, { x: 1, y: 1, duration: d(0.12) });
       });
       if (canGo) {

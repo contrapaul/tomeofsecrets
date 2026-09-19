@@ -113,7 +113,7 @@ export function refreshIntents(state: CombatState, content: Content): void {
 function emitIntent(state: CombatState, e: EnemyInstance): void {
   const i = e.intent;
   if (!i) return;
-  state.events.push({ t: 'intent', enemy: e.id, kind: i.kind, hidden: i.hidden, damage: i.damage, hits: i.hits, block: i.block });
+  state.events.push({ t: 'intent', enemy: e.id, move: i.move, kind: i.kind, hidden: i.hidden, damage: i.damage, hits: i.hits, block: i.block });
 }
 
 /** Frozen, Stunned or Waiting: the enemy loses its action. */

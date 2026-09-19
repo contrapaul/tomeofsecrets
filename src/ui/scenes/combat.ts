@@ -8,10 +8,10 @@ import type { Scene, SceneContext } from '../../app/router';
 import type { DamageKind } from '../../engine/events';
 import type { Card } from '../../content/schema';
 import {
-  cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, legalPlays, playCard, respondPrompt, useVial,
+  cardOf, costOf, createCombat, describeResolved, drainEvents, endTurn, explainCard, legalPlays, playCard, respondPrompt, useVial,
   type CombatState, type Content, type EncounterSetup, type HeroSetup, type Unplayable,
 } from '../../engine/rules';
-import { CARD_H, CardView, type CardDisplay } from '../cards/CardView';
+import { CARD_H, CARD_W, CardView, type CardDisplay } from '../cards/CardView';
 import { DragController } from '../cards/DragController';
 import { HandLayout } from '../cards/HandLayout';
 import { PileView } from '../cards/PileView';
@@ -27,7 +27,7 @@ import { ParallaxBackdrop } from '../kit/parallax';
 import { Button } from '../kit/button';
 import { Coach } from '../kit/coach';
 import { vignetteSprite } from '../fx/vignette';
-import { KEYWORD_INFO } from '../kit/glossary';
+import { Explainer } from '../kit/explainer';
 import { d, done, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
@@ -87,6 +87,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let promptSelection: number[] = [];
 
   const tooltip = new Tooltip();
+  const explainer = new Explainer(content, ctx.stage);
   const layers = {
     bg: new Container({ label: 'bg' }),
     table: new Container({ label: 'table' }),
@@ -171,7 +172,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const inst = state.enemies.find((e) => e.id === id);
     if (!inst) return null;
     const def = content.enemies[inst.enemyId]!;
-    const v = new EnemyView(inst, def, enemyArt.get(inst.enemyId) ?? null, tooltip, layers.fx);
+    const v = new EnemyView(inst, def, enemyArt.get(inst.enemyId) ?? null, explainer, layers.fx);
     v.position.set(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY);
     enemies.set(id, v);
     layers.enemies.addChild(v);
@@ -351,6 +352,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     dim.eventMode = 'static';
     const close = () => {
       dim.eventMode = 'none';
+      explainer.hide();
       gsap.to(overlay, { alpha: 0, duration: d(0.12), onComplete: () => overlay.destroy({ children: true }) });
     };
     dim.on('pointertap', close);
@@ -363,13 +365,14 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     overlay.alpha = 0;
     gsap.to(overlay, { alpha: 1, duration: d(0.15) });
     gsap.fromTo(big.scale, { x: 1.9, y: 1.9 }, { x: 2.2, y: 2.2, duration: d(0.2), ease: 'power2.out' });
-    const keys = disp.resolved.keywords.map((k) => k[0]!.toUpperCase() + k.slice(1));
-    const armed = disp.resolved.effects.some((e) => e.do === 'trap');
-    if (armed) keys.push('Armed');
-    const lines = keys.map((k) => `${k}: ${KEYWORD_INFO[k] ?? ''}`);
-    const glossary = makeText(lines.join('\n\n') || 'No keywords.', { ...STYLE.body(24), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 480 });
-    glossary.position.set(DESIGN.width / 2 + 120, DESIGN.height / 2 - 120);
-    overlay.addChild(glossary);
+    // Its words, explained beside it; the same column a hover shows.
+    const ex = explainCard(content, disp.resolved, { state });
+    if (ex.notes.length) explainer.showAt({ x: DESIGN.width / 2 - 200 - CARD_W * 1.1, y: DESIGN.height / 2 - CARD_H * 1.1, w: CARD_W * 2.2, h: CARD_H * 2.2 }, ex, { header: false, delayMs: 0 });
+    else {
+      const none = makeText('Nothing here needs explaining.', { ...STYLE.body(22), fill: PALETTE.parchmentDim });
+      none.position.set(DESIGN.width / 2 + 120, DESIGN.height / 2 - 20);
+      overlay.addChild(none);
+    }
     const hint = makeText('tap or click anywhere to close', STYLE.mono(16));
     hint.alpha = 0.6;
     hint.anchor.set(0.5);
@@ -415,6 +418,12 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         title: 'What the enemy will do',
         text: 'The badge above an enemy is its next move. A sword means an attack, and the number is the damage it will deal. Block from your skills soaks damage before it reaches your health, and lasts until your next turn.',
         point: () => [firstEnemy()?.top ?? null],
+      },
+      {
+        title: 'The words in gold',
+        text: 'Anything written in gold has a meaning you can check. Rest the pointer on a card, a badge or a status for a moment (tap it on a touch screen) and its words are explained beside it.',
+        until: ['explain'],
+        point: () => [firstCard(false) ?? firstCard(true), firstEnemy()?.top ?? null],
       },
       {
         title: 'End your turn',
@@ -599,16 +608,26 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       shakeRoot.addChild(layers.hand, layers.floating, layers.fx, layers.ui);
       view.addChild(layers.screenFx, layers.overlay);
       layers.screenFx.addChild(vignette);
-      ctx.stage.overlay.addChild(tooltip);
+      ctx.stage.overlay.addChild(tooltip, explainer);
+      explainer.onShow = () => coach?.notify('explain');
+      // The lifted card explains its words beside it, after the hover delay.
+      layers.hand.onHover = (cv) => {
+        if (!cv) {
+          explainer.hide();
+          return;
+        }
+        const disp = display(cv.cardUid);
+        if (disp) explainer.show(cv, explainCard(content, disp.resolved, { state }), { header: false });
+      };
 
-      player = new PlayerPanel(state.hero, tooltip, layers.fx);
+      player = new PlayerPanel(state.hero, explainer, layers.fx);
       player.position.set(LAYOUT.player.x, LAYOUT.player.y);
       player.energyOrb.position.set(-130, 230);
       layers.ui.addChild(player);
 
       const classDef = content.classes?.[state.hero.classId];
       if (classDef?.resource) {
-        resource = new ResourceWidget(classDef.resource, tooltip);
+        resource = new ResourceWidget(classDef.resource, explainer);
         resource.set(state.hero.resources[classDef.resource]);
         player.resourceSlot.addChild(resource);
       }
@@ -628,7 +647,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       piles.exhaust.scale.set(0.7);
       layers.ui.addChild(piles.draw, piles.discard, piles.exhaust);
 
-      bar = new CombatBar(content, tooltip, onVial);
+      bar = new CombatBar(content, explainer, onVial);
       bar.sync(state.hero);
       layers.ui.addChild(bar);
 
@@ -735,8 +754,10 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     },
     exit() {
       window.removeEventListener('keydown', onKey);
+      drag?.dispose();
       if (fpsText) toggleFps();
       tooltip.destroy({ children: true });
+      explainer.destroy({ children: true });
       gsap.globalTimeline.timeScale(1);
     },
   };

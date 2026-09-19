@@ -11,7 +11,7 @@ import { heading, offerCard, relicToken, vialToken } from './widgets';
 
 /** After a fight: gold (taken on leaving), one of three cards, a relic from elites, sometimes a vial. */
 export function rewardScene(ctx: SceneContext): Scene {
-  return runScene(ctx, ['reward'], ({ view, run, content, tooltip, sync, next, save }) => {
+  return runScene(ctx, ['reward'], ({ view, run, content, tooltip, explainer, sync, next, save }) => {
     const r = run.reward!;
     view.addChild(heading(r.kind === 'boss' ? 'The chapter is yours' : r.kind === 'elite' ? 'Elite defeated' : 'Victory', 110, `+${r.gold} gold`));
 
@@ -30,7 +30,7 @@ export function rewardScene(ctx: SceneContext): Scene {
           save();
           sync();
           refresh();
-        });
+        }, explainer);
         t.position.set(x, 300);
         row.addChild(t);
         x += 180;
@@ -45,7 +45,7 @@ export function rewardScene(ctx: SceneContext): Scene {
           save();
           sync();
           refresh();
-        });
+        }, explainer);
         t.position.set(x, 300);
         row.addChild(t);
       }
@@ -61,7 +61,7 @@ export function rewardScene(ctx: SceneContext): Scene {
             save();
             sync();
             refresh();
-          });
+          }, explainer);
           if (!cv) return;
           cv.position.set(DESIGN.width / 2 + (i - 1) * 300, 660);
           cards.addChild(cv);

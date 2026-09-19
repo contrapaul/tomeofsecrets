@@ -14,6 +14,8 @@ export interface Segment {
   text: string;
   /** Present for a number the rules computed. `base` is the printed value. */
   num?: { value: number; base: number };
+  /** A glossary id: this run is a word the player can ask about. */
+  term?: string;
 }
 
 export interface LiveContext {
@@ -21,7 +23,7 @@ export interface LiveContext {
   targetId?: string;
 }
 
-const STATUS_NAMES: Record<StatusId, string> = {
+export const STATUS_NAMES: Record<StatusId, string> = {
   strength: 'Strength', dexterity: 'Dexterity', vulnerable: 'Vulnerable', weak: 'Weak', frail: 'Frail',
   poison: 'Poison', burn: 'Burn', chill: 'Chill', frozen: 'Frozen', mark: 'Mark', thorns: 'Thorns',
   regen: 'Regen', artifact: 'Artifact', platedArmor: 'Plated Armor', metallicize: 'Metallicize',
@@ -63,15 +65,17 @@ export function describeResolved(card: ResolvedCard, live?: LiveContext): Segmen
   // Keywords the text already states (an override may spell them out) are not repeated.
   const mentioned = (k: string) => !!card.text && new RegExp(`\\b${k}\\b`, 'i').test(card.text);
   const keywords = card.keywords.filter((k) => !mentioned(k));
-  if (keywords.includes('unplayable')) out.push({ text: 'Unplayable. ' });
+  if (keywords.includes('unplayable')) out.push({ text: 'Unplayable', term: 'unplayable' }, { text: '. ' });
   if (card.text) {
     out.push({ text: card.text });
   } else {
     const ctx = live ? { source: { kind: 'hero' as const, cardId: card.id }, targetId: live.targetId } : undefined;
     out.push(...sentences(card.effects, live, ctx, { attackerIsHero: true }));
   }
-  const tail = keywords.filter((k) => k !== 'unplayable').map((k) => k[0]!.toUpperCase() + k.slice(1) + '.');
-  if (tail.length) out.push({ text: (out.length && !out[out.length - 1]!.text.endsWith(' ') ? ' ' : '') + tail.join(' ') });
+  for (const k of keywords.filter((k) => k !== 'unplayable')) {
+    if (out.length && !out[out.length - 1]!.text.endsWith(' ')) out.push({ text: ' ' });
+    out.push({ text: k[0]!.toUpperCase() + k.slice(1), term: KEYWORD_ID[k] ?? k }, { text: '.' });
+  }
   return out;
 }
 
@@ -119,21 +123,25 @@ function num(printed: Amount, live: LiveContext | undefined, ctx: EffectContext 
   return { segs: [{ text: `${printed.base}`, num: { value: printed.base, base: printed.base } }], note: `, +${printed.mult} per ${label}` };
 }
 
-/** "Deal N damage." with the scaled note in the right place. */
-function unit(verb: string, printed: Amount, live: LiveContext | undefined, ctx: EffectContext | undefined, what: string, tail: string, modify?: (v: number) => number): Segment[] {
+/** "Deal N damage." with the scaled note in the right place. `what` may carry a glossary term. */
+function unit(verb: string, printed: Amount, live: LiveContext | undefined, ctx: EffectContext | undefined, what: string | Segment, tail: Segment[] | string, modify?: (v: number) => number): Segment[] {
   const n = num(printed, live, ctx, modify);
-  if (n.note === 'equal') return [{ text: `${verb} ${what} equal to ` }, ...n.segs, { text: `${tail}.` }];
-  return [{ text: `${verb} ` }, ...n.segs, { text: ` ${what}${tail}${n.note}.` }];
+  const whatSeg: Segment = typeof what === 'string' ? { text: what } : what;
+  const tailSegs: Segment[] = typeof tail === 'string' ? (tail ? [{ text: tail }] : []) : tail;
+  if (n.note === 'equal') return [{ text: `${verb} ` }, whatSeg, { text: ' equal to ' }, ...n.segs, ...tailSegs, { text: '.' }];
+  return [{ text: `${verb} ` }, ...n.segs, { text: ' ' }, whatSeg, ...tailSegs, { text: `${n.note}.` }];
 }
 
-function targetPhrase(t: Target | undefined, fallback: Target): string {
+function targetPhrase(t: Target | undefined, fallback: Target): Segment[] {
   switch (t ?? fallback) {
-    case 'all': return ' to ALL enemies';
-    case 'random': return ' to a random enemy';
-    case 'companion': return ' to your Companion';
-    default: return '';
+    case 'all': return [{ text: ' to ' }, { text: 'ALL enemies', term: 'allEnemies' }];
+    case 'random': return [{ text: ' to a random enemy' }];
+    case 'companion': return [{ text: ' to your ' }, { text: 'Companion', term: 'companion' }];
+    default: return [];
   }
 }
+
+const KEYWORD_ID: Record<string, string> = { exhaust: 'exhaust', retain: 'retain', innate: 'innate', ethereal: 'ethereal', unplayable: 'unplayable' };
 
 function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext | undefined, style: Style): Segment[] {
   switch (ef.do) {
@@ -147,17 +155,17 @@ function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext 
           }
         : undefined;
       if (ef.target === 'hero' || ef.target === 'self') return unit('Take', ef.amount, live, ctx, 'damage', '');
-      const times = ef.times && ef.times > 1 ? ` ${ef.times} times` : '';
-      return unit('Deal', ef.amount, live, ctx, 'damage', `${targetPhrase(ef.target, 'target')}${times}`, modify);
+      const times: Segment[] = ef.times && ef.times > 1 ? [{ text: ` ${ef.times} times` }] : [];
+      return unit('Deal', ef.amount, live, ctx, 'damage', [...targetPhrase(ef.target, 'target'), ...times], modify);
     }
     case 'block': {
       const modify = live && ctx && style.attackerIsHero ? (v: number) => calcBlock(v, live.state.hero.statuses) : undefined;
-      return unit('Gain', ef.amount, live, ctx, 'block', '', modify);
+      return unit('Gain', ef.amount, live, ctx, { text: 'block', term: 'block' }, '', modify);
     }
     case 'status': {
-      const name = STATUS_NAMES[ef.status];
+      const name: Segment = { text: STATUS_NAMES[ef.status], term: ef.status };
       if (ef.target === 'hero' || ef.target === 'self') {
-        if (typeof ef.amount === 'number' && ef.amount < 0) return [{ text: `Lose ${-ef.amount} ${name}.` }];
+        if (typeof ef.amount === 'number' && ef.amount < 0) return [{ text: `Lose ${-ef.amount} ` }, name, { text: '.' }];
         return unit('Gain', ef.amount, live, ctx, name, '');
       }
       return unit('Apply', ef.amount, live, ctx, name, targetPhrase(ef.target, 'target'));
@@ -168,7 +176,7 @@ function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext 
       return [{ text: `Remove ${who} ${what}.` }];
     }
     case 'draw': return [{ text: 'Draw ' }, ...num(ef.amount, live, ctx).segs, { text: '.' }];
-    case 'energy': return unit('Gain', ef.amount, live, ctx, 'energy', '');
+    case 'energy': return unit('Gain', ef.amount, live, ctx, { text: 'energy', term: 'energy' }, '');
     case 'heal': {
       if (ef.target && ef.target !== 'hero' && ef.target !== 'self') return [{ text: 'Heal the target ' }, ...num(ef.amount, live, ctx).segs, { text: '.' }];
       return [{ text: 'Heal ' }, ...num(ef.amount, live, ctx).segs, { text: '.' }];
@@ -177,20 +185,20 @@ function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext 
       if (typeof ef.amount === 'number' && ef.amount < 0) return [{ text: `Lose ${-ef.amount} gold.` }];
       return unit('Gain', ef.amount, live, ctx, 'gold', '');
     }
-    case 'resource': return [{ text: '+' }, ...num(ef.amount, live, ctx).segs, { text: ` ${RESOURCE_LABEL[ef.name]}.` }];
+    case 'resource': return [{ text: '+' }, ...num(ef.amount, live, ctx).segs, { text: ' ' }, { text: RESOURCE_LABEL[ef.name], term: ef.name }, { text: '.' }];
     case 'spend': {
       const inner = sentences(ef.then, live, ctx ? { ...ctx, spent: live?.state.hero.resources[ef.name] } : undefined, { ...style, spending: true });
       if (inner.length) inner[0]!.text = inner[0]!.text[0]!.toLowerCase() + inner[0]!.text.slice(1);
       const label = ef.name === 'charge' ? 'Charges' : RESOURCE_LABEL[ef.name];
-      return [{ text: `Spend all ${label}: ` }, ...inner];
+      return [{ text: 'Spend all ' }, { text: label, term: ef.name }, { text: ': ' }, ...inner];
     }
     case 'exhaust':
     case 'discard': {
-      const verb = ef.do === 'exhaust' ? 'Exhaust' : 'Discard';
-      if (ef.from === 'hand') return [{ text: `${verb} your hand.` }];
+      const verb: Segment = ef.do === 'exhaust' ? { text: 'Exhaust', term: 'exhaust' } : { text: 'Discard' };
+      if (ef.from === 'hand') return [verb, { text: ' your hand.' }];
       const n = ef.count ?? 1;
-      if (ef.from === 'random') return [{ text: n === 1 ? `${verb} a random card.` : `${verb} ${n} random cards.` }];
-      return [{ text: n === 1 ? `${verb} a card.` : `${verb} ${n} cards.` }];
+      if (ef.from === 'random') return [verb, { text: n === 1 ? ' a random card.' : ` ${n} random cards.` }];
+      return [verb, { text: n === 1 ? ' a card.' : ` ${n} cards.` }];
     }
     case 'retrieve': {
       const n = ef.count ?? 1;
@@ -207,12 +215,13 @@ function sentence(ef: Effect, live: LiveContext | undefined, ctx: EffectContext 
       const when = ef.trigger === 'enemyAttack' ? 'when an enemy attacks you' : ef.trigger === 'enemyBuff' ? 'when an enemy buffs itself' : "at the start of the enemies' turn";
       const inner = sentences(ef.effects, live, ctx, { attackerIsHero: false });
       if (inner.length) inner[0]!.text = inner[0]!.text[0]!.toLowerCase() + inner[0]!.text.slice(1);
-      return [{ text: `Armed: ${when}, ` }, ...inner];
+      return [{ text: 'Armed', term: 'armed' }, { text: `: ${when}, `, term: `trap-${ef.trigger}` }, ...inner];
     }
     case 'companion': {
-      if (ef.action === 'act') return [{ text: ef.bonus ? `Your Companion acts now with +${ef.bonus} damage.` : 'Your Companion acts now.' }];
-      if (ef.action === 'enrage') return [{ text: 'Enrage your Companion.' }];
-      return [{ text: 'Your Companion shakes off Stun.' }];
+      const who: Segment = { text: 'Companion', term: 'companion' };
+      if (ef.action === 'act') return [{ text: 'Your ' }, who, { text: ef.bonus ? ` acts now with +${ef.bonus} damage.` : ' acts now.' }];
+      if (ef.action === 'enrage') return [{ text: 'Enrage', term: 'enraged' }, { text: ' your ' }, who, { text: '.' }];
+      return [{ text: 'Your ' }, who, { text: ' shakes off ' }, { text: 'Stun', term: 'stun' }, { text: '.' }];
     }
     case 'power': {
       const inner = sentences(ef.effects, live, ctx, { attackerIsHero: false });

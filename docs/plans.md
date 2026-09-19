@@ -466,7 +466,7 @@ made on 2026-09-18 and are in 6.3.
 
 ---
 
-### Phase 6.1: Explain everything (hover and tap)
+### Phase 6.1: Explain everything (hover and tap) — Built 2026-09-19
 
 **Goal:** nothing in the game is a mystery until it happens. Every keyword, status,
 resource, intent, relic, vial and map node explains itself where the player is
@@ -535,13 +535,15 @@ students never found).
 
 **Acceptance**
 
-- A first-time player hovers Judgment and reads what Vulnerable and Holy Power are
+- [x] A first-time player hovers Judgment and reads what Vulnerable and Holy Power are
   before playing it.
-- An intent badge for Yank says it will Stun the Companion; hovering Stunned says what
-  that means.
-- On an iPad: tap a card, read it; tap again or drag, play it.
-- The coverage test proves every term used by any card, relic, vial or enemy move has
-  an entry, and every number in the glossary matches the engine.
+- [x] An intent badge for Ink Trap says it will Stun the Companion; hovering Stunned
+  says what that means.
+- [~] On a touch screen: tap a card, read it (the inspector); tap a badge, status,
+  relic or reward card and it explains and sticks; a second tap on a pickable thing
+  picks it. Verified with synthetic touch events; a real iPad pass is still owed.
+- [x] The coverage test proves every term used by any card, relic, vial or enemy move
+  has an entry, and every number in the glossary matches the engine.
 
 ---
 
@@ -1131,3 +1133,31 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   caps the fit at `VISIBLE_MAX = 540` minus the float. The Bookwyrm and the Shade were
   refitted. Portraits stay 700×900.
 - Mid parallax layer (`mid.png`) is supported; `--flip` mirrors a right-facing drawing.
+
+### After Phase 6.1 (2026-09-19)
+
+- **The glossary is `content/glossary.json`**; `engine/rules/explain.ts` fills its
+  `{TOKENS}` from engine constants (`GLOSSARY_TOKENS`) and turns cards, relics, vials,
+  statuses, resources, intents and map nodes into `Explanation { title, body, notes }`.
+  `explain.test.ts` fails if any status, keyword, resource, intent kind or node type
+  lacks an entry, if any term any content touches is missing, or if a token is
+  unfilled. Add a status to the engine and the test tells you to write its entry.
+- **Terms ride the text.** `Segment.term` marks the glossary word in generated card
+  text; `CardView` and the Explainer draw those runs in gold. Scripted enemy moves
+  (`split`, `bind`, `ink-trap`) have hand-written sentences in `SCRIPT_TEXT`; a new
+  script needs a line there or it explains as its id.
+- **`ui/kit/explainer.ts` is one component per scene**, in `stage.overlay`. Components
+  call `explainer.attach(target, () => explainer.forX(...), opts)`; attach handles the
+  350 ms hover delay, the touch path (Pixi sends no `pointerover` for touch, so it
+  listens to `pointerdown` and keeps the note until the next tap elsewhere), and the
+  fade. `attach` returns `explainedByTouch()` so pickable things (reward cards,
+  relics, vials in the bar) can make the first touch explain and the second pick.
+  The hand explains through `HandLayout.onHover`; the inspector calls `showAt` with
+  the big card's rectangle. `Tooltip` remains for one-liners (errors, companion, traps).
+- The intent event now carries `move`, so a badge can explain the move's effects, not
+  only its number. Hidden intents explain as "Hidden".
+- **Two leaks fixed on the way**: `DragController` never removed its stage listeners
+  (each fight left one behind; harmless until the hover code touched a destroyed hand
+  and the exception halted event dispatch), and floating enemies' idle tweens outlived
+  their views. `DragController.dispose()` and a `destroyed` hook on `EnemyView` now.
+- The tutorial has a sixth step, "The words in gold", gated on the first explanation.

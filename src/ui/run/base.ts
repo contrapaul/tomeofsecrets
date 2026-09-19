@@ -6,6 +6,7 @@ import type { RunPhase, RunState } from '../../engine/run/run';
 import type { ContentRegistry } from '../../content';
 import { backdrop } from '../kit/backdrop';
 import { Tooltip } from '../kit/tooltip';
+import { Explainer } from '../kit/explainer';
 import { DeckOverlay, type DeckOverlayOptions } from './DeckOverlay';
 import { RunBar } from './RunBar';
 
@@ -14,6 +15,7 @@ export interface RunSceneDeps {
   run: RunState;
   content: ContentRegistry;
   tooltip: Tooltip;
+  explainer: Explainer;
   bar: RunBar;
   /** Re-read the run into the bar. Call after any engine step. */
   sync(): void;
@@ -32,6 +34,7 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
   const view = new Container();
   const controller = runController();
   const tooltip = new Tooltip();
+  const explainer = new Explainer(controller.content, ctx.stage);
   let bar: RunBar | null = null;
   return {
     view,
@@ -43,12 +46,13 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
       }
       audio().music(run.phase === 'won' || run.phase === 'lost' ? null : 'map');
       if (opts.bg !== false) view.addChild(backdrop());
-      ctx.stage.overlay.addChild(tooltip);
+      ctx.stage.overlay.addChild(tooltip, explainer);
       const deps: RunSceneDeps = {
         view,
         run,
         content: controller.content,
         tooltip,
+        explainer,
         bar: null as unknown as RunBar,
         sync: () => bar?.sync(run),
         next: () => {
@@ -58,6 +62,7 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
         save: () => controller.save(),
         showDeck: (o) => {
           tooltip.hide();
+          explainer.hide();
           const overlay = new DeckOverlay(controller.content, {
             title: 'Your deck',
             cards: run.hero.deck,
@@ -70,7 +75,7 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
       };
       await build(deps);
       if (opts.bar !== false) {
-        bar = new RunBar(controller.content, tooltip, () => deps.showDeck());
+        bar = new RunBar(controller.content, explainer, () => deps.showDeck());
         bar.sync(run);
         view.addChild(bar);
         deps.bar = bar;
@@ -78,6 +83,7 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
     },
     exit() {
       tooltip.destroy({ children: true });
+      explainer.destroy({ children: true });
     },
   };
 }

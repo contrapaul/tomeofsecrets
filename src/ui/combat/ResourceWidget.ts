@@ -5,11 +5,11 @@ import { FONT } from '../../app/fonts';
 import { d } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText } from '../kit/text';
-import type { Tooltip } from '../kit/tooltip';
+import type { Explainer } from '../kit/explainer';
 
-const INFO: Record<ResourceName, { name: string; text: string; cap: number }> = {
-  holyPower: { name: 'Holy Power', text: 'Built by generators, spent by verdicts. Holds up to 5 and stays between turns.', cap: 5 },
-  charge: { name: 'Arcane Charges', text: 'Gained by Arcane cards. Some spells hit harder per Charge; Barrage spends them all. Holds up to 4.', cap: 4 },
+const INFO: Record<ResourceName, { name: string; cap: number }> = {
+  holyPower: { name: 'Holy Power', cap: 5 },
+  charge: { name: 'Arcane Charges', cap: 4 },
 };
 
 /** Holy Power pips or Arcane Charge gems, under the hero's statuses. */
@@ -17,7 +17,7 @@ export class ResourceWidget extends Container {
   private readonly slots: Graphics[] = [];
   private value = 0;
 
-  constructor(readonly resource: ResourceName, tooltip: Tooltip) {
+  constructor(readonly resource: ResourceName, explainer: Explainer) {
     super({ label: `resource:${resource}` });
     const info = INFO[resource];
     const gap = resource === 'holyPower' ? 30 : 36;
@@ -32,11 +32,7 @@ export class ResourceWidget extends Container {
     label.position.set(0, 20);
     this.addChild(label);
     this.eventMode = 'static';
-    this.on('pointerover', () => {
-      const p = tooltip.parent!.toLocal(this.getGlobalPosition());
-      tooltip.show(`${info.name} ${this.value}`, info.text, p.x, p.y);
-    });
-    this.on('pointerout', () => tooltip.hide());
+    explainer.attach(this, () => explainer.forResource(resource, this.value));
     this.paint();
   }
 

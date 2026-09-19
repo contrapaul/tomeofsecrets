@@ -23,7 +23,7 @@ export type CombatEvent =
   | { t: 'gold'; delta: number; total: number }
   | { t: 'resource'; name: ResourceName; delta: number; total: number }
   | { t: 'die'; target: string }
-  | { t: 'intent'; enemy: string; kind: IntentKind; hidden: boolean; damage?: number; hits?: number; block?: number }
+  | { t: 'intent'; enemy: string; move: string; kind: IntentKind; hidden: boolean; damage?: number; hits?: number; block?: number }
   | { t: 'enemyAct'; enemy: string; move: string; skipped?: 'stun' | 'frozen' | 'wait' | 'countered' }
   | { t: 'summon'; enemy: string; enemyId: string }
   | { t: 'trap'; uid: number; cardId: string; state: 'armed' | 'fired' | 'replaced' }

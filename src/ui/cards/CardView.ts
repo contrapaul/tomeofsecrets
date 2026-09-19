@@ -166,9 +166,13 @@ export class CardView extends Container {
 
     // Body text with coloured numbers.
     const runs: Run[] = segments.map((s) => {
-      if (!s.num) return { text: s.text };
-      const fill = s.num.value > s.num.base ? 0x8fd18f : s.num.value < s.num.base ? 0xe07b7b : PALETTE.goldBright;
-      return { text: s.text, style: { fill, fontWeight: '700' } };
+      if (s.num) {
+        const fill = s.num.value > s.num.base ? 0x8fd18f : s.num.value < s.num.base ? 0xe07b7b : PALETTE.goldBright;
+        return { text: s.text, style: { fill, fontWeight: '700' } };
+      }
+      // A word the glossary explains: gold, so the player knows it can be asked about.
+      if (s.term) return { text: s.text, style: { fill: PALETTE.gold, fontWeight: '700' } };
+      return { text: s.text };
     });
     const bodySize = plainLength(segments) > 110 ? 15 : plainLength(segments) > 80 ? 16 : 17;
     const body = richText(runs, { width: CARD_W - 32, base: { fontFamily: FONT.body, fontSize: bodySize, fill: PALETTE.parchment } });

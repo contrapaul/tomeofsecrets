@@ -4,3 +4,4 @@ export * from './enemy';
 export * from './classes';
 export * from './run';
 export * from './meta';
+export * from './glossary';

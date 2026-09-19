@@ -9,7 +9,7 @@ import { runController } from '../../app/runController';
 import type { ContentRegistry } from '../../content';
 import type { ClassId, Page } from '../../content/schema';
 import { buyPage, decodeProfile, encodeProfile, pageStatus, unlocks, type Profile } from '../../engine/meta/profile';
-import { describeResolved, resolveCard } from '../../engine/rules';
+import { describeResolved, explainCard, resolveCard } from '../../engine/rules';
 import { CARD_H, CARD_W, CardView } from '../cards/CardView';
 import { backdrop } from '../kit/backdrop';
 import { Button } from '../kit/button';
@@ -17,6 +17,7 @@ import { d } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 import { Tooltip } from '../kit/tooltip';
+import { Explainer } from '../kit/explainer';
 import { relicToken } from '../run/widgets';
 import { creditsList } from './credits';
 
@@ -68,6 +69,7 @@ export function tomeScene(ctx: SceneContext): Scene {
   const content = runController().content;
   const store = profileStore();
   const tooltip = new Tooltip();
+  const explainer = new Explainer(content, ctx.stage);
   const body = new Container();
   const tabRow = new Container();
   let loreText: ReturnType<typeof makeText>;
@@ -80,6 +82,7 @@ export function tomeScene(ctx: SceneContext): Scene {
 
   function showTab(t: Tab): void {
     tooltip.hide();
+    explainer.hide();
     body.removeChildren().forEach((c) => c.destroy({ children: true }));
     tabRow.removeChildren().forEach((c) => c.destroy({ children: true }));
     TABS.forEach((x, i) => {
@@ -302,11 +305,14 @@ export function tomeScene(ctx: SceneContext): Scene {
       node.eventMode = 'static';
       const title = unlocked ? c.name : isSecret ? `A Secret of ${enemy?.name ?? 'someone'}` : 'Not yet unlocked';
       const bodyText = unlocked ? (held ? 'You have held this card.' : 'In the pool, not yet found.') : isSecret ? 'Slay the enemy to steal it.' : `Page: ${page?.name ?? '?'} (${page?.cost ?? '?'} Lore)`;
-      node.on('pointerover', () => {
-        const p = tooltip.parent!.toLocal(node!.getGlobalPosition());
-        tooltip.show(title, bodyText, p.x + 60, p.y + 30);
-      });
-      node.on('pointerout', () => tooltip.hide());
+      if (unlocked) explainer.attach(node, () => ({ ...explainCard(content, resolveCard(c, false)), body: [{ text: bodyText }] }));
+      else {
+        node.on('pointerover', () => {
+          const p = tooltip.parent!.toLocal(node!.getGlobalPosition());
+          tooltip.show(title, bodyText, p.x + 60, p.y + 30);
+        });
+        node.on('pointerout', () => tooltip.hide());
+      }
       grid.addChild(node);
     });
     const sub = makeText(`${known} of ${all.length} ${CLASS_NAME[cardFilter]?.toLowerCase()} cards in the pool`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
@@ -330,7 +336,7 @@ export function tomeScene(ctx: SceneContext): Scene {
       const unlocked = open.relics.has(r.id);
       const held = profile().relicsSeen.includes(r.id);
       const page = unlocked ? null : Object.values(content.pages).find((p) => p.kind === 'relics' && p.unlocks.includes(r.id));
-      const token = relicToken(content, r.id, tooltip);
+      const token = relicToken(content, r.id, tooltip, undefined, unlocked ? explainer : undefined);
       token.position.set((i % cols) * gx, Math.floor(i / cols) * gy);
       if (!unlocked) {
         token.alpha = 0.3;
@@ -545,12 +551,13 @@ export function tomeScene(ctx: SceneContext): Scene {
       const back = new Button({ label: 'Back', variant: 'ghost', width: 200, height: 52, onPress: () => ctx.router.go('/') });
       back.position.set(140, DESIGN.height - 60);
       view.addChild(back);
-      ctx.stage.overlay.addChild(tooltip);
+      ctx.stage.overlay.addChild(tooltip, explainer);
       const t = params.get('tab') as Tab | null;
       showTab(t && TABS.some((x) => x.id === t) ? t : 'bestiary');
     },
     exit() {
       tooltip.destroy({ children: true });
+      explainer.destroy({ children: true });
     },
   };
 }

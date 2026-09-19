@@ -1,4 +1,4 @@
-import type { Boon, Card, ClassDef, ClassId, EncounterPools, Enemy, IntentKind, Origin, Page, PowerTrigger, Relic, ResourceName, StatusId, TrapTrigger, Vial } from '../../content/schema';
+import type { Boon, Card, ClassDef, ClassId, EncounterPools, Enemy, GlossaryEntry, IntentKind, Origin, Page, PowerTrigger, Relic, ResourceName, StatusId, TrapTrigger, Vial } from '../../content/schema';
 import type { Effect } from '../../content/schema';
 import type { Streams } from '../rng';
 import type { CombatEvent } from '../events';
@@ -172,6 +172,7 @@ export interface Content {
   boons?: Record<string, Boon>;
   origins?: Record<string, Origin>;
   pages?: Record<string, Page>;
+  glossary?: Record<string, GlossaryEntry>;
 }
 
 export interface HeroSetup {
