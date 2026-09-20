@@ -616,7 +616,7 @@ readable from the title screen, from the Tome, and from inside a fight without l
 
 ---
 
-### Phase 6.3: Accounts
+### Phase 6.3: Accounts — Built 2026-09-20 (email sending awaits the Resend key)
 
 **Goal:** a student can sign up, and from then on the Tome follows them between school
 and home and cannot be lost to a cleared browser. Progress made before signing up
@@ -724,25 +724,31 @@ Worker routes get vitest coverage the way Flashstone's do.
 
 **Steps**
 
-1. `mergeProfiles` with tests; the anonymous/account split of local storage in
+1. [x] `mergeProfiles` with tests; the anonymous/account split of local storage in
    `app/profile.ts` (`carriedTo`, per-user caches); no server yet.
-2. Worker skeleton, D1, migration 0001, the auth port, tests; deploy with `/api/me`
+2. [x] Worker skeleton, D1, migration 0001, the auth port, tests; deploy with `/api/me`
    answering 401.
-3. The DOM forms and `app/account.ts`; sign-up carries the Tome; title integration;
+3. [x] The DOM forms and `app/account.ts`; sign-up carries the Tome; title integration;
    signed-out play unchanged.
-4. Profile and run-save sync with merge; the sign-in prompt; resume on a second device.
-5. Verification and reset emails; Resend set up; account deletion.
+4. [x] Profile and run-save sync with merge; the sign-in prompt; resume on a second device.
+5. [~] Verification and reset flows built and tested; account deletion built. **Sending
+   waits on Paul**: a Resend account, the sender domain verified (DNS records in
+   Cloudflare for `send.contrapaul.com`, or another), then
+   `npx wrangler secret put RESEND_API_KEY`. Until then sign-up works and the email is
+   a logged no-op; verification simply stays pending and never blocks play.
 
 **Acceptance**
 
-- A student plays signed out for a week, then signs up: the account starts with their
-  Lore, pages and Bestiary, and their run in progress.
-- They sign in at home: everything is there and Continue resumes the run.
-- Two students share a laptop: the second to sign in is asked before any merge, and
-  declining leaves both Tomes intact.
-- Clearing browser storage loses nothing for a signed-in student.
-- A student can reset a forgotten password by email, and can delete their account.
-- Signed-out play is unchanged; save codes still work.
+- [x] A student plays signed out for a week, then signs up: the account starts with their
+  Lore, pages and Bestiary, and their run in progress. (Verified against local D1.)
+- [x] They sign in at home: everything is there and Continue resumes the run. (Verified
+  by wiping the local caches and signing back in: Tome and run came back.)
+- [x] Two students share a laptop: the second to sign in is asked before any merge, and
+  declining leaves both Tomes intact. (Verified: alex declined, sam merged.)
+- [x] Clearing browser storage loses nothing for a signed-in student.
+- [~] A student can reset a forgotten password by email (flow tested; mail needs the key),
+  and can delete their account (verified on production).
+- [x] Signed-out play is unchanged; save codes still work.
 
 ### Phase 7: Chapters 2 and 3, the full pool, balance
 
@@ -1161,3 +1167,33 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
   and the exception halted event dispatch), and floating enemies' idle tweens outlived
   their views. `DragController.dispose()` and a `destroyed` hook on `EnemyView` now.
 - The tutorial has a sixth step, "The words in gold", gated on the first explanation.
+
+### After Phase 6.3 (2026-09-20)
+
+- **The server is `worker/`**: `index.ts` (fetch: `/api/*` → `routes.ts`, else the
+  assets), `lib/{crypto,session,ratelimit,email}.ts` ported from flashstone, `lib/http.ts`
+  (HttpError, json, cookies), `lib/store.ts` (the `Store` interface every route talks to,
+  and `d1Store`). Routes are tested in `worker/routes.test.ts` against an in-memory
+  `Store`, so the auth logic is covered without SQL; the D1 layer was smoke-tested with
+  curl locally and on production. `worker/tsconfig.json` types it with
+  `@cloudflare/workers-types`; `npm run typecheck` runs both projects.
+- **wrangler.jsonc** has `main`, the `ASSETS` binding, `run_worker_first: ["/api/*"]`
+  and the D1 binding `DB` (`tomeofsecrets-db`, `3a1f5792-…`). Migrations live in
+  `db/migrations/` (append-only): `npm run db:migrate` (local) and
+  `npm run db:migrate:remote`. `0001_init.sql` is applied on both.
+- **Dev loop**: `npm run dev` (Vite, 5174) proxies `/api` to `npm run dev:api`
+  (`wrangler dev --local`, 8788, local D1 in `.wrangler/state`). Run both.
+- **Client**: `app/account.ts` owns the session and the sync queue (profile pushed 1.5 s
+  after a save, run after every step, flushed on sign-out and when the tab hides; a 401
+  mid-sync drops back to the anonymous Tome). `app/profile.ts` and `runController`
+  keep separate local documents per account (`tome.profile.u.<id>`, `tome.run.u.<id>`)
+  and the anonymous ones; `switchUser` swaps. `tome.profile.carried` records which
+  account took the anonymous Tome; `tome.profile.declined.<id>` remembers a "leave it".
+  `main.ts` awaits `account().init()` before the router starts and handles
+  `?verify=` / `?reset=` links. `app/accountUi.ts` is the DOM overlay (sign in, sign
+  up with the carry note, forgot, new password, delete, the carry prompt, a message).
+- Cookie: `tome_session`, HttpOnly, Secure, SameSite=Lax, 30 days. Login accepts
+  username or email. Sign-up accepts `profile` and `run` and validates the profile with
+  the same zod schema the client uses.
+- `Router.reload()` rebuilds the current scene; scenes call it after the signed-in
+  player changes.

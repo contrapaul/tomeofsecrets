@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../content';
 import { playFight } from '../ai/heuristic';
 import { createRun, finishFight, startFight } from '../run/run';
-import { buyPage, decodeProfile, defaultProfile, encodeProfile, loreFor, pageStatus, parseProfile, recordFight, recordRun, unlocks } from './profile';
+import { buyPage, decodeProfile, defaultProfile, encodeProfile, hasProgress, loreFor, mergeProfiles, pageStatus, parseProfile, recordFight, recordRun, unlocks } from './profile';
 
 const content = loadContent();
 
@@ -102,5 +102,61 @@ describe('profile', () => {
       run.reward = null;
       run.phase = 'map';
     }
+  });
+});
+
+describe('mergeProfiles', () => {
+  const a = defaultProfile();
+  a.lore = 40;
+  a.loreEarned = 100;
+  a.pages.push('paladin-verdicts');
+  a.bestiary['ink-slime'] = { seen: 3, kills: 2, moves: ['divide'] };
+  a.cardsSeen.push('judgment');
+  a.seals['paladin'] = 2;
+  a.stats.runs = 3;
+  a.stats.bestFloor['paladin'] = 7;
+  a.stats.fastestWinMs = 900000;
+  a.history.push({ seed: 's1', classId: 'paladin', result: 'lost', floor: 4, chapter: 1, seal: 0, lore: 10, date: '2026-09-01T00:00:00Z' });
+  const b = defaultProfile();
+  b.lore = 25;
+  b.loreEarned = 60;
+  b.pages.push('relics-odds');
+  b.bestiary['ink-slime'] = { seen: 1, kills: 0, moves: ['splash'] };
+  b.bestiary['page-wisp'] = { seen: 1, kills: 1, moves: [] };
+  b.cardsSeen.push('judgment', 'bulwark');
+  b.seals['mage'] = 1;
+  b.stats.runs = 5;
+  b.stats.bestFloor['paladin'] = 3;
+  b.stats.fastestWinMs = null;
+  b.history.push({ seed: 's1', classId: 'paladin', result: 'lost', floor: 4, chapter: 1, seal: 0, lore: 10, date: '2026-09-01T00:00:00Z' });
+  b.history.push({ seed: 's2', classId: 'mage', result: 'won', floor: 11, chapter: 1, seal: 0, lore: 150, date: '2026-09-02T00:00:00Z' });
+
+  it('keeps everything either side had', () => {
+    const m = mergeProfiles(a, b);
+    expect(m.lore).toBe(40);
+    expect(m.loreEarned).toBe(100);
+    expect(m.pages.sort()).toEqual(['paladin-verdicts', 'relics-odds']);
+    expect(m.bestiary['ink-slime']).toEqual({ seen: 3, kills: 2, moves: ['divide', 'splash'] });
+    expect(m.bestiary['page-wisp']!.kills).toBe(1);
+    expect(m.cardsSeen.sort()).toEqual(['bulwark', 'judgment']);
+    expect(m.seals).toEqual({ paladin: 2, mage: 1 });
+    expect(m.stats.runs).toBe(5);
+    expect(m.stats.bestFloor['paladin']).toBe(7);
+    expect(m.stats.fastestWinMs).toBe(900000);
+    expect(m.history.map((r) => r.seed)).toEqual(['s2', 's1']);
+  });
+
+  it('is symmetric and idempotent', () => {
+    const ab = mergeProfiles(a, b);
+    const ba = mergeProfiles(b, a);
+    expect({ ...ab, cardsSeen: ab.cardsSeen.sort(), pages: ab.pages.sort() }).toEqual({ ...ba, cardsSeen: ba.cardsSeen.sort(), pages: ba.pages.sort() });
+    expect(mergeProfiles(ab, ab)).toEqual(ab);
+    expect(mergeProfiles(ab, defaultProfile())).toEqual(ab);
+  });
+
+  it('survives the schema and knows an empty Tome from one with progress', () => {
+    expect(parseProfile(mergeProfiles(a, b))).toEqual(mergeProfiles(a, b));
+    expect(hasProgress(defaultProfile())).toBe(false);
+    expect(hasProgress(a)).toBe(true);
   });
 });

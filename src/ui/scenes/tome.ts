@@ -3,6 +3,8 @@ import gsap from 'gsap';
 import { loadEnemyArt, loadEnemyArtFor } from '../../app/art';
 import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
+import { account } from '../../app/account';
+import { openAccountUi } from '../../app/accountUi';
 import { profileStore } from '../../app/profile';
 import type { Scene, SceneContext } from '../../app/router';
 import { runController } from '../../app/runController';
@@ -458,6 +460,37 @@ export function tomeScene(ctx: SceneContext): Scene {
       body.addChild(t);
       y += t.height + 12;
     }
+    // The account, if any.
+    const acct = account();
+    const acctTitle = makeText('ACCOUNT', { ...STYLE.display(20), fill: PALETTE.parchmentDim, letterSpacing: 4 });
+    acctTitle.position.set(140, y + 30);
+    body.addChild(acctTitle);
+    if (acct.user) {
+      const state = acct.sync === 'synced' ? 'saved to the cloud' : acct.sync === 'syncing' ? 'saving…' : acct.sync === 'offline' ? 'offline; will sync when the connection is back' : 'signed in';
+      const who = makeText(`Signed in as ${acct.user.username} · ${state}.${acct.user.emailVerified ? '' : ' Email not yet verified.'}`, { ...STYLE.body(20), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 760 });
+      who.position.set(140, y + 62);
+      body.addChild(who);
+      const del = new Button({ label: 'Delete account', width: 220, height: 44, fontSize: 18, variant: 'ghost', onPress: () => openAccountUi('delete', { onChange: () => ctx.router.reload() }) });
+      del.position.set(140 + 110, y + 122);
+      body.addChild(del);
+      if (!acct.user.emailVerified) {
+        const resend = new Button({ label: 'Resend email', width: 220, height: 44, fontSize: 18, variant: 'ghost', onPress: () => void acct.resendVerify().then(() => showTab('stats')) });
+        resend.position.set(140 + 350, y + 122);
+        body.addChild(resend);
+      }
+    } else {
+      const why = makeText('Not signed in. An account keeps your Tome on every device and safe from a cleared browser.', { ...STYLE.body(20), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 760 });
+      why.position.set(140, y + 62);
+      body.addChild(why);
+      const signIn = new Button({ label: 'Sign in', width: 220, height: 44, fontSize: 18, onPress: () => openAccountUi('signin', { onChange: () => ctx.router.reload() }) });
+      signIn.position.set(140 + 110, y + 122);
+      body.addChild(signIn);
+      const signUp = new Button({ label: 'Make an account', width: 220, height: 44, fontSize: 18, variant: 'ghost', onPress: () => openAccountUi('signup', { onChange: () => ctx.router.reload() }) });
+      signUp.position.set(140 + 350, y + 122);
+      body.addChild(signUp);
+    }
+    y += 150;
+
     // Save codes.
     const codeTitle = makeText('SAVE CODE', { ...STYLE.display(20), fill: PALETTE.parchmentDim, letterSpacing: 4 });
     codeTitle.position.set(140, y + 30);

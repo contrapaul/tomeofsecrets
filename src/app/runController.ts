@@ -6,6 +6,11 @@ import { profileStore } from './profile';
 
 export const RUN_KEY = 'tome.run.v1';
 
+/** Where the run in progress lives: the anonymous one, or an account's local copy. */
+export function runKey(userId: string | null): string {
+  return userId ? `tome.run.u.${userId}` : RUN_KEY;
+}
+
 /**
  * The one run in progress. Scenes read `run`, call engine functions on it,
  * then `save()`. Every run route reads `route()` to know where the run wants
@@ -13,7 +18,10 @@ export const RUN_KEY = 'tome.run.v1';
  */
 class RunController {
   run: RunState | null = null;
+  userId: string | null = null;
   readonly content: ContentRegistry = loadContent();
+  /** Called after every save, with the JSON-safe run or null when cleared; the account module pushes from here. */
+  onSave: ((run: unknown | null, userId: string | null) => void) | null = null;
   private storage: Storage | null;
 
   constructor() {
@@ -27,11 +35,39 @@ class RunController {
 
   private load(): void {
     try {
-      const raw = this.storage?.getItem(RUN_KEY);
-      if (raw) this.run = reviveRun(this.content, JSON.parse(raw));
+      const raw = this.storage?.getItem(runKey(this.userId));
+      this.run = raw ? reviveRun(this.content, JSON.parse(raw)) : null;
     } catch (err) {
       console.warn('run: could not load the saved run', err);
       this.run = null;
+    }
+  }
+
+  /** Load the run for this account (or the anonymous one for null). */
+  switchUser(userId: string | null): void {
+    this.userId = userId;
+    this.load();
+  }
+
+  /** Take a run document from elsewhere (the server) as the current run. */
+  adopt(data: unknown | null): void {
+    try {
+      this.run = data ? reviveRun(this.content, data) : null;
+    } catch (err) {
+      console.warn('run: could not adopt the run', err);
+      this.run = null;
+    }
+    if (this.run) this.save();
+    else this.clear();
+  }
+
+  /** The anonymous run's raw document, whoever is signed in. */
+  anonymousRaw(): unknown | null {
+    try {
+      const raw = this.storage?.getItem(runKey(null));
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
     }
   }
 
@@ -82,20 +118,23 @@ class RunController {
 
   save(): void {
     if (!this.run) return;
+    const doc = serializeRun(this.run);
     try {
-      this.storage?.setItem(RUN_KEY, JSON.stringify(serializeRun(this.run)));
+      this.storage?.setItem(runKey(this.userId), JSON.stringify(doc));
     } catch (err) {
       console.warn('run: could not save', err);
     }
+    this.onSave?.(doc, this.userId);
   }
 
   clear(): void {
     this.run = null;
     try {
-      this.storage?.removeItem(RUN_KEY);
+      this.storage?.removeItem(runKey(this.userId));
     } catch {
       // nothing to do
     }
+    this.onSave?.(null, this.userId);
   }
 
   /** The hash route for the run's current phase. */

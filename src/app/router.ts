@@ -67,6 +67,12 @@ export class Router {
     window.location.hash = toHash(path, params);
   }
 
+  /** Rebuild the current scene (the signed-in player changed, so what it shows changed). */
+  reload(): void {
+    this.currentPath = '';
+    this.sync();
+  }
+
   update(deltaMs: number): void {
     this.current?.update?.(deltaMs);
   }

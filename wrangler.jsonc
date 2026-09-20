@@ -1,13 +1,22 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  // Assets-only Worker: no code runs, Cloudflare serves dist/ from the edge.
-  // The custom-domain route creates the DNS record in the contrapaul.com zone.
+  // The static game is served from dist/ at the edge; `/api/*` runs the
+  // accounts Worker (worker/index.ts) against D1. Everything else never
+  // touches the Worker. The custom-domain route creates the DNS record in
+  // the contrapaul.com zone.
   "name": "tomeofsecrets",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*"]
   },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "tomeofsecrets-db", "database_id": "3a1f5792-4079-4410-a8bc-f335401bced4", "migrations_dir": "db/migrations" }
+  ],
+  "observability": { "enabled": true },
   "routes": [{ "pattern": "tome.contrapaul.com", "custom_domain": true }]
 }

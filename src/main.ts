@@ -4,6 +4,8 @@ import { initAssets, loadBundle } from './app/assets';
 import { DESIGN } from './app/fit';
 import { loadFonts } from './app/fonts';
 import { Router } from './app/router';
+import { account } from './app/account';
+import { openAccountUi, openMessage } from './app/accountUi';
 import { audio, initAudio } from './app/audio';
 import { defaultSettings, SettingsStore } from './app/settings';
 import { Stage } from './app/stage';
@@ -86,13 +88,32 @@ async function boot(): Promise<void> {
     .register('/dev/fight', devFightScene)
     .register('/dev/enemy', devEnemyScene);
 
+  // Who is signed in, before any scene reads the Tome; the right one must be loaded first.
+  await account().init();
   stage.app.ticker.add((t) => router.update(t.deltaMS));
   router.start();
+  handleEmailLinks(router);
 
   if (import.meta.env.DEV) {
     // Poke at the running game from the console: __tome.stage, __tome.settings.
     (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi, gsap, audio: audio() };
   }
+}
+
+/** `?verify=` and `?reset=` come from the emails; act, then drop them from the URL. */
+function handleEmailLinks(router: Router): void {
+  const q = new URLSearchParams(window.location.search);
+  const verify = q.get('verify');
+  const reset = q.get('reset');
+  if (!verify && !reset) return;
+  window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  if (verify) {
+    void account()
+      .verify(verify)
+      .then(() => openMessage('Email verified', 'Your account is confirmed. Thanks.', { onChange: () => router.reload() }))
+      .catch((e: Error) => openMessage('That link did not work', e.message));
+  }
+  if (reset) openAccountUi('newPassword', { token: reset, onChange: () => router.reload() });
 }
 
 boot().catch((err) => {

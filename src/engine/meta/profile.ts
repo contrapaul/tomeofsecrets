@@ -187,6 +187,75 @@ export function recordRun(profile: Profile, run: RunState, now: string): RunLedg
   return run.ledger;
 }
 
+// ---------------------------------------------------------------- merging two Tomes
+
+/**
+ * Two copies of a Tome become one that has everything either had: sets are
+ * unioned, counters and best floors take the larger, Lore takes the larger,
+ * Seals the larger per class, history the union by seed and date (newest
+ * first, capped at 20). Idempotent and order-independent, which is what makes
+ * carrying an anonymous Tome into an account, or playing offline on two
+ * devices, safe. Neither input is changed.
+ */
+export function mergeProfiles(a: Profile, b: Profile): Profile {
+  // Sorted, so the same two Tomes merge to the same bytes whichever way round.
+  const union = (x: string[], y: string[]) => [...new Set([...x, ...y])].sort();
+  const maxRec = (x: Record<string, number>, y: Record<string, number>) => {
+    const out: Record<string, number> = { ...x };
+    for (const [k, v] of Object.entries(y)) out[k] = Math.max(out[k] ?? 0, v);
+    return out;
+  };
+  const sumRec = (x: Record<string, number>, y: Record<string, number>) => {
+    // Cards played is a running total on both sides; the larger side is the
+    // fuller record, so take max rather than double-count.
+    return maxRec(x, y);
+  };
+  const bestiary: Profile['bestiary'] = {};
+  for (const id of union(Object.keys(a.bestiary), Object.keys(b.bestiary))) {
+    const x = a.bestiary[id];
+    const y = b.bestiary[id];
+    bestiary[id] = {
+      seen: Math.max(x?.seen ?? 0, y?.seen ?? 0),
+      kills: Math.max(x?.kills ?? 0, y?.kills ?? 0),
+      moves: union(x?.moves ?? [], y?.moves ?? []),
+    };
+  }
+  const seenRun = new Set<string>();
+  const history = [...a.history, ...b.history]
+    .filter((r) => {
+      const key = `${r.seed}|${r.date}`;
+      if (seenRun.has(key)) return false;
+      seenRun.add(key);
+      return true;
+    })
+    .sort((x, y) => y.date.localeCompare(x.date))
+    .slice(0, 20);
+  return {
+    version: 1,
+    lore: Math.max(a.lore, b.lore),
+    loreEarned: Math.max(a.loreEarned, b.loreEarned),
+    bestiary,
+    cardsSeen: union(a.cardsSeen, b.cardsSeen),
+    relicsSeen: union(a.relicsSeen, b.relicsSeen),
+    pages: union(a.pages, b.pages),
+    seals: maxRec(a.seals, b.seals),
+    stats: {
+      runs: Math.max(a.stats.runs, b.stats.runs),
+      wins: maxRec(a.stats.wins, b.stats.wins),
+      bestFloor: maxRec(a.stats.bestFloor, b.stats.bestFloor),
+      kills: Math.max(a.stats.kills, b.stats.kills),
+      cardsPlayed: sumRec(a.stats.cardsPlayed, b.stats.cardsPlayed),
+      fastestWinMs: a.stats.fastestWinMs === null ? b.stats.fastestWinMs : b.stats.fastestWinMs === null ? a.stats.fastestWinMs : Math.min(a.stats.fastestWinMs, b.stats.fastestWinMs),
+    },
+    history,
+  };
+}
+
+/** True when a Tome has anything worth carrying into an account. */
+export function hasProgress(p: Profile): boolean {
+  return p.lore > 0 || p.loreEarned > 0 || p.pages.length > 0 || p.stats.runs > 0 || Object.keys(p.bestiary).length > 0;
+}
+
 // ---------------------------------------------------------------- save codes
 
 function checksum(s: string): string {

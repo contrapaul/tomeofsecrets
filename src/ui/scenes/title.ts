@@ -8,6 +8,8 @@ import { Button } from '../kit/button';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 import { audio } from '../../app/audio';
+import { account } from '../../app/account';
+import { openAccountUi } from '../../app/accountUi';
 import { profileStore } from '../../app/profile';
 import { runController } from '../../app/runController';
 
@@ -50,6 +52,36 @@ export function titleScene(ctx: SceneContext): Scene {
         view.addChild(b);
       });
 
+      // The account line: sign in, or who is signed in and the state of the cloud copy.
+      const acct = account();
+      const rebuildAccountLine = () => {
+        view.getChildByLabel('account-line')?.destroy({ children: true });
+        const line = new Container({ label: 'account-line' });
+        if (acct.user) {
+          const who = makeText(`${acct.user.username} · ${syncText(acct.sync)}`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+          who.anchor.set(1, 0);
+          who.position.set(-90, 4);
+          line.addChild(who);
+          const out = new Button({ label: 'Sign out', variant: 'ghost', width: 150, height: 40, fontSize: 18, onPress: () => void acct.logout().then(() => ctx.router.reload()) });
+          out.position.set(0, 16);
+          line.addChild(out);
+        } else {
+          const b = new Button({ label: 'Sign in', variant: 'ghost', width: 150, height: 40, fontSize: 18, onPress: () => openAccountUi('signin', { onChange: () => ctx.router.reload() }) });
+          b.position.set(0, 16);
+          line.addChild(b);
+          const why = makeText('keep your Tome on every device', { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+          why.anchor.set(1, 0);
+          why.position.set(-90, 4);
+          why.alpha = 0.7;
+          line.addChild(why);
+        }
+        line.position.set(DESIGN.width - 110, DESIGN.height - 60);
+        view.addChild(line);
+      };
+      rebuildAccountLine();
+      const unsub = acct.on(rebuildAccountLine);
+      view.once('destroyed', unsub);
+
       const version = makeText(`v0.0.1 · phase 6 · ${profileStore().profile.lore} lore`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
       version.alpha = 0.6;
       version.position.set(24, DESIGN.height - 40);
@@ -58,7 +90,7 @@ export function titleScene(ctx: SceneContext): Scene {
       const dev = makeText('dev', { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
       dev.alpha = 0.35;
       dev.anchor.set(1, 0);
-      dev.position.set(DESIGN.width - 24, DESIGN.height - 40);
+      dev.position.set(DESIGN.width - 24, DESIGN.height - 96);
       dev.eventMode = 'static';
       dev.cursor = 'pointer';
       dev.on('pointertap', () => ctx.router.go('/dev/stats'));
@@ -71,4 +103,8 @@ export function titleScene(ctx: SceneContext): Scene {
     },
     exit() {},
   };
+}
+
+function syncText(s: ReturnType<typeof account>['sync']): string {
+  return s === 'synced' ? 'saved to the cloud' : s === 'syncing' ? 'saving…' : s === 'offline' ? 'offline, will sync' : 'signed in';
 }
