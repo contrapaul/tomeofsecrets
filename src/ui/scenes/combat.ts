@@ -301,17 +301,65 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     refreshHand();
   }
 
+  /**
+   * A pile spread over the board, so a retrieve prompt has something to pick
+   * from: those cards are in the discard or exhaust pile, not in the hand.
+   * The grid takes the fewest rows that let the cards be biggest.
+   */
+  function pileGrid(uids: number[]): CardView[] {
+    const AREA = { y: 110, w: DESIGN.width - 160, h: LAYOUT.playLineY - 170 };
+    const GAP = 18;
+    let cols = uids.length;
+    let rows = 1;
+    let scale = 0;
+    for (let r = 1; r <= uids.length; r++) {
+      const c = Math.ceil(uids.length / r);
+      const s = Math.min(0.62, (AREA.w / c - GAP) / CARD_W, (AREA.h / r - GAP) / CARD_H);
+      if (s > scale) [scale, cols, rows] = [s, c, r];
+    }
+    const out: CardView[] = [];
+    uids.forEach((uid, i) => {
+      const def = cardDef(uid);
+      const disp = display(uid);
+      if (!def || !disp) return;
+      const cv = new CardView(uid, def, disp);
+      cv.scale.set(scale);
+      cv.cursor = 'pointer';
+      const row = Math.floor(i / cols);
+      const inRow = Math.min(cols, uids.length - row * cols);
+      cv.position.set(DESIGN.width / 2 + (i - row * cols - (inRow - 1) / 2) * (CARD_W * scale + GAP), AREA.y + AREA.h / 2 + (row - (rows - 1) / 2) * (CARD_H * scale + GAP));
+      out.push(cv);
+    });
+    return out;
+  }
+
+  /**
+   * Choosing cards for an effect. Discard and exhaust pick from the hand,
+   * which is already on the table; retrieve picks from a pile the player
+   * cannot see, so that pile is laid out over the board to choose from.
+   */
   function showPrompt(): void {
     const p = state.prompt!;
     promptSelection = [];
     promptBar = new Container();
+    const picks = p.kind === 'retrieve' ? pileGrid(p.from) : layers.hand.cards;
+    if (p.kind === 'retrieve') {
+      const dim = new Graphics();
+      dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.72 });
+      dim.eventMode = 'static';
+      promptBar.addChild(dim, ...picks);
+      layers.overlay.addChild(promptBar);
+    } else {
+      layers.ui.addChild(promptBar);
+    }
+    const bar = new Container();
     const bg = new Graphics();
     bg.roundRect(-360, -34, 720, 68, 12).fill({ color: 0x000000, alpha: 0.7 }).stroke({ color: PALETTE.gold, width: 2 });
-    promptBar.addChild(bg);
+    bar.addChild(bg);
     const label = makeText(`Choose ${p.count} card${p.count > 1 ? 's' : ''} to ${p.kind}`, { ...STYLE.display(24), fill: PALETTE.gold });
     label.anchor.set(0, 0.5);
     label.position.set(-330, 0);
-    promptBar.addChild(label);
+    bar.addChild(label);
     const confirm = new Button({
       label: 'Confirm',
       width: 180,
@@ -326,17 +374,17 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     });
     confirm.position.set(250, 0);
     confirm.alpha = 0.5;
-    promptBar.addChild(confirm);
-    promptBar.position.set(DESIGN.width / 2, LAYOUT.playLineY + 30);
-    layers.ui.addChild(promptBar);
-    for (const cv of layers.hand.cards) {
+    bar.addChild(confirm);
+    bar.position.set(DESIGN.width / 2, LAYOUT.playLineY + 30);
+    promptBar.addChild(bar);
+    for (const cv of picks) {
       cv.removeAllListeners('pointertap');
       cv.on('pointertap', () => {
         if (!state.prompt) return;
         const i = promptSelection.indexOf(cv.cardUid);
         if (i >= 0) promptSelection.splice(i, 1);
         else if (promptSelection.length < p.count) promptSelection.push(cv.cardUid);
-        for (const c of layers.hand.cards) c.setGlow(promptSelection.includes(c.cardUid));
+        for (const c of picks) c.setGlow(promptSelection.includes(c.cardUid));
         confirm.alpha = promptSelection.length === p.count ? 1 : 0.5;
       });
     }
