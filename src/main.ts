@@ -116,7 +116,25 @@ function handleEmailLinks(router: Router): void {
   if (reset) openAccountUi('newPassword', { token: reset, onChange: () => router.reload() });
 }
 
-boot().catch((err) => {
+boot().catch((err: unknown) => {
   console.error(err);
-  document.body.textContent = 'Tome of Secrets could not start. Check the console.';
+  // Students have no console: say what broke, on the page, with a way to retry.
+  document.body.textContent = '';
+  const panel = document.createElement('div');
+  panel.style.cssText = 'position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;font-family:system-ui,sans-serif;color:#e8e0cc;background:#0b0a0f';
+  const title = document.createElement('h1');
+  title.textContent = 'Tome of Secrets could not start.';
+  title.style.cssText = 'font-size:24px;margin:0';
+  const hint = document.createElement('p');
+  hint.textContent = 'Reload the page. If it keeps happening, show Mr. K the line below.';
+  hint.style.cssText = 'margin:0;opacity:0.8;max-width:34em';
+  const detail = document.createElement('pre');
+  detail.textContent = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+  detail.style.cssText = 'margin:0;padding:12px;max-width:90vw;overflow:auto;font-size:13px;opacity:0.7;border:1px solid #3a3550;border-radius:8px';
+  const again = document.createElement('button');
+  again.textContent = 'Reload';
+  again.style.cssText = 'padding:10px 24px;font:inherit;color:#0b0a0f;background:#d4af5a;border:0;border-radius:8px;cursor:pointer';
+  again.onclick = () => window.location.reload();
+  panel.append(title, hint, detail, again);
+  document.body.append(panel);
 });

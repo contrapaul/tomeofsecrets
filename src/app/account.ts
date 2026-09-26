@@ -32,6 +32,17 @@ export interface CarryOffer {
   runFloor: number | null;
 }
 
+/** Boot waits on `/api/me`, so no request may hang: a stalled fetch counts as offline. */
+const TIMEOUT_MS = 15000;
+
+function timeoutSignal(): AbortSignal | undefined {
+  try {
+    return AbortSignal.timeout(TIMEOUT_MS);
+  } catch {
+    return undefined;
+  }
+}
+
 async function api<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response;
   try {
@@ -40,6 +51,7 @@ async function api<T>(method: string, path: string, body?: unknown): Promise<T> 
       headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: 'same-origin',
+      signal: timeoutSignal(),
     });
   } catch {
     throw new ApiError(0, 'No connection. Your progress is safe on this device and will sync later.');
