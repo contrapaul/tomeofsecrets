@@ -23,7 +23,7 @@
       "effects": [
         {
           "do": "damage",
-          "amount": 12,
+          "amount": 10,
           "target": "hero"
         }
       ]

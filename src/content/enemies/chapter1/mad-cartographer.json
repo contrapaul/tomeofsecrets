@@ -20,7 +20,7 @@
       "effects": [
         {
           "do": "damage",
-          "amount": 13,
+          "amount": 12,
           "target": "hero"
         }
       ]
