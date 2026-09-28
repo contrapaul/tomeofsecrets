@@ -17,8 +17,8 @@ export function shopScene(ctx: SceneContext): Scene {
     const stock = new Container();
     view.addChild(stock);
 
-    const price = (n: number, x: number, y: number, sold: boolean, canAfford: boolean) => {
-      const t = makeText(sold ? 'SOLD' : `${n}`, { ...STYLE.mono(22), fill: sold ? PALETTE.parchmentDim : canAfford ? PALETTE.goldBright : 0xe07b7b });
+    const price = (n: number, x: number, y: number, sold: boolean, canAfford: boolean, owned = false) => {
+      const t = makeText(owned ? 'OWNED' : sold ? 'SOLD' : `${n}`, { ...STYLE.mono(22), fill: owned || sold ? PALETTE.parchmentDim : canAfford ? PALETTE.goldBright : 0xe07b7b });
       t.anchor.set(0.5);
       t.position.set(x, y);
       stock.addChild(t);
@@ -47,7 +47,9 @@ export function shopScene(ctx: SceneContext): Scene {
       });
       shop.relics.forEach((item, i) => {
         const x = DESIGN.width / 2 - 520 + i * 180;
-        const t = relicToken(content, item.id, tooltip, () => {
+        // Stock is rolled when the shop opens; a relic picked up since is not for sale.
+        const owned = run.hero.relics.includes(item.id);
+        const t = relicToken(content, item.id, tooltip, owned ? undefined : () => {
           if (buy(run, content, 'relics', i)) {
             audio().play('shop-buy');
             save();
@@ -56,9 +58,9 @@ export function shopScene(ctx: SceneContext): Scene {
           }
         }, explainer);
         t.position.set(x, 640);
-        if (item.sold) t.alpha = 0.3;
+        if (item.sold || owned) t.alpha = 0.3;
         stock.addChild(t);
-        price(item.price, x, 740, item.sold, run.hero.gold >= item.price);
+        price(item.price, x, 740, item.sold, run.hero.gold >= item.price, owned);
       });
       shop.vials.forEach((item, i) => {
         const x = DESIGN.width / 2 + 140 + i * 200;

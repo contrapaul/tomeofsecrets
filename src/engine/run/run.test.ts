@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../content';
 import { playRun, step } from '../ai/runner';
 import { playFight } from '../ai/heuristic';
-import { availableNodes, buy, combatHooks, createRun, enterNode, finishFight, finishReward, openShop, removeCard, rest, reviveRun, serializeRun, smith, startFight, takeCard, takeVial } from './run';
+import { addRelic, availableNodes, buy, combatHooks, createRun, enterNode, finishFight, finishReward, openShop, removeCard, rest, reviveRun, serializeRun, smith, startFight, takeCard, takeTreasure, takeVial } from './run';
 
 const content = loadContent();
 
@@ -117,6 +117,38 @@ describe('run', () => {
     expect(again).toEqual(results[0]);
     const avg = results.reduce((a, r) => a + r.floor, 0) / results.length;
     expect(avg).toBeGreaterThan(3);
+  });
+
+  it('a relic already held is never stocked, never sold, and never charged for', () => {
+    // Stock is rolled when the shop opens and excludes what the hero holds.
+    for (let i = 0; i < 50; i++) {
+      const run = createRun(content, { classId: 'paladin', seed: `stock-${i}` });
+      addRelic(run, content, 'phylactery');
+      openShop(run, content);
+      expect(run.shop!.relics.map((r) => r.id)).not.toContain('phylactery');
+      for (const item of run.shop!.relics) expect(run.hero.relics).not.toContain(item.id);
+    }
+    // And if stock ever goes stale — a resumed run, a relic taken since — buying is refused
+    // outright rather than taking the gold and granting nothing.
+    const run = createRun(content, { classId: 'paladin', seed: 'stale' });
+    openShop(run, content);
+    const target = run.shop!.relics[0]!;
+    addRelic(run, content, target.id);
+    const gold = run.hero.gold = 999;
+    expect(buy(run, content, 'relics', 0)).toBe(false);
+    expect(run.hero.gold).toBe(gold);
+    expect(target.sold).toBe(false);
+    expect(run.hero.relics.filter((id) => id === target.id)).toHaveLength(1);
+  });
+
+  it('a treasure already held leaves the choice open rather than consuming it', () => {
+    const run = createRun(content, { classId: 'paladin', seed: 'treasure-dupe' });
+    run.phase = 'treasure';
+    run.treasure = { relics: ['phylactery'], taken: false };
+    addRelic(run, content, 'phylactery');
+    takeTreasure(run, content, 'phylactery');
+    expect(run.treasure.taken).toBe(false);
+    expect(run.hero.relics.filter((id) => id === 'phylactery')).toHaveLength(1);
   });
 
   it('every phase step is safe to call repeatedly', () => {

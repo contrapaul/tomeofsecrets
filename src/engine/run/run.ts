@@ -280,9 +280,10 @@ export function reviveRun(content: Content, data: unknown): RunState {
 
 // ---------------------------------------------------------------- relics
 
-export function addRelic(run: RunState, content: Content, id: string): void {
+/** Grant a relic. Returns false when the hero already has it, so callers do not charge for nothing. */
+export function addRelic(run: RunState, content: Content, id: string): boolean {
   const relic = content.relics?.[id];
-  if (!relic || run.hero.relics.includes(id)) return;
+  if (!relic || run.hero.relics.includes(id)) return false;
   run.hero.relics.push(id);
   const r = relic.run;
   if (r?.maxHp) {
@@ -301,6 +302,7 @@ export function addRelic(run: RunState, content: Content, id: string): void {
       if (def?.rarity === 'starter' && (def.type === 'attack' || def.type === 'skill')) c.cardId = randomClassCard(run, content);
     }
   }
+  return true;
 }
 
 function randomClassCard(run: RunState, content: Content): string {
@@ -532,7 +534,7 @@ export function skipCard(run: RunState): void {
 export function takeRewardRelic(run: RunState, content: Content): void {
   const r = run.reward;
   if (!r || !r.relic || r.relicTaken) return;
-  addRelic(run, content, r.relic);
+  if (!addRelic(run, content, r.relic)) return;
   r.relicTaken = true;
 }
 
@@ -569,7 +571,7 @@ export function finishReward(run: RunState, content: Content): void {
 
 export function takeBossRelic(run: RunState, content: Content, id: string): void {
   if (run.phase !== 'bossReward' || !run.bossRelics?.includes(id)) return;
-  addRelic(run, content, id);
+  if (!addRelic(run, content, id)) return;
   run.bossRelics = null;
   // Chapter 1 is the whole run until Phase 7 adds the rest.
   run.phase = 'won';
@@ -626,6 +628,8 @@ export function buy(run: RunState, content: Content, kind: 'cards' | 'relics' | 
   const item = shop?.[kind][index];
   if (!shop || !item || item.sold || run.hero.gold < item.price) return false;
   if (kind === 'vials' && run.hero.vials.length >= run.hero.vialSlots) return false;
+  // Stock is rolled when the shop opens; by the time it is bought the hero may own it.
+  if (kind === 'relics' && run.hero.relics.includes(item.id)) return false;
   run.hero.gold -= item.price;
   item.sold = true;
   if (kind === 'cards') run.hero.deck.push({ uid: run.nextUid++, cardId: item.id, upgraded: false });
@@ -689,7 +693,7 @@ export function leaveCamp(run: RunState): void {
 export function takeTreasure(run: RunState, content: Content, id: string): void {
   const t = run.treasure;
   if (run.phase !== 'treasure' || !t || t.taken || !t.relics.includes(id)) return;
-  addRelic(run, content, id);
+  if (!addRelic(run, content, id)) return;
   t.taken = true;
 }
 
