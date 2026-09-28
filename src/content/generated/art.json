@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-23",
+  "generated": "2026-09-28",
   "enemies": {
     "bookwyrm": {
       "idle": "art/enemies/bookwyrm/idle.png",
@@ -90,6 +90,12 @@
   "cards": {
     "arcane-bolt": {
       "url": "art/cards/arcane-bolt.png"
+    },
+    "hammer-blow": {
+      "url": "art/cards/hammer-blow.webp"
+    },
+    "raise-shield": {
+      "url": "art/cards/raise-shield.webp"
     }
   },
   "portraits": {},
