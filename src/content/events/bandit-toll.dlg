@@ -2,7 +2,8 @@ title: Bandit Toll
 portrait left: seeker
 portrait right: bandit
 
-bandit: Toll road. Forty gold, or we take it out of your notes.
+bandit: Oy, this is a toll road now.
+bandit: Pay the toll, or we'll make you wish you had.
 
 choice:
   - [if gold >= 40] Pay 40 gold -> pay
@@ -11,15 +12,15 @@ choice:
 
 @pay
   > gold -40
-  bandit: Pleasure. Mind the beetles.
+  bandit: A smart choice.
   > end
 
 @fight
   > fight bandit-scribe,bandit-scribe
-  bandit: ...fine. Road's yours.
+  bandit: Not too bright are you?
   > end
 
 @card
   > card remove choose 1
-  bandit: Can't even read it. Off you go.
+  bandit: You probably could have used that further down the road. Too bad.
   > end

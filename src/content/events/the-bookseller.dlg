@@ -2,26 +2,28 @@ title: The Bookseller
 portrait left: seeker
 portrait right: bookseller
 
-bookseller: Rare volumes! Rarer than they should be, if you take my meaning.
-bookseller: Seventy-five gold for something you have never seen. Or I pay you a hundred to carry something nobody wants.
+bookseller: Rare books! Rare... um... other stuff!
+seeker: Anything good?
+bookseller: I suppose that depends on what you buy. And your luck.
+bookseller: I've got a few things you might be interested in...
 
 choice:
-  - [if gold >= 75] Buy a random Rare card, 75 gold -> buy
-  - Take 100 gold and a Curse -> curse
-  - Walk on -> leave
+  - [if gold >= 75] Take a random rare card, for 75 gold -> buy
+  - I'll pay you 100 gold to take this from me... -> curse
+  - Politely decline and walk away -> leave
 
 @buy
   > gold -75
   > card add random rare
-  bookseller: Handle it carefully. Or don't. It's yours.
+  bookseller: Hope that helps on your journey!
   > end
 
 @curse
   > gold 100
   > curse injury
-  bookseller: Pleasure doing business. Mind the paper cuts.
+  bookseller: Sorry I should have mentioned it had sharp edges.
   > end
 
 @leave
-  bookseller: Suit yourself. The shelves remember who walked past.
+  bookseller: Guess I'll carry these around a bit longer.
   > end

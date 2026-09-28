@@ -2,7 +2,9 @@ title: The Binding Ritual
 portrait left: seeker
 portrait right: archivist
 
-archivist: A page you no longer need. Give it to the binding, and it is gone. The binding takes a little of you in return.
+archivist: I need cards for a ritual, do you have any to spare?
+seeker: Just cards?
+archvist: Well, cards... and it may hurt a bit.
 
 choice:
   - Remove a card, take 8 damage -> one
@@ -12,15 +14,15 @@ choice:
 @one
   > hp -8
   > card remove choose 1
-  archivist: Lighter already.
+  archivist: One step closer to my goals...
   > end
 
 @two
   > hp -16
   > card remove choose 2
-  archivist: Lighter. Paler. Off you go.
+  archivist: A generous gift!
   > end
 
 @leave
-  archivist: Some people like their weight.
+  archivist: Understandable. 
   > end

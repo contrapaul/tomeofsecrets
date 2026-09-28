@@ -1,25 +1,25 @@
 title: The Trapped Aisle
 portrait left: seeker
 
-A narrow aisle, and something glinting at the far end. The floor is a chessboard of slightly loose flagstones.
+You notice a relic sitting on the ground, between two dangerous looking shelves.
 
 choice:
-  - Push through (take 12 damage, take the relic) -> push
-  - Sneak (a coin flip) -> sneak
+  - Dash ahead to grab the relic (take 12 damage, take the relic) -> dash
+  - Try and sneak to the relic (a coin flip) -> sneak
   - Go around -> leave
 
-@push
+@dash
   > hp -12
   > relic random uncommon
-  Every third stone bites. You reach the end bleeding and holding something worth it.
+  You trip over a stone and tumble into a shelf- scraping your arm. But you get the relic.
   > end
 
 @sneak
   > flag set sneak-roll
-  You step, and step, and step. Nothing happens. Nothing happens. The glint is gone; someone else was sneakier.
+  You approach the relic, and look down to be sure you step carefully. When you look up the relic is gone.
   > gold 20
   > end
 
 @leave
-  You take the long way. It is long.
+  You decide the relic probably isn't worth the trouble.
   > end

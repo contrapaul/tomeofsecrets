@@ -1,18 +1,18 @@
 title: Moss Spring
 portrait left: seeker
 
-Warm water rising through the flagstones. The moss around it is impossibly green.
+An alluring pool of water lies ahead on the road. A closer inspection reveals- health benefits? 
 
 choice:
-  - Bathe (heal 30%) -> bathe
-  - Drink (+3 max HP) -> drink
+  - Walk into the water (heal 30%) -> bathe
+  - Drink some of it (+3 max HP) -> drink
 
 @bathe
   > heal pct 30
-  The aches go. Most of them.
+  You feel much better.
   > end
 
 @drink
   > maxhp 3
-  Mineral. Green. Fine.
+  Refreshing!
   > end

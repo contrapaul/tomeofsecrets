@@ -1,19 +1,18 @@
 title: Beetle Nest
 portrait left: seeker
 
-A hollow behind the stacks, full of shed carapaces and, at the back, two things that gleam.
-Three beetles are asleep in front of them. Lightly.
+You spot a reflection of light behind some books. Leaning in you see two shining relics, but 3 large beetles seem to be sleeping on them. 
 
 choice:
-  - Fight for the loot -> fight
-  - Leave them sleeping -> leave
+  - Reach for the relics -> fight
+  - Leave them on the shelf -> leave
 
 @fight
   > fight mossback-beetle,mossback-beetle,mossback-beetle reward:double
   > relic random common
-  Shells everywhere. Two relics, as promised.
+  I suppose it was worth the effort.
   > end
 
 @leave
-  One of them rolls over. You leave.
+  You never liked bugs.
   > end

@@ -2,8 +2,8 @@ title: Wandering Scholar
 portrait left: seeker
 portrait right: scholar
 
-scholar: Oh! A living one. You don't get many of those down here.
-scholar: I can sharpen a technique, patch you up, or split my purse. Pick one; I'm in a hurry to be somewhere quieter.
+scholar: Haven't seen another person in a while! Need some help?
+scholar: I can upgrade a card, patch you up, or loan you some gold.
 
 choice:
   - Upgrade a card -> upgrade
@@ -12,15 +12,15 @@ choice:
 
 @upgrade
   > card upgrade choose 1
-  scholar: Better. Not good. Better.
+  scholar: Not my best work, but far from my worst...
   > end
 
 @heal
   > hp 15
-  scholar: Stop bleeding on the books.
+  scholar: A finely applied bandage, I should think.
   > end
 
 @gold
   > gold 40
-  scholar: Don't spend it all on vials.
+  scholar: I'll expect that back next time we meet!
   > end

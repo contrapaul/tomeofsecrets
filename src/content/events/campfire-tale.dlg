@@ -2,10 +2,13 @@ title: Campfire Tale
 portrait left: seeker
 portrait right: scholar
 
-scholar: Sit. I'll tell you about the last one who came through here.
-scholar: They got further than you'd think. Kept a page from every monster they beat. Called it their tome.
-seeker: What happened to them?
-scholar: Ran out of pages. Here, take this. It's the one they left me.
+scholar: Come, sit at my fire!
+seeker: Have you seen others travel this road?
+scholar: Yes, many in fact. Some showed me a book of cards-
+scholar: -and called it their "tome".
+seeker: I've got one of those.
+scholar: So you have! Can't say I understand it...
+scholar: But perhaps another could help?
 
 > hp 10
 > card add bookmark

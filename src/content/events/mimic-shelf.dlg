@@ -1,18 +1,18 @@
 title: The Mimic Shelf
 portrait left: seeker
 
-A shelf that is slightly too neat. The spines are all the same colour. One of them is breathing.
-There is something shiny behind the third book.
+You notice a shelf that is... too neat. Too uniform. All the books are the same color, perfectly lined up.
+Something is tucked behind the books, but the shelf appears to be... breathing?
 
 choice:
-  - Reach for it -> reach
-  - Leave it alone -> leave
+  - Reach behind the books -> reach
+  - Leave the shelf alone -> leave
 
 @reach
   > fight mossback-beetle,page-wisp,page-wisp reward:double
-  The shelf snaps shut on nothing. Whatever was behind it is yours now.
+  The shelf bites down, crushing the books and the dead beetle, but luckily not your hand.
   > end
 
 @leave
-  You back away. The shelf exhales.
+  You know better than to test a 'living shelf'. The shelf exhales.
   > end
