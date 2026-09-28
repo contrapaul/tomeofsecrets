@@ -1,7 +1,7 @@
 title: The Wishing Font
 portrait left: seeker
 
-A stone basin of clear water in a room that has no business having clear water. Coins on the bottom. Some of them are very old.
+You wander into a room with a pool of clear water. As you get closer you realize there are hundreds of coins at the bottom. Perhaps you can make a wish.
 
 choice:
   - [if gold >= 50] Throw in 50 gold -> wish
@@ -10,9 +10,9 @@ choice:
 @wish
   > gold -50
   > card add random uncommon
-  Ripples. Then, floating up, something that was not there before.
+  You throw in a handful of coins. After a moment you notice a card float up to the surface. 
   > end
 
 @leave
-  You keep your coins. The water keeps its secrets.
+  You decide the gold is better in your pocket than at the bottom of a pool.  
   > end

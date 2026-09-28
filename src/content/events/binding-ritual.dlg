@@ -4,7 +4,7 @@ portrait right: archivist
 
 archivist: I need cards for a ritual, do you have any to spare?
 seeker: Just cards?
-archvist: Well, cards... and it may hurt a bit.
+archivist: Well, cards... and it may hurt a bit.
 
 choice:
   - Remove a card, take 8 damage -> one

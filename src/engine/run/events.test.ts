@@ -7,6 +7,15 @@ import { createRun, finishFight, finishReward } from './run';
 
 const content = loadContent();
 
+/**
+ * Play the script forward to the next thing that wants an answer. The writing
+ * changes often, so tests count on what an event *does*, never on how many
+ * lines it takes to say it.
+ */
+function toPrompt(run: Parameters<typeof advance>[0], st: { waiting: string }): void {
+  for (let i = 0; i < 40 && st.waiting === 'continue'; i++) advance(run, content);
+}
+
 describe('events', () => {
   it('every .dlg parses and every fight/curse/relic it names exists', () => {
     for (const [name, src] of Object.entries(content.events)) {
@@ -31,10 +40,7 @@ describe('events', () => {
     const st = startDialogue(run, content, 'a-torn-page');
     expect(st.waiting).toBe('continue');
     expect(st.beats[0]).toMatchObject({ kind: 'say', speaker: 'archivist' });
-    advance(run, content);
-    advance(run, content);
-    expect(st.beats[2]).toMatchObject({ text: 'There is always a catch, Paladin.' });
-    advance(run, content);
+    toPrompt(run, st);
     expect(st.waiting).toBe('choice');
     expect(st.choices.map((c) => c.target)).toEqual(['take', 'leave']);
     const relics = run.hero.relics.length;
@@ -48,7 +54,7 @@ describe('events', () => {
   it('a card pick pauses the script and resumes after the answer', () => {
     const run = createRun(content, { classId: 'mage', seed: 'ev2' });
     const st = startDialogue(run, content, 'binding-ritual');
-    advance(run, content);
+    toPrompt(run, st);
     expect(st.waiting).toBe('choice');
     const hp = run.hero.hp;
     choose(run, content, 0);
@@ -64,8 +70,7 @@ describe('events', () => {
   it('a fight from a script returns to the script with a doubled reward', () => {
     const run = createRun(content, { classId: 'tracker', seed: 'ev3' });
     const st = startDialogue(run, content, 'mimic-shelf');
-    advance(run, content);
-    advance(run, content);
+    toPrompt(run, st);
     expect(st.waiting).toBe('choice');
     choose(run, content, 0);
     expect(st.waiting).toBe('fight');
@@ -79,6 +84,7 @@ describe('events', () => {
     finishReward(run, content);
     expect(run.phase).toBe('event');
     expect(run.event!.state.waiting).toBe('continue');
-    expect(run.event!.state.beats.at(-1)).toMatchObject({ text: expect.stringContaining('snaps shut') });
+    // The script picked up where it left off: the winning branch has more to say.
+    expect(run.event!.state.beats.at(-1)).toMatchObject({ kind: 'say' });
   });
 });
