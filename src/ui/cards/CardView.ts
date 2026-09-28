@@ -1,6 +1,7 @@
 import { Container, FillGradient, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { Card, Rarity } from '../../content/schema';
 import type { ResolvedCard, Segment } from '../../engine/rules';
+import { loadCardArt } from '../../app/art';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
 import { richText, type Run } from '../kit/richText';
@@ -35,7 +36,10 @@ export interface CardDisplay {
   resolved: ResolvedCard;
   segments: Segment[];
   cost: { value: number; base: number } | 'X';
-  /** Cropped to the art slot's ratio by `loadCardArt`; null draws the placeholder. */
+  /**
+   * Cropped to the art slot's ratio by `loadCardArt`. `null` draws the
+   * placeholder; leaving it out lets the card fetch its own art.
+   */
   art?: Texture | null;
 }
 
@@ -52,11 +56,13 @@ export class CardView extends Container {
   private readonly glow = new Graphics();
   private readonly dynamic = new Container({ label: 'dynamic' });
   private readonly shadow = new Graphics();
+  private display: CardDisplay;
 
   constructor(cardUid: number, card: Card, display: CardDisplay) {
     super({ label: `card:${card.id}` });
     this.cardUid = cardUid;
     this.card = card;
+    this.display = display;
     this.pivot.set(CARD_W / 2, CARD_H / 2);
 
     this.shadow.roundRect(6, 10, CARD_W, CARD_H, 14).fill({ color: 0x000000, alpha: 0.45 });
@@ -70,6 +76,9 @@ export class CardView extends Container {
     this.paintFrame();
     this.addChild(this.frame, this.dynamic);
     this.refresh(display);
+    // Screens that preload their art pass it (or an explicit null). Everywhere else
+    // the card fetches its own, so any drawing shows up wherever the card is drawn.
+    if (display.art === undefined) void this.fillArt();
 
     // A rectangular hit area; the rounded corners do not matter for pointing.
     this.eventMode = 'static';
@@ -107,8 +116,18 @@ export class CardView extends Container {
     }
   }
 
+  /** Art arrives after the first paint on screens that do not preload it. */
+  private async fillArt(): Promise<void> {
+    const art = await loadCardArt(this.card.id);
+    if (!art || this.destroyed) return;
+    this.refresh({ ...this.display, art });
+  }
+
   /** Re-render the texts: name, cost, body, footer. Cheap enough to call on every hand change. */
-  refresh(display: CardDisplay): void {
+  refresh(incoming: CardDisplay): void {
+    // Art that arrived on its own survives a caller re-rendering without one.
+    const display = incoming.art === undefined && this.display.art ? { ...incoming, art: this.display.art } : incoming;
+    this.display = display;
     this.dynamic.removeChildren().forEach((c) => c.destroy({ children: true }));
     const { resolved, segments, cost } = display;
 

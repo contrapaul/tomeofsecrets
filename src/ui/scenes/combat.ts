@@ -123,7 +123,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     const resolved = cardOf(content, inst);
     const inHand = state.piles.hand.includes(inst);
     const cost = resolved.cost === 'X' ? ('X' as const) : { value: inHand ? costOf(state, inst, resolved) : resolved.cost, base: resolved.cost };
-    return { resolved, segments: describeResolved(resolved, { state }), cost, art: cardArt.get(inst.cardId) ?? null };
+    // Cards the deck preload missed — a Secret stolen mid-fight — fetch their own.
+    return { resolved, segments: describeResolved(resolved, { state }), cost, art: cardArt.get(inst.cardId) };
   }
 
   function cardDef(uid: number): Card | null {
