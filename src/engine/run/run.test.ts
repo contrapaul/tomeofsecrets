@@ -151,6 +151,61 @@ describe('run', () => {
     expect(run.hero.relics.filter((id) => id === 'phylactery')).toHaveLength(1);
   });
 
+  it('spends one revive source per killing blow, keeping the rest', () => {
+    // Two feathers are two chances, and surviving once leaves the second one in the belt.
+    const two = createRun(content, { classId: 'paladin', seed: 'feathers' });
+    two.hero.vials = ['phoenix-feather', 'phoenix-feather'];
+    startFight(two, content, 'fight');
+    const a = two.fight!.state;
+    expect(a.hero.revives).toBe(2);
+    a.hero.revives = 1;
+    a.hero.revivesUsed = 1;
+    a.phase = 'won';
+    for (const e of a.enemies) e.alive = false;
+    finishFight(two, content);
+    expect(two.hero.vials).toEqual(['phoenix-feather']);
+
+    // The Phylactery is free, so it goes before the feather the player paid for.
+    const both = createRun(content, { classId: 'paladin', seed: 'both' });
+    addRelic(both, content, 'phylactery');
+    both.hero.vials = ['phoenix-feather'];
+    startFight(both, content, 'fight');
+    const b = both.fight!.state;
+    expect(b.hero.revives).toBe(2);
+    b.hero.revives = 1;
+    b.hero.revivesUsed = 1;
+    b.phase = 'won';
+    for (const e of b.enemies) e.alive = false;
+    finishFight(both, content);
+    expect(both.hero.relicsUsed).toContain('phylactery');
+    expect(both.hero.vials).toEqual(['phoenix-feather']);
+
+    // Nothing spent, nothing lost.
+    const idle = createRun(content, { classId: 'paladin', seed: 'idle' });
+    idle.hero.vials = ['phoenix-feather'];
+    startFight(idle, content, 'fight');
+    const c = idle.fight!.state;
+    c.phase = 'won';
+    for (const e of c.enemies) e.alive = false;
+    finishFight(idle, content);
+    expect(idle.hero.vials).toEqual(['phoenix-feather']);
+    expect(idle.hero.relicsUsed).toEqual([]);
+  });
+
+  it('a fight saved before revives were counted keeps its revive on resume', () => {
+    const run = createRun(content, { classId: 'paladin', seed: 'old-save' });
+    run.hero.vials = ['phoenix-feather'];
+    startFight(run, content, 'fight');
+    // An old save: the flag, no counters.
+    const saved = JSON.parse(JSON.stringify(serializeRun(run))) as { fight: { state: { hero: Record<string, unknown> } } };
+    saved.fight.state.hero.flags = { reviveOnce: true };
+    delete saved.fight.state.hero.revives;
+    delete saved.fight.state.hero.revivesUsed;
+    const back = reviveRun(content, saved);
+    expect(back.fight!.state.hero.revives).toBe(1);
+    expect(back.fight!.state.hero.revivesUsed).toBe(0);
+  });
+
   it('every phase step is safe to call repeatedly', () => {
     const run = createRun(content, { classId: 'paladin', seed: 'steps' });
     for (let i = 0; i < 60 && run.phase !== 'won' && run.phase !== 'lost'; i++) step(run, content);

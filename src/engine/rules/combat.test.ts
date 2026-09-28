@@ -467,11 +467,29 @@ describe('ending', () => {
     expect(s.phase).toBe('lost');
     const r = fight(Array(10).fill('defend'), ['dummy-brute'], 'revive');
     r.hero.hp = 5;
-    r.hero.flags.reviveOnce = true;
+    r.hero.revives = 1;
     r.enemies[0]!.intent = { move: 'slam', kind: 'attack', hidden: false };
     endTurn(r, content);
     expect(r.phase).toBe('player');
     expect(r.hero.hp).toBe(24);
+  });
+
+  it('two revives survive two killing blows, and the count is what runs out', () => {
+    const r = fight(Array(10).fill('defend'), ['dummy-brute'], 'revive-twice', { hooks: { revives: 2 } });
+    expect(r.hero.revives).toBe(2);
+    for (const expected of [1, 0]) {
+      r.hero.hp = 5;
+      r.enemies[0]!.intent = { move: 'slam', kind: 'attack', hidden: false };
+      endTurn(r, content);
+      expect(r.phase).toBe('player');
+      expect(r.hero.revives).toBe(expected);
+    }
+    expect(r.hero.revivesUsed).toBe(2);
+    // The third killing blow lands.
+    r.hero.hp = 5;
+    r.enemies[0]!.intent = { move: 'slam', kind: 'attack', hidden: false };
+    endTurn(r, content);
+    expect(r.phase).toBe('lost');
   });
 });
 

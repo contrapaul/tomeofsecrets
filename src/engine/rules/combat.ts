@@ -46,6 +46,8 @@ export function createCombat(content: Content, hero: HeroSetup, encounter: Encou
       drawPenaltyNext: 0,
       energyPenaltyNext: 0,
       flags: Object.fromEntries((hero.hooks?.flags ?? []).map((f) => [f, true])),
+      revives: hero.hooks?.revives ?? ((hero.hooks?.flags ?? []).includes('reviveOnce') ? 1 : 0),
+      revivesUsed: 0,
       fresh: [],
     },
     piles: { draw: [], hand: [], discard: [], exhaust: [] },

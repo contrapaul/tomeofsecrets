@@ -81,6 +81,10 @@ export interface HeroState {
   energyPenaltyNext: number;
   /** Named flags set by `flag` effects and scripts. */
   flags: Record<string, boolean>;
+  /** Killing blows the hero can still shrug off: one per Phoenix Feather held, plus the Phylactery. */
+  revives: number;
+  /** How many were spent this fight, so the run layer knows what to consume. */
+  revivesUsed: number;
   /**
    * Debuffs an enemy applied during its own turn. They skip the end-of-round
    * decay once, so "Weak 1" from an enemy actually weakens your next turn.
@@ -190,6 +194,8 @@ export interface HeroSetup {
   /** What relics do inside a fight, already merged by the run layer. */
   hooks?: {
     flags?: string[];
+    /** Killing blows to shrug off this fight. Falls back to the `reviveOnce` flag when absent. */
+    revives?: number;
     /** Resolved on turn 1 after block clears and energy refills, before the draw. */
     fightStart?: Effect[];
     /** Resolved at the start of every turn. */

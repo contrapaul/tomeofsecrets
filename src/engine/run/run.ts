@@ -273,6 +273,10 @@ export function reviveRun(content: Content, data: unknown): RunState {
   if (run.fight) {
     const fs = run.fight.state as unknown as Omit<CombatState, 'rng'> & { rng: StreamStates };
     run.fight.state = { ...fs, rng: restoreStreams(fs.rng) } as CombatState;
+    // A fight saved before revives were counted carries the old flag instead.
+    const h = run.fight.state.hero;
+    h.revives ??= h.flags.reviveOnce ? 1 : 0;
+    h.revivesUsed ??= 0;
     setHooks(combatHooks(run, content));
   }
   return run;
@@ -316,7 +320,7 @@ function relicsOf(run: RunState, content: Content) {
 }
 
 /** Merge every held relic's in-fight behaviour into the hooks the engine takes. */
-export function combatHooks(run: RunState, content: Content): NonNullable<HeroSetup['hooks']> & { resources: Partial<Record<'holyPower' | 'charge', number>> } {
+export function combatHooks(run: RunState, content: Content): NonNullable<HeroSetup['hooks']> & { resources: Partial<Record<'holyPower' | 'charge', number>>; revives: number } {
   const flags: string[] = [];
   const fightStart: Effect[] = [];
   const turnStart: Effect[] = [];
@@ -330,12 +334,13 @@ export function combatHooks(run: RunState, content: Content): NonNullable<HeroSe
     turnStart.push(...(c.turnStart ?? []));
     if (c.resource) resources[c.resource.name] = (resources[c.resource.name] ?? 0) + c.resource.amount;
   }
-  if (run.hero.vials.includes('phoenix-feather')) flags.push('reviveOnce');
+  // One revive per Phoenix Feather held, plus the Phylactery's, rather than one flag for all of them.
+  const revives = flags.filter((f) => f === 'reviveOnce').length + run.hero.vials.filter((v) => v === 'phoenix-feather').length;
   flags.push(...(run.fightFlags ?? []));
   for (const [name, amount] of Object.entries(run.startResources ?? {})) {
     if (name === 'holyPower' || name === 'charge') resources[name] = (resources[name] ?? 0) + (amount ?? 0);
   }
-  return { flags, fightStart, turnStart, resources };
+  return { flags, fightStart, turnStart, resources, revives };
 }
 
 // ---------------------------------------------------------------- the map
@@ -443,8 +448,18 @@ export function finishFight(run: RunState, content: Content): void {
   run.hero.hp = s.hero.hp;
   run.hero.gold = s.hero.gold;
   run.hero.vials = [...s.hero.vials];
-  if (s.hero.relics.includes('phylactery') && !s.hero.flags.reviveOnce && !run.hero.relicsUsed.includes('phylactery')) run.hero.relicsUsed.push('phylactery');
-  if (run.hero.vials.includes('phoenix-feather') && !s.hero.flags.reviveOnce) run.hero.vials = run.hero.vials.filter((v) => v !== 'phoenix-feather');
+  // Spend one source per killing blow survived: the Phylactery first, since it is free, then a
+  // feather each. Anything not spent is still held, so a second feather still saves you later.
+  let spent = s.hero.revivesUsed ?? 0;
+  if (spent > 0 && s.hero.relics.includes('phylactery') && !run.hero.relicsUsed.includes('phylactery')) {
+    run.hero.relicsUsed.push('phylactery');
+    spent--;
+  }
+  for (let i = 0; i < spent; i++) {
+    const at = run.hero.vials.indexOf('phoenix-feather');
+    if (at < 0) break;
+    run.hero.vials.splice(at, 1);
+  }
   for (const e of s.enemies) {
     if (e.alive) continue;
     run.stats.kills[e.enemyId] = (run.stats.kills[e.enemyId] ?? 0) + 1;

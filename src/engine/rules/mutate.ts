@@ -123,8 +123,10 @@ function die(state: CombatState, content: Content, target: Combatant): void {
     }
     return;
   }
-  // The hero. A once-per-fight revive (Divine Intervention, Phoenix Feather).
-  if (state.hero.flags.reviveOnce) {
+  // The hero. One revive is spent per killing blow, so two Phoenix Feathers save you twice.
+  if (state.hero.revives > 0) {
+    state.hero.revives--;
+    state.hero.revivesUsed++;
     delete state.hero.flags.reviveOnce;
     state.hero.hp = Math.max(1, Math.ceil(state.hero.maxHp * 0.3));
     state.events.push({ t: 'heal', target: HERO_ID, amount: state.hero.hp, hp: state.hero.hp });
