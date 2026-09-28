@@ -3,6 +3,7 @@ import { explainVial, type Content, type HeroState } from '../../engine/rules';
 import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
+import { fillTokenArt } from '../kit/tokenArt';
 import { makeText, STYLE } from '../kit/text';
 import type { Explainer } from '../kit/explainer';
 
@@ -31,6 +32,7 @@ export class CombatBar extends Container {
       const letter = makeText(relic.name[0]!, { fontFamily: FONT.display, fontWeight: '700', fontSize: 16, fill: PALETTE.goldBright });
       letter.anchor.set(0.5);
       c.addChild(letter);
+      fillTokenArt(c, 'relics', id, { width: 36, height: 36, radius: 18 }, letter);
       c.position.set(x, 28);
       c.eventMode = 'static';
       this.explainer.attach(c, () => this.explainer.forRelic(relic), { side: 'below' });
@@ -50,6 +52,7 @@ export class CombatBar extends Container {
         const l = makeText(vial.name[0]!, { fontFamily: FONT.display, fontWeight: '700', fontSize: 16, fill: PALETTE.parchment });
         l.anchor.set(0.5);
         c.addChild(l);
+        fillTokenArt(c, 'vials', vial.id, { width: 32, height: 36, radius: 8 }, l);
         c.eventMode = 'static';
         c.cursor = 'pointer';
         const hint = this.explainer.attach(c, () => ({ ...explainVial(this.content, vial), body: [{ text: `${vial.text}${vial.target === 'enemy' ? ' Click, then click an enemy.' : ' Click to drink.'}` }] }), { side: 'below' });

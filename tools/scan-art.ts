@@ -10,6 +10,8 @@
  *   enemies/<id>/attack.png     optional; hurt.png, dead.png likewise
  *   enemies/<id>/idle.json      optional Pixi spritesheet (from tools/import-aseprite.ts)
  *   cards/<id>.png|webp         500×380
+ *   relics/<id>.png|webp        256×256, drawn inside the circle
+ *   vials/<id>.png|webp         256×336
  *   portraits/<id>.png|webp     700×900
  *   backgrounds/<key>/far.png   1920×1080, optional mid.png and near.png (transparent)
  * Every artist id must exist in src/content/credits.json.
@@ -50,7 +52,7 @@ function listFiles(dir: string, exts: string[]): string[] {
   return existsSync(dir) ? readdirSync(dir).filter((f) => exts.some((e) => f.endsWith(e))) : [];
 }
 
-const manifest: ArtManifest = { generated: new Date().toISOString().slice(0, 10), enemies: {}, cards: {}, portraits: {}, backgrounds: {} };
+const manifest: ArtManifest = { generated: new Date().toISOString().slice(0, 10), enemies: {}, cards: {}, relics: {}, vials: {}, portraits: {}, backgrounds: {} };
 
 for (const id of listDirs(join(ART, 'enemies'))) {
   const dir = join(ART, 'enemies', id);
@@ -101,6 +103,16 @@ for (const f of listFiles(join(ART, 'cards'), ['.png', '.webp'])) {
   const d = await dims(join(ART, 'cards', f));
   if (d.width !== 500 || d.height !== 380) note(`cards/${f} is ${d.width}×${d.height}; card art is 500×380`);
   manifest.cards[id] = { url: `art/cards/${f}` };
+}
+
+// Token art: relics ride a circle, vials a rounded slot. Both are drawn far larger than they show.
+for (const [dir, size] of [['relics', [256, 256]], ['vials', [256, 336]]] as const) {
+  for (const f of listFiles(join(ART, dir), ['.png', '.webp'])) {
+    const id = f.replace(/\.(png|webp)$/, '');
+    const d = await dims(join(ART, dir, f));
+    if (d.width !== size[0] || d.height !== size[1]) note(`${dir}/${f} is ${d.width}×${d.height}; ${dir === 'relics' ? 'a relic' : 'a vial'} is ${size[0]}×${size[1]}`);
+    manifest[dir][id] = { url: `art/${dir}/${f}` };
+  }
 }
 
 for (const f of listFiles(join(ART, 'portraits'), ['.png', '.webp'])) {
@@ -154,10 +166,23 @@ if (wanted) {
     if (manifest.cards[c.id]) continue;
     console.log(`  ${c.id.padEnd(24)} ${c.name.padEnd(26)} ${c.class} · ${c.rarity}`);
   }
+  const relics = read('relics.json') as unknown as { id: string; name: string; tier: string }[];
+  const vials = read('vials.json') as unknown as { id: string; name: string; rarity: string }[];
+  for (const [what, list, size, held] of [
+    ['RELICS', relics, '256×256, shown in a circle', manifest.relics],
+    ['VIALS', vials, '256×336', manifest.vials],
+  ] as const) {
+    const drawn = list.filter((x) => held[x.id]).length;
+    console.log(`\n${what} WANTED (${list.length - drawn} of ${list.length}) — ${size}\n`);
+    for (const x of list) {
+      if (held[x.id]) continue;
+      console.log(`  ${x.id.padEnd(24)} ${x.name.padEnd(26)} ${'tier' in x ? x.tier : x.rarity}`);
+    }
+  }
   console.log('');
   process.exit(0);
 }
-const summary = `art: ${Object.keys(manifest.enemies).length} enemies, ${Object.keys(manifest.cards).length} cards, ${Object.keys(manifest.portraits).length} portraits, ${Object.keys(manifest.backgrounds).length} backgrounds`;
+const summary = `art: ${Object.keys(manifest.enemies).length} enemies, ${Object.keys(manifest.cards).length} cards, ${Object.keys(manifest.relics).length} relics, ${Object.keys(manifest.vials).length} vials, ${Object.keys(manifest.portraits).length} portraits, ${Object.keys(manifest.backgrounds).length} backgrounds`;
 if (check) {
   console.log(`${summary} (check only)`);
 } else {

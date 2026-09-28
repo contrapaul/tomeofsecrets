@@ -220,7 +220,12 @@ cd ~/Documents/GitHub/tomeofsecrets && npm run art
 there is no `art:` field to set on the enemy.
 
 **Cards.** Save a 500×380 image as `public/art/cards/<card-id>.png` and run
-`npm run art`. Same rule: the filename is the card's `id`.
+`npm run art`. Same rule: the filename is the card's `id`. Only the middle
+282 rows show on the card, so keep the subject centred.
+
+**Relics and vials.** A relic is **256×256** in `public/art/relics/<relic-id>.png`
+and shows in a circle; a vial is **256×336** in `public/art/vials/<vial-id>.png`.
+Filename is the id, then `npm run art`.
 
 **Portraits** are 700×900 in `public/art/portraits/`; **backgrounds** are
 1920×1080 in `public/art/backgrounds/<key>/far.png`, with optional `mid.png`

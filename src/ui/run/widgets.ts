@@ -9,6 +9,7 @@ import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 import type { Tooltip } from '../kit/tooltip';
 import type { Explainer } from '../kit/explainer';
+import { fillTokenArt } from '../kit/tokenArt';
 
 /** A card for a reward or shop row: hover lifts, click chooses. */
 export function offerCard(content: ContentRegistry, cardId: string, uid: number, scale: number, onPick: () => void, explainer?: Explainer): CardView | null {
@@ -40,6 +41,7 @@ export function relicToken(content: ContentRegistry, id: string, tooltip: Toolti
   const letter = makeText(relic?.name[0] ?? '?', { fontFamily: FONT.display, fontWeight: '900', fontSize: 40, fill: PALETTE.goldBright });
   letter.anchor.set(0.5);
   c.addChild(letter);
+  fillTokenArt(c, 'relics', id, { width: 88, height: 88, radius: 44 }, letter);
   const name = makeText(relic?.name ?? id, { ...STYLE.display(20), fill: PALETTE.parchment });
   name.anchor.set(0.5, 0);
   name.position.set(0, 56);
@@ -77,6 +79,7 @@ export function vialToken(content: ContentRegistry, id: string, tooltip: Tooltip
   const letter = makeText(vial?.name[0] ?? '?', { fontFamily: FONT.display, fontWeight: '900', fontSize: 30, fill: PALETTE.parchment });
   letter.anchor.set(0.5);
   c.addChild(letter);
+  fillTokenArt(c, 'vials', id, { width: 52, height: 68, radius: 14 }, letter);
   const name = makeText(vial?.name ?? id, { ...STYLE.display(18), fill: PALETTE.parchment });
   name.anchor.set(0.5, 0);
   name.position.set(0, 44);

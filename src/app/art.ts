@@ -28,6 +28,7 @@ export interface EnemyTextures {
 
 const enemyCache = new Map<string, EnemyTextures>();
 const cardCache = new Map<string, Texture>();
+const tokenCache = new Map<string, Texture>();
 
 /** Load one asset; a bad or missing file logs and yields undefined rather than breaking the scene. */
 async function safe<T>(url: string | undefined): Promise<T | undefined> {
@@ -89,6 +90,19 @@ export async function loadCardArt(id: string): Promise<Texture | null> {
   const cropped = new Texture({ source: full.source, frame: new Rectangle(0, Math.round((full.height - h) / 2), w, h) });
   cardCache.set(id, cropped);
   return cropped;
+}
+
+/** A relic or vial token's drawing. Null when nobody has drawn it yet. */
+export async function loadTokenArt(kind: 'relics' | 'vials', id: string): Promise<Texture | null> {
+  const entry = ART[kind][id];
+  if (!entry) return null;
+  const key = `${kind}/${id}`;
+  const cached = tokenCache.get(key);
+  if (cached) return cached;
+  const tex = await safe<Texture>(entry.url);
+  if (!tex) return null;
+  tokenCache.set(key, tex);
+  return tex;
 }
 
 export async function loadCardArtFor(ids: string[]): Promise<Map<string, Texture>> {

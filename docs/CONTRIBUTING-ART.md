@@ -140,6 +140,30 @@ are in `src/content/cards/*.json`, or run `npm run art -- --wanted` for the list
 what has no art yet. Attack cards read best with the action (the swing, the bolt);
 skills with the effect (the shield, the trap); powers with a symbol.
 
+## Relics and vials
+
+These are the small tokens along the top of the screen and in the shop, and they are
+the easiest thing on this page to draw: **one object, bold, no background needed**.
+
+| What | Canvas | Shown at | Shape |
+|---|---|---|---|
+| Relic | **256 × 256** ([template](../public/art/templates/relic.png)) | 88 px | a circle — the corners are clipped |
+| Vial | **256 × 336** ([template](../public/art/templates/vial.png)) | 52 × 68 | a rounded bottle slot |
+
+- **A relic is a circle.** Anything outside the gold ring on the template is cut off.
+  Keep the object centred and let it fill the circle.
+- **A vial is a bottle.** The slot is tall and narrow with rounded corners. Strong
+  silhouette, one colour that says what it does — red for healing, blue for frost.
+- They are drawn **small**. At 88 px a relic is about a third of your canvas, so it
+  wants one clear shape, not a scene. Squint at it: if you can still tell what it is,
+  it works.
+- Transparent backgrounds are fine; so is a filled one, since the token clips it.
+
+Name the file after the relic or vial id: `public/art/relics/phylactery.png`,
+`public/art/vials/ember-vial.png`. The ids are in `src/content/relics.json` and
+`src/content/vials.json`, and `npm run art -- --wanted` lists every one still
+undrawn — 40 relics and 13 vials at the time of writing, so there is plenty to go at.
+
 ## Portraits
 
 Portraits for dialogue: 700 × 900 bust, transparent, facing inward
@@ -152,7 +176,7 @@ Phase 8; ask before drawing one.
 npm run art -- --wanted
 ```
 
-prints every enemy and card without art, with the template size for each. Enemies
+prints every enemy, card, relic and vial without art, with the size for each. Enemies
 are the biggest win per drawing (a fight is mostly enemy); bosses and elites most of
 all. Backgrounds are one per chapter. Cards are many and small.
 

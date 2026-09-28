@@ -4,6 +4,7 @@ import type { ContentRegistry } from '../../content';
 import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
+import { fillTokenArt } from '../kit/tokenArt';
 import { makeText, STYLE } from '../kit/text';
 import type { Explainer } from '../kit/explainer';
 
@@ -50,6 +51,7 @@ export class RunBar extends Container {
       const letter = makeText(relic.name[0]!, { fontFamily: FONT.display, fontWeight: '700', fontSize: 18, fill: PALETTE.goldBright });
       letter.anchor.set(0.5);
       c.addChild(letter);
+      fillTokenArt(c, 'relics', id, { width: 40, height: 40, radius: 20 }, letter);
       c.position.set(x + 20, 32);
       c.eventMode = 'static';
       this.explainer.attach(c, () => this.explainer.forRelic(relic), { side: 'below' });
@@ -83,6 +85,7 @@ export class RunBar extends Container {
         const l = makeText(vial.name[0]!, { fontFamily: FONT.display, fontWeight: '700', fontSize: 16, fill: PALETTE.parchment });
         l.anchor.set(0.5);
         c.addChild(l);
+        fillTokenArt(c, 'vials', vial.id, { width: 32, height: 36, radius: 8 }, l);
         c.eventMode = 'static';
         this.explainer.attach(c, () => this.explainer.forVial(vial), { side: 'below' });
       }
