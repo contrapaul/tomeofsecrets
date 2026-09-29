@@ -1,5 +1,22 @@
 [
-  { "id": "placeholder", "name": "Placeholder", "role": "art" },
-  { "id": "paul-k", "name": "Mr K", "role": "design" },
-  { "id": "claude", "name": "Claude", "role": "code" }
+  {
+    "id": "placeholder",
+    "name": "Placeholder",
+    "role": "art"
+  },
+  {
+    "id": "sophia-t",
+    "name": "Sophia T",
+    "role": "art"
+  },
+  {
+    "id": "paul-k",
+    "name": "Mr K",
+    "role": "design"
+  },
+  {
+    "id": "claude",
+    "name": "Claude",
+    "role": "code"
+  }
 ]

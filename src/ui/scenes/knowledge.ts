@@ -106,7 +106,7 @@ export function knowledgeScene(ctx: SceneContext): Scene {
       view.addChild(rule);
 
       const back = new Button({ label: 'Back', variant: 'ghost', width: 200, height: 52, onPress: () => window.history.back() });
-      back.position.set(150, DESIGN.height - 70);
+      back.position.set(150, DESIGN.height - 110);
       view.addChild(back);
 
       paintMenu();

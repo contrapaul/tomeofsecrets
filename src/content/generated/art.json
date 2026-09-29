@@ -13,7 +13,7 @@
     "bramble-sprite": {
       "idle": "art/enemies/bramble-sprite/idle.png",
       "size": "small",
-      "artist": "paul-k",
+      "artist": "sophia-t",
       "width": 400,
       "height": 400,
       "top": 12,
@@ -73,7 +73,7 @@
     "mad-cartographer": {
       "idle": "art/enemies/mad-cartographer/idle.png",
       "size": "large",
-      "artist": "paul-k",
+      "artist": "sophia-t",
       "width": 700,
       "height": 640,
       "top": 60

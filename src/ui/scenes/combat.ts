@@ -115,7 +115,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
   // The art set is a setting, so a fight picks it up the next time it starts.
-  let bgKey = setup.background ?? backgroundFor('chapter1', ctx.settings.get().artwork);
+  let bgKey = backgroundFor(setup.background ?? 'chapter1', ctx.settings.get().artwork);
   let overlayInFront = true;
   const tuning = copyLayers(DEFAULT_LAYERS);
   let closeTuner: (() => void) | null = null;

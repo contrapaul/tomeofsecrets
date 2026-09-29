@@ -131,7 +131,7 @@ export interface BackgroundTextures {
  * `development` the game keeps asking for the placeholder, so both sets stay
  * side by side and the difference is one setting rather than one commit.
  */
-const ALPHA_BACKGROUNDS: Record<string, string> = { chapter1: 'moss-halls' };
+const ALPHA_BACKGROUNDS: Record<string, string> = { chapter1: 'moss-halls', chapter2: 'moss-halls', chapter3: 'moss-halls' };
 
 export function backgroundFor(key: string, artwork: Artwork): string {
   return artwork === 'alpha' ? ALPHA_BACKGROUNDS[key] ?? key : key;

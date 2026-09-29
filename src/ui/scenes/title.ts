@@ -83,7 +83,7 @@ export function titleScene(ctx: SceneContext): Scene {
       const unsub = acct.on(rebuildAccountLine);
       view.once('destroyed', unsub);
 
-      const version = makeText(`v0.0.1 · phase 6 · ${profileStore().profile.lore} lore`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+      const version = makeText(`v0.2.0 · phase 7 · ${profileStore().profile.lore} lore`, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
       version.alpha = 0.6;
       version.position.set(24, DESIGN.height - 40);
       view.addChild(version);
