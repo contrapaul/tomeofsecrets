@@ -1,0 +1,90 @@
+{
+  "id": "drowned-archivist",
+  "name": "The Drowned Archivist",
+  "size": "large",
+  "tags": [
+    "undead",
+    "humanoid"
+  ],
+  "hp": [
+    300,
+    300
+  ],
+  "rank": "boss",
+  "secret": "catalogue",
+  "moves": {
+    "flood": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "chill",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "catalogue": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "addCard",
+          "card": "smudge",
+          "to": "discard",
+          "count": 2
+        }
+      ],
+      "name": "Catalogue"
+    },
+    "slam": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 18,
+          "target": "hero"
+        }
+      ]
+    },
+    "undertow": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "discard",
+          "from": "random",
+          "count": 2
+        }
+      ],
+      "name": "Undertow"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "flood",
+      "catalogue",
+      "slam"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "undertow",
+          "slam",
+          "flood"
+        ]
+      }
+    }
+  ],
+  "flavour": "Everything in its place, and every place under water.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

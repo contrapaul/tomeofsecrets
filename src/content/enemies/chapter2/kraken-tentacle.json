@@ -1,0 +1,35 @@
+{
+  "id": "kraken-tentacle",
+  "name": "Kraken's Tentacle",
+  "size": "small",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    40,
+    40
+  ],
+  "rank": "minion",
+  "moves": {
+    "slap": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "slap"
+    ]
+  },
+  "flavour": "One of many. There are always more.",
+  "chapter": 2,
+  "artist": "placeholder",
+  "secret": "constrict"
+}

@@ -1,0 +1,72 @@
+{
+  "chapter": 3,
+  "easy": [
+    [
+      "marginalia-imp",
+      "marginalia-imp",
+      "marginalia-imp"
+    ],
+    [
+      "void-moth",
+      "void-moth"
+    ],
+    [
+      "time-moth"
+    ]
+  ],
+  "normal": [
+    [
+      "glyph-golem"
+    ],
+    [
+      "mirror-page"
+    ],
+    [
+      "candle-wraith"
+    ],
+    [
+      "inkblot-horror"
+    ],
+    [
+      "automaton-scribe"
+    ],
+    [
+      "bound-demon"
+    ],
+    [
+      "time-moth",
+      "void-moth"
+    ],
+    [
+      "candle-wraith",
+      "marginalia-imp",
+      "marginalia-imp"
+    ],
+    [
+      "mirror-page",
+      "time-moth"
+    ]
+  ],
+  "elite": [
+    [
+      "proofreader"
+    ],
+    [
+      "ironbound"
+    ],
+    [
+      "spellthief"
+    ]
+  ],
+  "boss": [
+    [
+      "the-binder"
+    ],
+    [
+      "blank-page"
+    ],
+    [
+      "the-author"
+    ]
+  ]
+}

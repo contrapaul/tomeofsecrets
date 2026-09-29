@@ -1,0 +1,83 @@
+{
+  "id": "deep-reader",
+  "name": "The Deep Reader",
+  "size": "large",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    320,
+    320
+  ],
+  "rank": "boss",
+  "secret": "foretell",
+  "moves": {
+    "foretell": {
+      "intent": "special",
+      "effects": [
+        {
+          "do": "exhaust",
+          "from": "random",
+          "count": 1
+        }
+      ],
+      "name": "Foretell"
+    },
+    "gaze": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 14,
+          "target": "hero"
+        }
+      ]
+    },
+    "crush": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 22,
+          "target": "hero"
+        }
+      ]
+    },
+    "recite": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero",
+          "times": 2
+        }
+      ],
+      "name": "Recite"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "foretell",
+      "gaze",
+      "crush"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "recite",
+          "crush",
+          "gaze"
+        ]
+      }
+    }
+  ],
+  "flavour": "It is already three pages ahead of you.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

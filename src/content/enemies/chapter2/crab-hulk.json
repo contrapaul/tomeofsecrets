@@ -1,0 +1,49 @@
+{
+  "id": "crab-hulk",
+  "name": "Crab Hulk",
+  "size": "large",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    70,
+    76
+  ],
+  "secret": "pinch",
+  "moves": {
+    "pinch": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "hero",
+          "times": 2
+        }
+      ]
+    },
+    "shell": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 12,
+          "target": "self"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "pinch",
+      "shell"
+    ]
+  },
+  "start": {
+    "enrage": 2
+  },
+  "flavour": "Hitting it harder is exactly what it wants.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

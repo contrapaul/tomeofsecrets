@@ -1,0 +1,76 @@
+{
+  "id": "chained-reader",
+  "name": "Chained Reader",
+  "size": "medium",
+  "tags": [
+    "humanoid"
+  ],
+  "hp": [
+    56,
+    62
+  ],
+  "secret": "break-chains",
+  "moves": {
+    "yank": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "hero"
+        },
+        {
+          "do": "script",
+          "id": "ink-trap"
+        }
+      ]
+    },
+    "rend": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "hero"
+        }
+      ]
+    },
+    "break-chains": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 4,
+          "target": "self"
+        }
+      ],
+      "once": true,
+      "name": "Break Chains"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "yank",
+      "rend"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "onEnter": "break-chains",
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "rend",
+          "rend",
+          "yank"
+        ]
+      }
+    }
+  ],
+  "flavour": "The chain is not there to keep it in.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

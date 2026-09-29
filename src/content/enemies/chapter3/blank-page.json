@@ -1,0 +1,72 @@
+{
+  "id": "blank-page",
+  "name": "The Blank Page",
+  "size": "large",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    380,
+    380
+  ],
+  "rank": "boss",
+  "secret": "blank-page",
+  "moves": {
+    "mirror": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero",
+          "times": 2
+        }
+      ],
+      "name": "Mirror"
+    },
+    "erase": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 20,
+          "target": "hero"
+        }
+      ]
+    },
+    "double": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero",
+          "times": 4
+        }
+      ],
+      "name": "Double"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "mirror",
+      "erase"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "double",
+          "erase"
+        ]
+      }
+    }
+  ],
+  "flavour": "Nothing is written here. That is the threat.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

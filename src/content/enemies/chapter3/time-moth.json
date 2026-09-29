@@ -1,0 +1,60 @@
+{
+  "id": "time-moth",
+  "name": "Time Moth",
+  "size": "small",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    40,
+    44
+  ],
+  "secret": "delay",
+  "moves": {
+    "delay": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "wait",
+          "amount": 1,
+          "target": "hero"
+        }
+      ],
+      "name": "Delay"
+    },
+    "skitter": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "hero"
+        }
+      ]
+    },
+    "rewind": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "heal",
+          "amount": 12,
+          "target": "self"
+        }
+      ],
+      "once": true
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "delay": 2,
+      "skitter": 3,
+      "rewind": 1
+    },
+    "noRepeat": 1
+  },
+  "flavour": "You have met it before. It has not met you yet.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

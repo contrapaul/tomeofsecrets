@@ -1,0 +1,84 @@
+{
+  "id": "spellthief",
+  "name": "Spellthief",
+  "size": "medium",
+  "tags": [
+    "humanoid"
+  ],
+  "hp": [
+    190,
+    190
+  ],
+  "rank": "elite",
+  "secret": "spellsteal",
+  "moves": {
+    "steal": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "exhaust",
+          "from": "random",
+          "count": 1
+        }
+      ],
+      "name": "Steal"
+    },
+    "zap": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "hero"
+        }
+      ]
+    },
+    "blink": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 12,
+          "target": "self"
+        }
+      ],
+      "hidden": true
+    },
+    "cast": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero",
+          "times": 2
+        }
+      ],
+      "name": "Cast"
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "steal": 2,
+      "zap": 3,
+      "blink": 2
+    },
+    "noRepeat": 1
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "cast",
+          "zap"
+        ]
+      }
+    }
+  ],
+  "flavour": "It is using your own good idea against you.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

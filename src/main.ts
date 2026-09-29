@@ -19,6 +19,7 @@ import { d, enemyTurn, setEnemyPace, setMotion } from './ui/kit/motion';
 import { bindTextToStage } from './ui/kit/text';
 import { creditsScene } from './ui/scenes/credits';
 import { bossRewardScene } from './ui/run/bossReward';
+import { chapterEndScene } from './ui/run/chapterEnd';
 import { campScene } from './ui/run/camp';
 import { runEndScene } from './ui/run/end';
 import { eventScene } from './ui/run/event';
@@ -87,6 +88,7 @@ async function boot(): Promise<void> {
     .register('/run/treasure', treasureScene)
     .register('/run/event', eventScene)
     .register('/run/boss-reward', bossRewardScene)
+    .register('/run/chapter', chapterEndScene)
     .register('/run/end', runEndScene)
     .register('/dev/stats', devStatsScene)
     .register('/dev/text', devTextScene)

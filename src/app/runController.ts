@@ -150,6 +150,7 @@ class RunController {
       case 'event': return '/run/event';
       case 'treasure': return '/run/treasure';
       case 'bossReward': return '/run/boss-reward';
+      case 'chapterEnd': return '/run/chapter';
       case 'won':
       case 'lost': return '/run/end';
     }

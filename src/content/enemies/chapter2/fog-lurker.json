@@ -1,0 +1,66 @@
+{
+  "id": "fog-lurker",
+  "name": "Fog Lurker",
+  "size": "medium",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    52,
+    58
+  ],
+  "secret": "ambush",
+  "moves": {
+    "ambush": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 13,
+          "target": "hero"
+        }
+      ],
+      "hidden": true
+    },
+    "slink": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 10,
+          "target": "self"
+        }
+      ],
+      "hidden": true
+    },
+    "grab": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 1,
+          "target": "hero"
+        }
+      ],
+      "hidden": true
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "ambush": 3,
+      "slink": 2,
+      "grab": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "You will know what it was doing once it has done it.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

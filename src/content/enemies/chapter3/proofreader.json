@@ -1,0 +1,89 @@
+{
+  "id": "proofreader",
+  "name": "The Proofreader",
+  "size": "large",
+  "tags": [
+    "construct",
+    "humanoid"
+  ],
+  "hp": [
+    200,
+    210
+  ],
+  "rank": "elite",
+  "secret": "redline",
+  "moves": {
+    "redline": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "removeStatus",
+          "status": "buffs",
+          "target": "hero"
+        }
+      ],
+      "name": "Redline"
+    },
+    "strike": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 18,
+          "target": "hero"
+        }
+      ]
+    },
+    "correct": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 2,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "final-draft": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 30,
+          "target": "hero"
+        }
+      ],
+      "name": "Final Draft"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "redline",
+      "strike",
+      "correct"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "final-draft",
+          "strike"
+        ]
+      }
+    }
+  ],
+  "flavour": "It does not hate your work. It simply will not have it.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

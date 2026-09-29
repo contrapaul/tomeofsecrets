@@ -1,0 +1,99 @@
+{
+  "id": "bound-demon",
+  "name": "Bound Demon",
+  "size": "large",
+  "tags": [
+    "demon"
+  ],
+  "hp": [
+    110,
+    120
+  ],
+  "secret": "unbind",
+  "moves": {
+    "claw": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero"
+        }
+      ]
+    },
+    "roar": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 2,
+          "target": "self"
+        }
+      ]
+    },
+    "hellfire": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "unbind": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 5,
+          "target": "self"
+        }
+      ],
+      "once": true,
+      "name": "Unbind"
+    },
+    "rend": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 18,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "claw",
+      "roar",
+      "hellfire"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.6,
+      "onEnter": "unbind",
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "rend",
+          "hellfire"
+        ]
+      }
+    }
+  ],
+  "flavour": "Count the turns. That is the whole fight.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

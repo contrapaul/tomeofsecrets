@@ -1,0 +1,113 @@
+{
+  "id": "the-author",
+  "name": "The Author",
+  "size": "large",
+  "tags": [
+    "humanoid",
+    "spirit"
+  ],
+  "hp": [
+    450,
+    450
+  ],
+  "rank": "boss",
+  "secret": "plot-twist",
+  "moves": {
+    "plot-twist": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "addCard",
+          "card": "doubt",
+          "to": "draw",
+          "count": 1
+        }
+      ],
+      "name": "Plot Twist"
+    },
+    "edit": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "removeStatus",
+          "status": "strength",
+          "target": "hero"
+        },
+        {
+          "do": "removeStatus",
+          "status": "dexterity",
+          "target": "hero"
+        }
+      ],
+      "name": "Edit"
+    },
+    "chapter-break": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 26,
+          "target": "hero"
+        }
+      ],
+      "name": "Chapter Break"
+    },
+    "cliffhanger": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "hero",
+          "times": 3
+        }
+      ],
+      "name": "Cliffhanger"
+    },
+    "the-end": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 40,
+          "target": "hero"
+        }
+      ],
+      "name": "The End"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "plot-twist",
+      "edit",
+      "chapter-break"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.6,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "cliffhanger",
+          "chapter-break",
+          "edit"
+        ]
+      }
+    },
+    {
+      "below": 0.25,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "the-end",
+          "cliffhanger"
+        ]
+      }
+    }
+  ],
+  "flavour": "You were always going to reach this page.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

@@ -1,0 +1,64 @@
+{
+  "id": "ghost-scholar",
+  "name": "Ghost Scholar",
+  "size": "small",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    30,
+    34
+  ],
+  "secret": "haunting-whisper",
+  "moves": {
+    "haunt": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "hero"
+        },
+        {
+          "do": "addCard",
+          "card": "torn-page",
+          "to": "discard"
+        }
+      ]
+    },
+    "lecture": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "whisper": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "haunt": 3,
+      "lecture": 2,
+      "whisper": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "It is still marking work that was handed in centuries ago.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

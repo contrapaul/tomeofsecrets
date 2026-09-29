@@ -1,0 +1,77 @@
+{
+  "id": "barnacle-golem",
+  "name": "Barnacle Golem",
+  "size": "large",
+  "tags": [
+    "construct"
+  ],
+  "hp": [
+    80,
+    88
+  ],
+  "secret": "encrust",
+  "moves": {
+    "slam": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 14,
+          "target": "hero"
+        }
+      ]
+    },
+    "encrust": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "status",
+          "status": "platedArmor",
+          "amount": 4,
+          "target": "self"
+        }
+      ]
+    },
+    "crumble": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "removeStatus",
+          "status": "platedArmor",
+          "target": "self"
+        },
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "self"
+        }
+      ],
+      "once": true
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "slam",
+      "encrust"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "onEnter": "crumble",
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "slam",
+          "slam",
+          "encrust"
+        ]
+      }
+    }
+  ],
+  "flavour": "Something wore this shell before it did.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

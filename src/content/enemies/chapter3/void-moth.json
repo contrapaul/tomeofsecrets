@@ -1,0 +1,58 @@
+{
+  "id": "void-moth",
+  "name": "Void Moth",
+  "size": "small",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    36,
+    40
+  ],
+  "secret": "consume",
+  "moves": {
+    "dust": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "exhaust",
+          "from": "random",
+          "count": 1
+        }
+      ],
+      "name": "Dust"
+    },
+    "bite": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 6,
+          "target": "hero"
+        }
+      ]
+    },
+    "flutter": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 6,
+          "target": "self"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "dust": 2,
+      "bite": 3,
+      "flutter": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "It eats the parts you were saving.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

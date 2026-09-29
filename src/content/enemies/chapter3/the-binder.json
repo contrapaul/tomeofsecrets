@@ -1,0 +1,93 @@
+{
+  "id": "the-binder",
+  "name": "The Binder",
+  "size": "large",
+  "tags": [
+    "construct"
+  ],
+  "hp": [
+    400,
+    400
+  ],
+  "rank": "boss",
+  "secret": "bind",
+  "moves": {
+    "bind": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "script",
+          "id": "bind"
+        }
+      ],
+      "name": "Bind"
+    },
+    "clasp": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 22,
+          "target": "hero"
+        }
+      ]
+    },
+    "press": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "hero",
+          "times": 2
+        }
+      ]
+    },
+    "seal": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "wait",
+          "amount": 1,
+          "target": "hero"
+        }
+      ],
+      "name": "Seal"
+    },
+    "crush": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 30,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "bind",
+      "clasp",
+      "press"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "seal",
+          "crush",
+          "press"
+        ]
+      }
+    }
+  ],
+  "flavour": "It closes things. That is all it has ever done.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

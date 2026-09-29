@@ -2,7 +2,7 @@ import type { Boon, Card, ClassId, CompanionId, Effect, ResourceName } from '../
 import type { RunLedger } from '../meta/profile';
 import { createStreams, restoreStreams, saveStreams, type StreamStates, type Streams } from '../rng';
 import { createCombat, setHooks, type CombatState, type Content, type HeroSetup } from '../rules';
-import { findNode, generateMap, reachable, type MapNode, type RunMap } from './map';
+import { findNode, generateMap, reachable, type MapNode, type RunMap, MAP_FLOORS } from './map';
 import { knownEvents, registerEvents, resumeAfterFight, startDialogue, type DialogueState } from './events';
 import { offerCards, relicPool, rollBossRelics, rollGold, rollRelic, rollVial } from './rewards';
 
@@ -32,7 +32,7 @@ export interface RunHero {
   companion?: CompanionId;
 }
 
-export type RunPhase = 'map' | 'fight' | 'reward' | 'shop' | 'camp' | 'event' | 'treasure' | 'bossReward' | 'won' | 'lost';
+export type RunPhase = 'map' | 'fight' | 'reward' | 'shop' | 'camp' | 'event' | 'treasure' | 'bossReward' | 'chapterEnd' | 'won' | 'lost';
 
 export interface RewardState {
   kind: 'fight' | 'elite' | 'boss';
@@ -355,7 +355,9 @@ export function enterNode(run: RunState, content: Content, nodeId: string): void
   if (!node || !availableNodes(run).some((n) => n.id === nodeId)) return;
   run.position = nodeId;
   run.visited.push(nodeId);
-  run.stats.floorsClimbed = Math.max(run.stats.floorsClimbed, node.floor);
+  // Every chapter's map starts at floor 1, but a run climbs through all of them:
+  // Lore, the ledger and "best floor" all want the total.
+  run.stats.floorsClimbed = Math.max(run.stats.floorsClimbed, (run.chapter - 1) * (MAP_FLOORS + 1) + node.floor);
   let type = node.type;
   if (type === 'unknown') {
     type = run.rng.events.weighted(['event', 'fight', 'merchant', 'treasure'] as const, [55, 25, 10, 10]);
@@ -505,8 +507,11 @@ export function finishFight(run: RunState, content: Content): void {
   if (run.reward.relic) takeRewardRelic(run, content);
   takeVial(run);
   if (f.kind === 'boss') {
-    run.bossRelics = rollBossRelics(run.rng.rewards, content, run.hero.classId, run.hero.relics, 3, run.pool?.relics);
-    run.hero.hp = run.hero.maxHp;
+    // Chapter 3's boss ends the run, so there is nothing to offer and nothing to heal for.
+    if (run.chapter < 3) {
+      run.bossRelics = rollBossRelics(run.rng.rewards, content, run.hero.classId, run.hero.relics, 3, run.pool?.relics);
+      run.hero.hp = Math.min(run.hero.maxHp, run.hero.hp + Math.ceil(run.hero.maxHp * chapterHeal(run)));
+    }
   }
   run.afterReward = f.fromEvent ? 'event' : 'map';
   run.fight = null;
@@ -589,12 +594,39 @@ export function finishReward(run: RunState, content: Content): void {
   run.phase = 'map';
 }
 
+/**
+ * How much of the hero's health a chapter transition gives back (design.md §7.2):
+ * all of it after Chapter 1, three quarters after Chapter 2, half of either at Seal 5.
+ */
+export function chapterHeal(run: RunState): number {
+  if (run.seal >= 5) return 0.5;
+  return run.chapter === 1 ? 1 : 0.75;
+}
+
 export function takeBossRelic(run: RunState, content: Content, id: string): void {
   if (run.phase !== 'bossReward' || !run.bossRelics?.includes(id)) return;
   if (!addRelic(run, content, id)) return;
   run.bossRelics = null;
-  // Chapter 1 is the whole run until Phase 7 adds the rest.
-  run.phase = 'won';
+  run.phase = 'chapterEnd';
+}
+
+/**
+ * Past the boss and into the next chapter: a fresh map, a fresh encounter pool, and
+ * the floor count starts again. The deck, relics, gold and health all carry.
+ */
+export function nextChapter(run: RunState, content: Content): void {
+  if (run.chapter >= 3) {
+    run.phase = 'won';
+    return;
+  }
+  run.chapter = (run.chapter + 1) as 1 | 2 | 3;
+  if (!content.encounters?.[run.chapter]) throw new Error(`no encounters for chapter ${run.chapter}`);
+  run.map = generateMap(run.rng.map, run.chapter, { moreElites: run.seal >= 1 });
+  run.position = null;
+  run.visited = [];
+  run.used = [];
+  run.fightsThisChapter = 0;
+  run.phase = 'map';
 }
 
 // ---------------------------------------------------------------- shop

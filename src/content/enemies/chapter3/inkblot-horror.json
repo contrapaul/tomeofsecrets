@@ -1,0 +1,72 @@
+{
+  "id": "inkblot-horror",
+  "name": "Inkblot Horror",
+  "size": "large",
+  "tags": [
+    "ooze"
+  ],
+  "hp": [
+    100,
+    110
+  ],
+  "secret": "blot-out",
+  "minion": "ink-inkling",
+  "moves": {
+    "consume": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 12,
+          "target": "hero"
+        },
+        {
+          "do": "addCard",
+          "card": "torn-page",
+          "to": "discard",
+          "count": 1
+        }
+      ]
+    },
+    "spread": {
+      "intent": "summon",
+      "effects": [
+        {
+          "do": "summon",
+          "enemy": "ink-inkling",
+          "count": 1,
+          "max": 2
+        }
+      ]
+    },
+    "blot": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 2,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "consume": 3,
+      "spread": 2,
+      "blot": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "Every page it touches becomes more of it.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

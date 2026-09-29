@@ -1,0 +1,60 @@
+{
+  "id": "glyph-golem",
+  "name": "Glyph Golem",
+  "size": "large",
+  "tags": [
+    "construct"
+  ],
+  "hp": [
+    90,
+    100
+  ],
+  "secret": "ward-glyph",
+  "start": {
+    "artifact": 2
+  },
+  "moves": {
+    "slam": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 16,
+          "target": "hero"
+        }
+      ]
+    },
+    "inscribe": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 3,
+          "target": "self"
+        }
+      ]
+    },
+    "ward": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 15,
+          "target": "self"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "slam",
+      "inscribe",
+      "ward"
+    ]
+  },
+  "flavour": "The words holding it together are the ones holding it back.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

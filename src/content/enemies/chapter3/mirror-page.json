@@ -1,0 +1,52 @@
+{
+  "id": "mirror-page",
+  "name": "Mirror Page",
+  "size": "medium",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    60,
+    66
+  ],
+  "secret": "reflect",
+  "moves": {
+    "reflect": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 12,
+          "target": "self"
+        },
+        {
+          "do": "status",
+          "status": "thorns",
+          "amount": 6,
+          "target": "self"
+        }
+      ],
+      "name": "Reflect"
+    },
+    "cut": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 8,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "reflect",
+      "cut"
+    ]
+  },
+  "flavour": "It shows you your own swing, a moment late.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

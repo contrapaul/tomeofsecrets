@@ -1,0 +1,74 @@
+{
+  "chapter": 2,
+  "easy": [
+    [
+      "lantern-eel",
+      "lantern-eel"
+    ],
+    [
+      "ghost-scholar",
+      "ghost-scholar"
+    ],
+    [
+      "drowned-scribe"
+    ]
+  ],
+  "normal": [
+    [
+      "barnacle-golem"
+    ],
+    [
+      "siren",
+      "lantern-eel"
+    ],
+    [
+      "fog-lurker"
+    ],
+    [
+      "crab-hulk"
+    ],
+    [
+      "chained-reader"
+    ],
+    [
+      "rotwood-wight"
+    ],
+    [
+      "drowned-scribe",
+      "drowned-scribe"
+    ],
+    [
+      "siren",
+      "siren"
+    ],
+    [
+      "ghost-scholar",
+      "ghost-scholar",
+      "ghost-scholar"
+    ]
+  ],
+  "elite": [
+    [
+      "tide-warden"
+    ],
+    [
+      "drowned-choir",
+      "drowned-choir",
+      "drowned-choir"
+    ],
+    [
+      "leviathan-spawn"
+    ]
+  ],
+  "boss": [
+    [
+      "drowned-archivist"
+    ],
+    [
+      "deep-reader"
+    ],
+    [
+      "krakens-eye"
+    ]
+  ]
+}

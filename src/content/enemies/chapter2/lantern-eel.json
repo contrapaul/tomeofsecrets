@@ -1,0 +1,63 @@
+{
+  "id": "lantern-eel",
+  "name": "Lantern Eel",
+  "size": "small",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    34,
+    38
+  ],
+  "secret": "static",
+  "moves": {
+    "shock": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "hero"
+        }
+      ]
+    },
+    "glow": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "vulnerable",
+          "amount": 1,
+          "target": "hero"
+        }
+      ]
+    },
+    "coil": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 8,
+          "target": "self"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "shock": 3,
+      "glow": 2,
+      "coil": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "The light is not there to help you see.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

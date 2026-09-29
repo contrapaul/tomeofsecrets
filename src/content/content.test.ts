@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { scripts } from '../engine/rules';
 import { DIRECTIVES, parseGuide, termsOfChapter } from '../engine/guide/parse';
 import { loadContent } from './index';
 import art from './generated/art.json';
@@ -38,6 +39,30 @@ describe('content', () => {
   it('the art manifest validates and every artist in it has a credit', () => {
     const m = ArtManifest.parse(art);
     for (const [id, e] of Object.entries(m.enemies)) expect(content.credits[e.artist], `${id} drawn by unknown ${e.artist}`).toBeDefined();
+  });
+
+  it('every scripted effect names a script the engine actually has', () => {
+    // An unknown script id only throws when the move is played, which in a boss's
+    // second phase can be a long way into a run. Catch it here instead.
+    const walk = (effects: unknown[], where: string): void => {
+      for (const e of effects as Record<string, unknown>[]) {
+        if (!e || typeof e !== 'object') continue;
+        if (e.do === 'script') expect(scripts[e.id as string], `${where}: unknown script "${String(e.id)}"`).toBeDefined();
+        for (const key of ['then', 'else', 'effects']) if (Array.isArray(e[key])) walk(e[key] as unknown[], where);
+      }
+    };
+    for (const c of Object.values(content.cards)) {
+      walk(c.effects, `card ${c.id}`);
+      if (c.upgrade.effects) walk(c.upgrade.effects, `card ${c.id} upgrade`);
+    }
+    for (const e of Object.values(content.enemies)) {
+      for (const [name, move] of Object.entries(e.moves)) walk(move.effects, `enemy ${e.id} move ${name}`);
+      if (e.onDeath) walk(e.onDeath, `enemy ${e.id} onDeath`);
+    }
+    for (const r of Object.values(content.relics)) {
+      for (const key of ['fightStart', 'turnStart'] as const) if (r.combat?.[key]) walk(r.combat[key]!, `relic ${r.id}`);
+    }
+    for (const v of Object.values(content.vials)) walk(v.effects, `vial ${v.id}`);
   });
 
   it('every enemy that ships (has a chapter) has a credit and a Secret', () => {

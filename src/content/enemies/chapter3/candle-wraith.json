@@ -1,0 +1,63 @@
+{
+  "id": "candle-wraith",
+  "name": "Candle Wraith",
+  "size": "medium",
+  "tags": [
+    "undead"
+  ],
+  "hp": [
+    64,
+    70
+  ],
+  "secret": "wick",
+  "moves": {
+    "flare": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 10,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "burn",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "gutter": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "heal",
+          "amount": 10,
+          "target": "self"
+        }
+      ]
+    },
+    "blaze": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "hero",
+          "times": 3
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "flare",
+      "gutter",
+      "blaze"
+    ]
+  },
+  "flavour": "It is burning down, and taking its time about you.",
+  "chapter": 3,
+  "artist": "placeholder"
+}

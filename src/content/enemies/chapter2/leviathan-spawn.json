@@ -1,0 +1,87 @@
+{
+  "id": "leviathan-spawn",
+  "name": "Leviathan Spawn",
+  "size": "large",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    170,
+    170
+  ],
+  "rank": "elite",
+  "secret": "thrash",
+  "moves": {
+    "bite": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 16,
+          "target": "hero"
+        }
+      ]
+    },
+    "thrash": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 5,
+          "target": "hero",
+          "times": 3
+        }
+      ]
+    },
+    "submerge": {
+      "intent": "defend",
+      "effects": [
+        {
+          "do": "block",
+          "amount": 20,
+          "target": "self"
+        },
+        {
+          "do": "status",
+          "status": "artifact",
+          "amount": 1,
+          "target": "self"
+        }
+      ]
+    },
+    "frenzy": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 7,
+          "target": "hero",
+          "times": 3
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "bite",
+      "thrash",
+      "submerge"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.4,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "frenzy",
+          "bite"
+        ]
+      }
+    }
+  ],
+  "flavour": "The small one. That is the part worth worrying about.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

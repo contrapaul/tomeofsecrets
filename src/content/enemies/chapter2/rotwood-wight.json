@@ -1,0 +1,65 @@
+{
+  "id": "rotwood-wight",
+  "name": "Rotwood Wight",
+  "size": "medium",
+  "tags": [
+    "undead",
+    "plant"
+  ],
+  "hp": [
+    58,
+    64
+  ],
+  "secret": "spore-cloud",
+  "moves": {
+    "spores": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "poison",
+          "amount": 3,
+          "target": "hero"
+        }
+      ]
+    },
+    "claw": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero"
+        }
+      ]
+    },
+    "rot": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 2,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "spores": 3,
+      "claw": 3,
+      "rot": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "Wet bark and older paper.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

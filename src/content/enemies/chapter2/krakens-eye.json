@@ -1,0 +1,86 @@
+{
+  "id": "krakens-eye",
+  "name": "Kraken's Eye",
+  "size": "large",
+  "tags": [
+    "beast"
+  ],
+  "hp": [
+    280,
+    280
+  ],
+  "rank": "boss",
+  "secret": "constrict",
+  "minion": "kraken-tentacle",
+  "moves": {
+    "stare": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "vulnerable",
+          "amount": 2,
+          "target": "hero"
+        }
+      ]
+    },
+    "constrict": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 20,
+          "target": "hero"
+        }
+      ]
+    },
+    "reach": {
+      "intent": "summon",
+      "effects": [
+        {
+          "do": "summon",
+          "enemy": "kraken-tentacle",
+          "count": 1,
+          "max": 2
+        }
+      ],
+      "name": "Reach"
+    },
+    "ink-cloud": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "addCard",
+          "card": "dazed",
+          "to": "hand",
+          "count": 2
+        }
+      ],
+      "name": "Ink Cloud"
+    }
+  },
+  "pattern": {
+    "type": "cycle",
+    "moves": [
+      "reach",
+      "stare",
+      "constrict"
+    ]
+  },
+  "phases": [
+    {
+      "below": 0.5,
+      "pattern": {
+        "type": "cycle",
+        "moves": [
+          "ink-cloud",
+          "constrict",
+          "reach"
+        ]
+      }
+    }
+  ],
+  "flavour": "You are being read, and you are not the interesting part.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

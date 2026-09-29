@@ -1,7 +1,7 @@
 import type { Content } from '../rules';
 import {
   availableNodes, buy, createRun, enterNode, finishFight, finishReward, leaveCamp, leaveEvent, leaveShop, leaveTreasure, removeCard, rest,
-  smith, takeBossRelic, takeCard, takeRewardRelic, takeTreasure, takeVial, upgradeable, type RunSetup, type RunState,
+  smith, nextChapter, takeBossRelic, takeCard, takeRewardRelic, takeTreasure, takeVial, upgradeable, type RunSetup, type RunState,
 } from '../run/run';
 import { advance, choose, pick } from '../run/events';
 import { playFight } from './heuristic';
@@ -64,6 +64,9 @@ export function step(run: RunState, content: Content): void {
     }
     case 'bossReward':
       takeBossRelic(run, content, run.bossRelics![0]!);
+      return;
+    case 'chapterEnd':
+      nextChapter(run, content);
       return;
     case 'shop': {
       const shop = run.shop!;

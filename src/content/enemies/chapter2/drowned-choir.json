@@ -1,0 +1,67 @@
+{
+  "id": "drowned-choir",
+  "name": "The Drowned Choir",
+  "size": "medium",
+  "tags": [
+    "spirit"
+  ],
+  "hp": [
+    45,
+    45
+  ],
+  "rank": "elite",
+  "secret": "chorus",
+  "moves": {
+    "verse": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 9,
+          "target": "hero"
+        }
+      ]
+    },
+    "song": {
+      "intent": "debuff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "weak",
+          "amount": 1,
+          "target": "hero"
+        },
+        {
+          "do": "status",
+          "status": "frail",
+          "amount": 1,
+          "target": "hero"
+        }
+      ],
+      "name": "Song"
+    },
+    "descant": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 4,
+          "target": "hero",
+          "times": 2
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "verse": 3,
+      "song": 2,
+      "descant": 2
+    },
+    "noRepeat": 1
+  },
+  "flavour": "Three voices, one held note, no breath between them.",
+  "chapter": 2,
+  "artist": "placeholder"
+}

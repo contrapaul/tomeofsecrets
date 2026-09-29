@@ -1,0 +1,64 @@
+{
+  "id": "marginalia-imp",
+  "name": "Marginalia Imp",
+  "size": "small",
+  "tags": [
+    "demon"
+  ],
+  "hp": [
+    34,
+    38
+  ],
+  "secret": "scribble",
+  "moves": {
+    "scribble": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 3,
+          "target": "hero"
+        },
+        {
+          "do": "addCard",
+          "card": "smudge",
+          "to": "discard",
+          "count": 1
+        }
+      ]
+    },
+    "giggle": {
+      "intent": "buff",
+      "effects": [
+        {
+          "do": "status",
+          "status": "strength",
+          "amount": 1,
+          "target": "self"
+        }
+      ]
+    },
+    "poke": {
+      "intent": "attack",
+      "effects": [
+        {
+          "do": "damage",
+          "amount": 5,
+          "target": "hero"
+        }
+      ]
+    }
+  },
+  "pattern": {
+    "type": "weighted",
+    "moves": {
+      "scribble": 2,
+      "giggle": 2,
+      "poke": 3
+    },
+    "noRepeat": 1
+  },
+  "flavour": "Something wrote in the margins. Something is still writing.",
+  "chapter": 3,
+  "artist": "placeholder"
+}
