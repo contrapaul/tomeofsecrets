@@ -10,7 +10,7 @@ choice:
 
 @reach
   > fight mossback-beetle,page-wisp,page-wisp reward:double
-  The shelf bites down, crushing the books and the dead beetle, but luckily not your hand.
+  The shelf bites down, crushing the books, but luckily not your hand.
   > end
 
 @leave
