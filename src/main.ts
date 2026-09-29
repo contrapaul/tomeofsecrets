@@ -9,7 +9,6 @@ import { openAccountUi, openMessage } from './app/accountUi';
 import { audio, initAudio } from './app/audio';
 import { defaultSettings, ENEMY_PACE_SCALE, SettingsStore, type Settings } from './app/settings';
 import { Stage } from './app/stage';
-import { devBackgroundScene } from './dev/background';
 import { devCardsScene } from './dev/cards';
 import { devEnemyScene } from './dev/enemy';
 import { devFightScene } from './dev/fight';
@@ -95,8 +94,7 @@ async function boot(): Promise<void> {
     .register('/dev/text', devTextScene)
     .register('/dev/cards', devCardsScene)
     .register('/dev/fight', devFightScene)
-    .register('/dev/enemy', devEnemyScene)
-    .register('/dev/background', devBackgroundScene);
+    .register('/dev/enemy', devEnemyScene);
 
   // Who is signed in, before any scene reads the Tome; the right one must be loaded first.
   await account().init();

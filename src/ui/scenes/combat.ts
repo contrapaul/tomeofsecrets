@@ -1,6 +1,7 @@
 import { Container, Graphics, type Texture } from 'pixi.js';
 import gsap from 'gsap';
 import { loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
+import { openBackgroundPanel } from '../../dev/bgPanel';
 import { audio } from '../../app/audio';
 import { DESIGN } from '../../app/fit';
 import { markTutorial } from '../../app/tutorial';
@@ -23,7 +24,7 @@ import { PlayerPanel } from '../combat/PlayerPanel';
 import { ResourceWidget } from '../combat/ResourceWidget';
 import { TrapRow } from '../combat/TrapRow';
 import { backdrop } from '../kit/backdrop';
-import { ParallaxBackdrop } from '../kit/parallax';
+import { copyLayers, DEFAULT_LAYERS, ParallaxBackdrop } from '../kit/parallax';
 import { Button } from '../kit/button';
 import { Coach } from '../kit/coach';
 import { vignetteSprite } from '../fx/vignette';
@@ -39,6 +40,8 @@ export interface CombatSetup {
   seed: string;
   /** Background key in the art manifest; defaults to chapter1. */
   background?: string;
+  /** Dev only: open the background tuning panel and let the art set be swapped live. */
+  tune?: boolean;
   /** An existing fight to continue (a saved run). `hero`/`encounter`/`seed` are ignored. */
   resume?: CombatState;
   /** After every engine step; the run layer saves here. */
@@ -111,6 +114,10 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let drag: DragController;
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
+  let bgKey = setup.background ?? 'chapter1';
+  let overlayInFront = true;
+  const tuning = copyLayers(DEFAULT_LAYERS);
+  let closeTuner: (() => void) | null = null;
   let coach: Coach | null = null;
   const shakeRoot = new Container({ label: 'shake' });
   const vignette = vignetteSprite();
@@ -644,7 +651,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       state = setup.resume ?? createCombat(content, setup.hero, setup.encounter, setup.seed);
       // Art for this fight only: the enemies in it and the cards in the deck.
       const deckIds = [...state.piles.draw, ...state.piles.hand, ...state.piles.discard].map((c) => c.cardId);
-      const [ea, ca, bg] = await Promise.all([loadEnemyArtFor(state.enemies.map((e) => e.enemyId)), loadCardArtFor(deckIds), loadBackground(setup.background ?? 'chapter1')]);
+      const [ea, ca, bg] = await Promise.all([loadEnemyArtFor(state.enemies.map((e) => e.enemyId)), loadCardArtFor(deckIds), loadBackground(bgKey)]);
       enemyArt = ea;
       cardArt = ca;
 
@@ -652,10 +659,39 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       shakeRoot.addChild(layers.bg, layers.table, layers.enemies);
       // The watercolour overlay, when the art has one, sits over the table and the
       // enemies but under every piece of interface.
-      const parallax = bg ? new ParallaxBackdrop(bg, ctx.stage) : null;
+      let parallax = bg ? new ParallaxBackdrop(bg, ctx.stage) : null;
       layers.bg.addChild(parallax ?? backdrop(0x161a24, 0x0b0a0f));
-      // Above the table and the enemies, below the hand and every other piece of interface.
-      if (parallax?.overlay) shakeRoot.addChild(parallax.overlay);
+      const placeOverlay = () => {
+        const o = parallax?.overlay;
+        if (!o) return;
+        o.removeFromParent();
+        // In front of the enemies, or behind them; either way under the hand and the UI.
+        if (overlayInFront) shakeRoot.addChildAt(o, shakeRoot.getChildIndex(layers.enemies) + 1);
+        else shakeRoot.addChildAt(o, shakeRoot.getChildIndex(layers.enemies));
+      };
+      placeOverlay();
+      if (setup.tune && import.meta.env.DEV) {
+        closeTuner = openBackgroundPanel({
+          settings: tuning,
+          apply: () => parallax?.set(tuning),
+          key: bgKey,
+          setKey: (k) => {
+            bgKey = k;
+            void loadBackground(k).then((tex) => {
+              if (!tex) return;
+              parallax?.destroy({ children: true });
+              parallax = new ParallaxBackdrop(tex, ctx.stage, tuning);
+              layers.bg.addChild(parallax);
+              placeOverlay();
+            });
+          },
+          overlayInFront,
+          setOverlayInFront: (v) => {
+            overlayInFront = v;
+            placeOverlay();
+          },
+        });
+      }
       const floor = new Graphics();
       floor.ellipse(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY + 10, 520, 60).fill({ color: 0x000000, alpha: 0.25 });
       layers.table.addChild(floor);
@@ -810,6 +846,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     },
     exit() {
       window.removeEventListener('keydown', onKey);
+      closeTuner?.();
       enemyTurn(false);
       drag?.dispose();
       if (fpsText) toggleFps();

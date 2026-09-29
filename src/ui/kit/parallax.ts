@@ -44,6 +44,7 @@ export class ParallaxBackdrop extends Container {
   private settings: LayerSettings;
   private target = { x: 0, y: 0 };
   private readonly tick: () => void;
+  private readonly onMove: (e: PointerEvent) => void;
 
   constructor(textures: BackgroundTextures, stage: Stage, settings: LayerSettings = DEFAULT_LAYERS) {
     super({ label: 'parallax' });
@@ -70,10 +71,15 @@ export class ParallaxBackdrop extends Container {
     this.apply();
 
     this.eventMode = 'none';
-    stage.app.stage.on('globalpointermove', (e) => {
-      const p = stage.root.toLocal(e.global);
-      this.target = { x: (p.x / DESIGN.width - 0.5) * 2, y: (p.y / DESIGN.height - 0.5) * 2 };
-    });
+    // Straight off the canvas rather than through Pixi's event system: `globalpointermove`
+    // only fires once something else has made the stage interactive, which made the drift
+    // silently depend on a fight having a DragController in it.
+    this.onMove = (e: PointerEvent) => {
+      const r = stage.app.canvas.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      this.target = { x: ((e.clientX - r.left) / r.width - 0.5) * 2, y: ((e.clientY - r.top) / r.height - 0.5) * 2 };
+    };
+    window.addEventListener('pointermove', this.onMove, { passive: true });
     this.tick = () => {
       const k = 0.04;
       for (const l of this.layers) {
@@ -85,7 +91,10 @@ export class ParallaxBackdrop extends Container {
       }
     };
     stage.app.ticker.add(this.tick);
-    this.once('destroyed', () => stage.app.ticker.remove(this.tick));
+    this.once('destroyed', () => {
+      stage.app.ticker.remove(this.tick);
+      window.removeEventListener('pointermove', this.onMove);
+    });
   }
 
   /** Re-read the settings; the dev page tunes these live. */

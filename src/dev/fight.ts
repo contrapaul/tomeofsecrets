@@ -21,7 +21,7 @@ function parseDeck(spec: string, content: ReturnType<typeof loadContent>): { car
   return out;
 }
 
-/** #/dev/fight?class=mage&enemies=dummy-brute,dummy-cur&seed=abc[&deck=strike*5,defend*5][&coach=1] */
+/** #/dev/fight?class=mage&enemies=…&seed=abc[&deck=…][&coach=1][&bg=moss-halls&tune=1] */
 export function devFightScene(ctx: SceneContext): Scene {
   const content = loadContent({ fixtures: true });
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
@@ -31,10 +31,19 @@ export function devFightScene(ctx: SceneContext): Scene {
   const seed = params.get('seed') ?? `dev-${Date.now() % 100000}`;
   const custom = params.get('deck') ? parseDeck(params.get('deck')!, content) : [];
   const deck = custom.length ? custom : [...cls.starter, ...SAMPLER[classId]].map((cardId) => ({ cardId, upgraded: false }));
+  // A bare dev fight carries nothing, so the top bar is empty and there is no
+  // Holy Power to look at. Hand it a few of each; `?relics=` and `?vials=` override.
+  const pick = (param: string, pool: string[], n: number) =>
+    (params.get(param)?.split(',').filter(Boolean) ?? pool.slice(0, n));
+  const relics = pick('relics', Object.values(content.relics).filter((r) => !r.class || r.class === classId).map((r) => r.id), 3);
+  const vials = pick('vials', Object.values(content.vials).map((v) => v.id), 2);
+
   return combatScene(ctx, content, {
-    hero: { classId, maxHp: cls.hp, deck, companion: cls.companion },
+    hero: { classId, maxHp: cls.hp, deck, companion: cls.companion, relics, vials, vialSlots: 3 },
     encounter: { enemies: enemies.length ? enemies : ['dummy-brute'] },
     seed,
     tips: params.get('coach') === '1',
+    ...(params.get('bg') ? { background: params.get('bg')! } : {}),
+    tune: params.get('tune') === '1',
   });
 }
