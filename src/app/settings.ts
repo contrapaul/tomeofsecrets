@@ -4,8 +4,12 @@
  */
 export type Motion = 'full' | 'fast' | 'reduced';
 
+export type EnemyPace = 'measured' | 'fast';
+
 export interface Settings {
   motion: Motion;
+  /** How long the enemies' turn takes. New players need to see what hit them. */
+  enemyPace: EnemyPace;
   shake: boolean;
   volume: { master: number; music: number; sfx: number };
 }
@@ -20,6 +24,7 @@ export interface KeyValue {
 export function defaultSettings(prefersReducedMotion = false): Settings {
   return {
     motion: prefersReducedMotion ? 'reduced' : 'full',
+    enemyPace: 'measured',
     shake: !prefersReducedMotion,
     volume: { master: 0.8, music: 0.7, sfx: 0.9 },
   };
@@ -27,6 +32,9 @@ export function defaultSettings(prefersReducedMotion = false): Settings {
 
 /** Duration multiplier for tweens under each motion setting. */
 export const MOTION_SCALE: Record<Motion, number> = { full: 1, fast: 0.5, reduced: 0.05 };
+
+/** How much longer the enemies' turn runs than the player's. */
+export const ENEMY_PACE_SCALE: Record<EnemyPace, number> = { measured: 1.5, fast: 1 };
 
 function isMotion(v: unknown): v is Motion {
   return v === 'full' || v === 'fast' || v === 'reduced';
@@ -50,6 +58,7 @@ export function parseSettings(raw: string | null, defaults: Settings): Settings 
   const vol = (d.volume && typeof d.volume === 'object' ? d.volume : {}) as Record<string, unknown>;
   return {
     motion: isMotion(d.motion) ? d.motion : defaults.motion,
+    enemyPace: d.enemyPace === 'fast' || d.enemyPace === 'measured' ? d.enemyPace : defaults.enemyPace,
     shake: typeof d.shake === 'boolean' ? d.shake : defaults.shake,
     volume: {
       master: clamp01(vol.master, defaults.volume.master),

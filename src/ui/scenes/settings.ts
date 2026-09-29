@@ -1,12 +1,17 @@
 import { Container, Graphics } from 'pixi.js';
 import { DESIGN } from '../../app/fit';
 import type { Scene, SceneContext } from '../../app/router';
-import type { Motion } from '../../app/settings';
+import type { EnemyPace, Motion } from '../../app/settings';
 import { resetTutorials } from '../../app/tutorial';
 import { backdrop } from '../kit/backdrop';
 import { Button } from '../kit/button';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
+
+const PACES: { id: EnemyPace; label: string; blurb: string }[] = [
+  { id: 'measured', label: 'Measured', blurb: 'The enemies take their time, so you can see what each one does.' },
+  { id: 'fast', label: 'Fast', blurb: 'Their turn runs at your speed. For players who know the enemies.' },
+];
 
 const MOTIONS: { id: Motion; label: string; blurb: string }[] = [
   { id: 'full', label: 'Full', blurb: 'Every animation at full length.' },
@@ -29,7 +34,7 @@ export function settingsScene(ctx: SceneContext): Scene {
       view.addChild(title);
 
       const panel = new Graphics();
-      panel.roundRect(460, 220, 1000, 680, 16).fill({ color: PALETTE.parchment, alpha: 0.06 }).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
+      panel.roundRect(460, 220, 1000, 740, 16).fill({ color: PALETTE.parchment, alpha: 0.06 }).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
       view.addChild(panel);
 
       const heading = (label: string, x: number, y: number) => {
@@ -38,10 +43,11 @@ export function settingsScene(ctx: SceneContext): Scene {
         view.addChild(t);
       };
       heading('Motion', 520, 250);
-      heading('Screen shake', 520, 500);
-      heading('Tutorial', 520, 640);
-      heading('Music', 1000, 500);
-      heading('Sound', 1000, 640);
+      heading('Enemy turn', 520, 470);
+      heading('Screen shake', 520, 640);
+      heading('Tutorial', 520, 780);
+      heading('Music', 1000, 640);
+      heading('Sound', 1000, 780);
 
       const rows = new Container();
       view.addChild(rows);
@@ -79,6 +85,25 @@ export function settingsScene(ctx: SceneContext): Scene {
           blurb.position.set(520 + 110 + i * 240, 390);
           rows.addChild(blurb);
         });
+        PACES.forEach((p, i) => {
+          const on = s.enemyPace === p.id;
+          const b = new Button({
+            label: p.label,
+            width: 220,
+            height: 60,
+            variant: on ? 'gold' : 'ghost',
+            onPress: () => {
+              ctx.settings.set({ enemyPace: p.id });
+              repaint();
+            },
+          });
+          b.position.set(520 + 110 + i * 240, 550);
+          rows.addChild(b);
+        });
+        const paceBlurb = makeText(PACES.find((p) => p.id === s.enemyPace)!.blurb, { ...STYLE.body(20), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 420 });
+        paceBlurb.position.set(1000, 520);
+        rows.addChild(paceBlurb);
+
         const shake = new Button({
           label: s.shake ? 'On' : 'Off',
           width: 220,
@@ -89,7 +114,7 @@ export function settingsScene(ctx: SceneContext): Scene {
             repaint();
           },
         });
-        shake.position.set(520 + 110, 580);
+        shake.position.set(520 + 110, 720);
         rows.addChild(shake);
 
         const replay = new Button({
@@ -103,17 +128,17 @@ export function settingsScene(ctx: SceneContext): Scene {
             repaint();
           },
         });
-        replay.position.set(520 + 110, 720);
+        replay.position.set(520 + 110, 860);
         rows.addChild(replay);
         const hint = makeText('The map and first-fight walkthroughs play again on the next run.', { ...STYLE.body(18), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 420 });
-        hint.position.set(520, 770);
+        hint.position.set(520, 910);
         rows.addChild(hint);
 
-        levelRow(s.volume.music, 1000, 580, (v) => {
+        levelRow(s.volume.music, 1000, 720, (v) => {
           ctx.settings.set({ volume: { ...s.volume, music: v } });
           repaint();
         });
-        levelRow(s.volume.sfx, 1000, 720, (v) => {
+        levelRow(s.volume.sfx, 1000, 860, (v) => {
           ctx.settings.set({ volume: { ...s.volume, sfx: v } });
           repaint();
         });
@@ -121,7 +146,7 @@ export function settingsScene(ctx: SceneContext): Scene {
       repaint();
 
       const back = new Button({ label: 'Back', variant: 'ghost', width: 240, onPress: () => ctx.router.go('/') });
-      back.position.set(DESIGN.width / 2, 970);
+      back.position.set(DESIGN.width / 2, 1010);
       view.addChild(back);
     },
     exit() {},

@@ -270,6 +270,15 @@ export function endTurn(state: CombatState, content: Content): boolean {
 function enemyTurn(state: CombatState, content: Content): void {
   state.phase = 'enemy';
   state.events.push({ t: 'turnStart', turn: state.turn, side: 'enemy' });
+  // Block expires at the start of its owner's turn, the same rule the hero plays by:
+  // an enemy that defended last turn keeps that block through the hero's turn, so it
+  // has to be chewed through. Clearing it here rather than at the end of the enemy's
+  // turn is what makes defending mean anything.
+  for (const e of state.enemies) {
+    if (!e.alive || e.block <= 0) continue;
+    e.block = 0;
+    state.events.push({ t: 'block', target: e.id, amount: 0, total: 0 });
+  }
   fireTraps(state, content, 'enemyTurnStart', { source: { kind: 'system' } });
   if (checkWin(state)) return;
   for (const e of [...state.enemies]) {
@@ -292,14 +301,7 @@ function enemyTurn(state: CombatState, content: Content): void {
   }
   decayHeroRound(state);
   for (const e of state.enemies) if (e.alive) chooseIntent(state, content, e);
-  if (checkWin(state)) return;
-  // Enemy block expires at the start of the hero's turn, StS-style.
-  for (const e of state.enemies) {
-    if (e.alive && e.block > 0) {
-      e.block = 0;
-      state.events.push({ t: 'block', target: e.id, amount: 0, total: 0 });
-    }
-  }
+  checkWin(state);
 }
 
 function enemyAct(state: CombatState, content: Content, e: EnemyInstance): void {

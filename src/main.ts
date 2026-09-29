@@ -7,7 +7,7 @@ import { Router } from './app/router';
 import { account } from './app/account';
 import { openAccountUi, openMessage } from './app/accountUi';
 import { audio, initAudio } from './app/audio';
-import { defaultSettings, SettingsStore } from './app/settings';
+import { defaultSettings, ENEMY_PACE_SCALE, SettingsStore, type Settings } from './app/settings';
 import { Stage } from './app/stage';
 import { devCardsScene } from './dev/cards';
 import { devEnemyScene } from './dev/enemy';
@@ -15,7 +15,7 @@ import { devFightScene } from './dev/fight';
 import { devStatsScene } from './dev/stats';
 import { devTextScene } from './dev/text';
 import { PALETTE } from './ui/kit/palette';
-import { setMotion } from './ui/kit/motion';
+import { d, enemyTurn, setEnemyPace, setMotion } from './ui/kit/motion';
 import { bindTextToStage } from './ui/kit/text';
 import { creditsScene } from './ui/scenes/credits';
 import { bossRewardScene } from './ui/run/bossReward';
@@ -64,8 +64,12 @@ async function boot(): Promise<void> {
     storage = null;
   }
   const settings = new SettingsStore(storage, defaultSettings(window.matchMedia('(prefers-reduced-motion: reduce)').matches));
-  setMotion(settings.get().motion);
-  settings.on((s) => setMotion(s.motion));
+  const pace = (v: Settings): void => {
+    setMotion(v.motion);
+    setEnemyPace(ENEMY_PACE_SCALE[v.enemyPace]);
+  };
+  pace(settings.get());
+  settings.on(pace);
   initAudio(settings);
 
   const router = new Router({ stage, settings })
@@ -98,7 +102,7 @@ async function boot(): Promise<void> {
 
   if (import.meta.env.DEV) {
     // Poke at the running game from the console: __tome.stage, __tome.settings.
-    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi, gsap, audio: audio() };
+    (window as unknown as { __tome: unknown }).__tome = { stage, settings, router, runController: runController(), runApi, eventApi, gsap, audio: audio(), motion: { d, enemyTurn } };
   }
 }
 

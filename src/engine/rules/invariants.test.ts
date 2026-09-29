@@ -64,7 +64,8 @@ describe('every mutation emits', () => {
               continue;
             }
             explain(b.hp !== e.hp, ['damage', 'heal'], `enemy ${e.id} hp`);
-            explain(b.block !== e.block, ['block'], `enemy ${e.id} block`);
+            // Damage eats block, so an attack explains a drop as well as a block event does.
+            explain(b.block !== e.block, ['block', 'damage'], `enemy ${e.id} block`);
             explain(b.alive !== e.alive, ['die'], `enemy ${e.id} alive`);
             explain(b.statuses !== e.statuses, ['status'], `enemy ${e.id} statuses`);
           }

@@ -157,16 +157,36 @@ describe('damage maths', () => {
 });
 
 describe('statuses over time', () => {
-  it('Poison ignores block and decays; Burn respects block and decays', () => {
+  it('block is gone before Poison and Burn tick, and both decay', () => {
     const s = fight(Array(10).fill('defend'), ['dummy-brute']);
     const e = s.enemies[0]!;
     applyStatus(s, content, e.id, 'poison', 3);
     applyStatus(s, content, e.id, 'burn', 2);
     e.block = 50;
     endTurn(s, content);
-    expect(e.hp).toBe(57); // poison 3 through block; burn 2 into block
+    // Block expires at the start of its owner's turn, before statuses tick, so last
+    // turn's shield protects against neither. (It ends the round with fresh block
+    // from Plated Armor, which is a different shield.)
+    expect(e.hp).toBe(55);
     expect(getStatus(e.statuses, 'poison')).toBe(2);
     expect(getStatus(e.statuses, 'burn')).toBe(1);
+  });
+
+  it('an enemy keeps its block through the hero turn, and loses it on its own', () => {
+    const s = fight(Array(10).fill('strike'), ['dummy-brute']);
+    const e = s.enemies[0]!;
+    const hp = e.hp;
+    e.block = 50; // as if it had defended on its last turn
+    playAll(s, 'strike');
+    // The hero has to chew through it: this is the whole point of an enemy defending.
+    expect(e.block).toBeGreaterThan(0);
+    expect(e.block).toBeLessThan(50);
+    expect(e.hp).toBe(hp);
+    // The shield expires when the enemy's own turn comes round again, not before.
+    drainEvents(s);
+    endTurn(s, content);
+    const cleared = drainEvents(s).some((ev) => ev.t === 'block' && ev.target === e.id && ev.total === 0);
+    expect(cleared).toBe(true);
   });
 
   it('Vulnerable, Weak and Frail wear off by one at the end of the holder\'s turn', () => {

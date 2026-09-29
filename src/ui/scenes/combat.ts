@@ -28,7 +28,7 @@ import { Button } from '../kit/button';
 import { Coach } from '../kit/coach';
 import { vignetteSprite } from '../fx/vignette';
 import { Explainer } from '../kit/explainer';
-import { d, done, spatial } from '../kit/motion';
+import { d, done, enemyTurn, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 import { Tooltip } from '../kit/tooltip';
@@ -225,7 +225,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     layers.overlay.addChild(overlay);
   }
 
-  async function banner(text: string, sub?: string): Promise<void> {
+  /** `hold` multiplies how long it sits at full alpha: the end of a fight lingers. */
+  async function banner(text: string, sub?: string, hold = 1): Promise<void> {
     if (!text && !sub) return;
     const c = new Container();
     const bg = new Graphics();
@@ -246,7 +247,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     c.alpha = 0;
     layers.overlay.addChild(c);
     const tl = gsap.timeline({ onComplete: () => c.destroy({ children: true }) });
-    tl.to(c, { alpha: 1, duration: d(0.12) }).to(c, { alpha: 0, duration: d(0.2) }, text ? d(0.38) : d(0.25));
+    const visible = (text ? 0.26 : 0.13) * hold;
+    tl.to(c, { alpha: 1, duration: d(0.12) }).to(c, { alpha: 0, duration: d(0.2) }, d(0.12 + visible));
     await done(tl);
   }
 
@@ -803,6 +805,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     },
     exit() {
       window.removeEventListener('keydown', onKey);
+      enemyTurn(false);
       drag?.dispose();
       if (fpsText) toggleFps();
       tooltip.destroy({ children: true });

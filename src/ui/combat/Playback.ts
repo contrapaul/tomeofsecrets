@@ -9,7 +9,7 @@ import type { HandLayout } from '../cards/HandLayout';
 import type { PileView } from '../cards/PileView';
 import { hitIntensity } from '../fx/impact';
 import { floatNumber } from '../fx/numbers';
-import { d, done, spatial } from '../kit/motion';
+import { d, done, enemyTurn, spatial } from '../kit/motion';
 import type { CompanionView } from './CompanionView';
 import type { EnemyView } from './EnemyView';
 import type { PlayerPanel } from './PlayerPanel';
@@ -33,7 +33,7 @@ export interface World {
   makeCardView(cardUid: number): CardView | null;
   addEnemy(id: string): EnemyView | null;
   layoutEnemies(): void;
-  banner(text: string, sub?: string): Promise<void>;
+  banner(text: string, sub?: string, hold?: number): Promise<void>;
   /** Rattle the table, 0..1. */
   shakeScreen(intensity: number): void;
   /** The hero-was-hit flash, coloured by the kind of damage. */
@@ -99,6 +99,8 @@ export class Playback {
       case 'fightStart':
         return;
       case 'turnStart':
+        // The enemies' half of the round runs slower, so a new player can follow it.
+        enemyTurn(ev.side === 'enemy');
         if (ev.side === 'hero') {
           audio().play('turn-start');
           await w.banner('YOUR TURN', `turn ${ev.turn}`);
@@ -389,7 +391,8 @@ export class Playback {
       case 'end':
         await wait(d(0.3));
         audio().play(ev.result === 'won' ? 'victory' : 'defeat');
-        await w.banner(ev.result === 'won' ? 'VICTORY' : 'DEFEAT');
+        // The title of the fight lingers: it is the moment, and it carries artwork.
+        await w.banner(ev.result === 'won' ? 'VICTORY' : 'DEFEAT', undefined, 2);
         w.onEnd(ev.result);
         return;
     }
