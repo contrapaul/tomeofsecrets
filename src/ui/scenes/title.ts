@@ -41,6 +41,7 @@ export function titleScene(ctx: SceneContext): Scene {
         ...(controller.hasSave() ? [new Button({ label: 'Continue', onPress: () => ctx.router.go(controller.route()) })] : []),
         new Button({ label: 'New Run', variant: controller.hasSave() ? 'ghost' : 'gold', onPress: () => ctx.router.go('/run/new') }),
         new Button({ label: 'The Tome', variant: 'ghost', onPress: () => ctx.router.go('/tome') }),
+        new Button({ label: 'How to play', variant: 'ghost', onPress: () => ctx.router.go('/knowledge') }),
         new Button({ label: 'Settings', variant: 'ghost', onPress: () => ctx.router.go('/settings') }),
         new Button({ label: 'Credits', variant: 'ghost', onPress: () => ctx.router.go('/credits') }),
         // A plain page beside the game: sizes, formats, tips, what is wanted.

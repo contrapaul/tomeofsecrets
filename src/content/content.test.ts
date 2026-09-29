@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DIRECTIVES, parseGuide, termsOfChapter } from '../engine/guide/parse';
 import { loadContent } from './index';
 import art from './generated/art.json';
 import { Card, Effect } from './schema';
@@ -52,5 +53,42 @@ describe('content', () => {
     expect(Effect.safeParse({ do: 'explode' }).success).toBe(false);
     expect(Effect.safeParse({ do: 'damage', amount: 5, target: 'target', bogus: 1 }).success).toBe(false);
     expect(Card.safeParse({ ...content.cards['strike'], id: 'Bad Id' }).success).toBe(false);
+  });
+});
+
+describe('the guide', () => {
+  const content = loadContent();
+  const chapters = Object.entries(content.guide).map(([id, src]) => parseGuide(src, id));
+
+  it('every chapter parses, and its sections and order are usable', () => {
+    expect(chapters.length).toBeGreaterThan(0);
+    for (const c of chapters) {
+      expect(c.title, `${c.id}: needs a title`).toBeTruthy();
+      expect(c.section, `${c.id}: needs a section`).toBeTruthy();
+      expect(c.blocks.length, `${c.id}: is empty`).toBeGreaterThan(0);
+    }
+    // Two chapters in the same section must not fight over the same slot.
+    const seen = new Set<string>();
+    for (const c of chapters) {
+      const key = `${c.section}/${c.order}`;
+      expect(seen.has(key), `${c.id}: ${key} is already taken`).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  it('every [[term]] is in the glossary and every {{directive}} is known', () => {
+    for (const c of chapters) {
+      for (const term of termsOfChapter(c)) {
+        expect(content.glossary[term], `${c.id}: [[${term}]] is not in glossary.json`).toBeDefined();
+      }
+      for (const b of c.blocks) {
+        if (b.kind !== 'directive') continue;
+        expect(DIRECTIVES, `${c.id}: {{${b.name}}}`).toContain(b.name);
+        // A directive with an argument names something real.
+        if (b.name === 'card') expect(content.cards[b.arg!], `${c.id}: {{card:${b.arg}}}`).toBeDefined();
+        if (b.name === 'relic') expect(content.relics[b.arg!], `${c.id}: {{relic:${b.arg}}}`).toBeDefined();
+        if (b.name === 'starter') expect(content.classes[b.arg!], `${c.id}: {{starter:${b.arg}}}`).toBeDefined();
+      }
+    }
   });
 });

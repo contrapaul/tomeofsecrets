@@ -16,6 +16,12 @@ const cardFiles = import.meta.glob('./cards/*.json', { eager: true, import: 'def
 const enemyFiles = import.meta.glob('./enemies/**/*.json', { eager: true, import: 'default' }) as Record<string, unknown>;
 const encounterFiles = import.meta.glob('./encounters/*.json', { eager: true, import: 'default' }) as Record<string, unknown>;
 const eventFiles = import.meta.glob('./events/*.dlg', { eager: true, import: 'default', query: '?raw' }) as Record<string, string>;
+const guideFiles = import.meta.glob('./guide/*.md', { eager: true, import: 'default', query: '?raw' }) as Record<string, string>;
+
+/** Guide chapters by file stem: `the-basics` for `./guide/the-basics.md`. */
+export function guideSources(): Record<string, string> {
+  return Object.fromEntries(Object.entries(guideFiles).map(([path, src]) => [path.replace(/^.*\//, '').replace(/\.md$/, ''), src]));
+}
 
 /** Event scripts by file stem: `a-torn-page` for `./events/a-torn-page.dlg`. */
 export function eventSources(): Record<string, string> {
@@ -35,6 +41,8 @@ export interface ContentRegistry {
   origins: Record<string, Origin>;
   pages: Record<string, Page>;
   glossary: Record<string, GlossaryEntry>;
+  /** Raw Markdown per chapter; parsed by `engine/guide/parse`. */
+  guide: Record<string, string>;
 }
 
 function index<T extends { id: string }>(items: T[], what: string): Record<string, T> {
@@ -106,6 +114,7 @@ export function loadContent(opts: { fixtures?: boolean } = {}): ContentRegistry 
     vials: index(vl.success ? vl.data : [], 'vial'),
     encounters,
     events: eventSources(),
+    guide: guideSources(),
     boons: index(bo.success ? bo.data : [], 'boon'),
     origins: index(og.success ? og.data : [], 'origin'),
     pages: index(pg.success ? pg.data : [], 'page'),

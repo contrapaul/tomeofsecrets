@@ -31,6 +31,7 @@ import { treasureScene } from './ui/run/treasure';
 import { settingsScene } from './ui/scenes/settings';
 import { tomeScene } from './ui/scenes/tome';
 import { titleScene } from './ui/scenes/title';
+import { knowledgeScene } from './ui/scenes/knowledge';
 import { runController } from './app/runController';
 import * as runApi from './engine/run/run';
 import * as eventApi from './engine/run/events';
@@ -72,6 +73,7 @@ async function boot(): Promise<void> {
     .register('/settings', settingsScene)
     .register('/credits', creditsScene)
     .register('/tome', tomeScene)
+    .register('/knowledge', knowledgeScene)
     .register('/run/new', newRunScene)
     .register('/run/map', mapScene)
     .register('/run/fight', runFightScene)
