@@ -163,7 +163,8 @@ describe('run', () => {
     a.phase = 'won';
     for (const e of a.enemies) e.alive = false;
     finishFight(two, content);
-    expect(two.hero.vials).toEqual(['phoenix-feather']);
+    // The belt may also have picked up the fight's reward vial; only the feathers matter here.
+    expect(two.hero.vials.filter((v) => v === 'phoenix-feather')).toEqual(['phoenix-feather']);
 
     // The Phylactery is free, so it goes before the feather the player paid for.
     const both = createRun(content, { classId: 'paladin', seed: 'both' });
@@ -178,7 +179,7 @@ describe('run', () => {
     for (const e of b.enemies) e.alive = false;
     finishFight(both, content);
     expect(both.hero.relicsUsed).toContain('phylactery');
-    expect(both.hero.vials).toEqual(['phoenix-feather']);
+    expect(both.hero.vials.filter((v) => v === 'phoenix-feather')).toEqual(['phoenix-feather']);
 
     // Nothing spent, nothing lost.
     const idle = createRun(content, { classId: 'paladin', seed: 'idle' });
@@ -188,7 +189,7 @@ describe('run', () => {
     c.phase = 'won';
     for (const e of c.enemies) e.alive = false;
     finishFight(idle, content);
-    expect(idle.hero.vials).toEqual(['phoenix-feather']);
+    expect(idle.hero.vials.filter((v) => v === 'phoenix-feather')).toEqual(['phoenix-feather']);
     expect(idle.hero.relicsUsed).toEqual([]);
   });
 
@@ -204,6 +205,34 @@ describe('run', () => {
     const back = reviveRun(content, saved);
     expect(back.fight!.state.hero.revives).toBe(1);
     expect(back.fight!.state.hero.revivesUsed).toBe(0);
+  });
+
+  it('an elite relic and a vial are taken automatically, unless the belt is full', () => {
+    const run = createRun(content, { classId: 'paladin', seed: 'autotake' });
+    startFight(run, content, 'elite');
+    const s = run.fight!.state;
+    s.phase = 'won';
+    for (const e of s.enemies) e.alive = false;
+    finishFight(run, content);
+    const r = run.reward!;
+    expect(r.relic).toBeTruthy();
+    expect(r.relicTaken).toBe(true);
+    expect(run.hero.relics).toContain(r.relic);
+    if (r.vial) {
+      expect(r.vialTaken).toBe(true);
+      expect(run.hero.vials).toContain(r.vial);
+    }
+
+    // A full belt is a decision, so that one waits for the player.
+    const full = createRun(content, { classId: 'paladin', seed: 'autotake-full' });
+    full.hero.vials = Array.from({ length: full.hero.vialSlots }, () => 'healing-draught');
+    startFight(full, content, 'elite');
+    const fs = full.fight!.state;
+    fs.phase = 'won';
+    for (const e of fs.enemies) e.alive = false;
+    finishFight(full, content);
+    if (full.reward!.vial) expect(full.reward!.vialTaken).toBe(false);
+    expect(full.hero.vials).toHaveLength(full.hero.vialSlots);
   });
 
   it('every phase step is safe to call repeatedly', () => {

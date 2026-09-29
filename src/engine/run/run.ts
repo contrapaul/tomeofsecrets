@@ -499,6 +499,11 @@ export function finishFight(run: RunState, content: Content): void {
     vial: run.rng.rewards.chance(f.kind === 'fight' ? 0.25 : 0.4) ? rollVial(run.rng.rewards, content) : null,
     vialTaken: false,
   };
+  // A relic or a vial is winnings, not a decision: take them now, so a player who
+  // reads the screen as a summary does not walk away from what they just earned.
+  // A full vial belt is a decision, so that one still waits to be clicked.
+  if (run.reward.relic) takeRewardRelic(run, content);
+  takeVial(run);
   if (f.kind === 'boss') {
     run.bossRelics = rollBossRelics(run.rng.rewards, content, run.hero.classId, run.hero.relics, 3, run.pool?.relics);
     run.hero.hp = run.hero.maxHp;

@@ -23,9 +23,17 @@ export function rewardScene(ctx: SceneContext): Scene {
     const refresh = () => {
       row.removeChildren().forEach((c) => c.destroy({ children: true }));
       cards.removeChildren().forEach((c) => c.destroy({ children: true }));
-      let x = DESIGN.width / 2 - ((r.relic && !r.relicTaken ? 1 : 0) + (r.vial && !r.vialTaken ? 1 : 0) - 1) * 90;
-      if (r.relic && !r.relicTaken) {
-        const t = relicToken(content, r.relic, tooltip, () => {
+      // Taken ones stay on screen: the player should see what they just won, not an
+      // empty space where it was. Only a vial with nowhere to go still wants a click.
+      const caption = (text: string, cx: number, cy: number) => {
+        const t = makeText(text, { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
+        t.anchor.set(0.5, 0);
+        t.position.set(cx, cy);
+        row.addChild(t);
+      };
+      let x = DESIGN.width / 2 - ((r.relic ? 1 : 0) + (r.vial ? 1 : 0) - 1) * 120;
+      if (r.relic) {
+        const t = relicToken(content, r.relic, tooltip, r.relicTaken ? undefined : () => {
           takeRewardRelic(run, content);
           save();
           sync();
@@ -33,10 +41,11 @@ export function rewardScene(ctx: SceneContext): Scene {
         }, explainer);
         t.position.set(x, 300);
         row.addChild(t);
-        x += 180;
+        if (r.relicTaken) caption('taken', x, 384);
+        x += 240;
       }
-      if (r.vial && !r.vialTaken) {
-        const t = vialToken(content, r.vial, tooltip, () => {
+      if (r.vial) {
+        const t = vialToken(content, r.vial, tooltip, r.vialTaken ? undefined : () => {
           if (!takeVial(run)) {
             tooltip.show('', 'No free vial slot.', x, 260, 0);
             setTimeout(() => tooltip.hide(), 1200);
@@ -48,6 +57,7 @@ export function rewardScene(ctx: SceneContext): Scene {
         }, explainer);
         t.position.set(x, 300);
         row.addChild(t);
+        caption(r.vialTaken ? 'taken' : 'no free slot', x, 372);
       }
       if (!r.cardTaken) {
         const label = makeText('Choose a card', { ...STYLE.display(26), fill: PALETTE.parchmentDim });
