@@ -116,12 +116,23 @@ export async function loadCardArtFor(ids: string[]): Promise<Map<string, Texture
   return out;
 }
 
-export async function loadBackground(key: string): Promise<{ far: Texture; mid?: Texture; near?: Texture } | null> {
+export interface BackgroundTextures {
+  back?: Texture;
+  far: Texture;
+  mid?: Texture;
+  near?: Texture;
+  /** Over the art, under the UI. */
+  overlay?: Texture;
+}
+
+export async function loadBackground(key: string): Promise<BackgroundTextures | null> {
   const entry = ART.backgrounds[key];
   if (!entry) return null;
-  const [far, mid, near] = await Promise.all([safe<Texture>(entry.far), safe<Texture>(entry.mid), safe<Texture>(entry.near)]);
+  const [back, far, mid, near, overlay] = await Promise.all([
+    safe<Texture>(entry.back), safe<Texture>(entry.far), safe<Texture>(entry.mid), safe<Texture>(entry.near), safe<Texture>(entry.overlay),
+  ]);
   if (!far) return null;
-  return { far, mid, near };
+  return { back, far, mid, near, overlay };
 }
 
 /** Build enemy textures from an image the user dropped on a dev page. */

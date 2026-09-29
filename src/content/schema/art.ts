@@ -51,6 +51,10 @@ export const ArtManifest = z.strictObject({
   relics: z.record(z.string(), z.strictObject({ url: z.string(), artist: z.string().optional() })),
   vials: z.record(z.string(), z.strictObject({ url: z.string(), artist: z.string().optional() })),
   portraits: z.record(z.string(), z.string()),
-  backgrounds: z.record(z.string(), z.strictObject({ far: z.string(), mid: z.string().optional(), near: z.string().optional() })),
+  /** Layers back to front: `back` is the sky, `overlay` sits over the art and under the UI. */
+  backgrounds: z.record(
+    z.string(),
+    z.strictObject({ back: z.string().optional(), far: z.string(), mid: z.string().optional(), near: z.string().optional(), overlay: z.string().optional() }),
+  ),
 });
 export type ArtManifest = z.infer<typeof ArtManifest>;

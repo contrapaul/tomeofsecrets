@@ -1,31 +1,74 @@
 import { Container, Sprite, type Texture } from 'pixi.js';
 import { DESIGN } from '../../app/fit';
+import type { BackgroundTextures } from '../../app/art';
 import type { Stage } from '../../app/stage';
 
+export type LayerName = 'back' | 'far' | 'mid' | 'near' | 'overlay';
+
+export interface LayerSetting {
+  /** Pixels of drift at the edge of the screen. 0 pins the layer still. */
+  drift: number;
+  /** Oversize, so a drifting layer never shows its edge. */
+  scale: number;
+  visible: boolean;
+}
+
+export type LayerSettings = Record<LayerName, LayerSetting>;
+
 /**
- * Up to three background layers that drift a little against the pointer:
- * far (least), mid, near (most). Nothing here reads the window; it listens
- * to the stage.
+ * The tuned look, back to front. `near` is the ground the enemies stand on, so
+ * it does not drift — moving it would slide the floor out from under them.
+ */
+export const DEFAULT_LAYERS: LayerSettings = {
+  back: { drift: 4, scale: 1.02, visible: true },
+  far: { drift: 14, scale: 1.04, visible: true },
+  mid: { drift: 30, scale: 1.06, visible: true },
+  near: { drift: 0, scale: 1, visible: true },
+  overlay: { drift: 8, scale: 1.03, visible: true },
+};
+
+export function copyLayers(s: LayerSettings): LayerSettings {
+  return Object.fromEntries(Object.entries(s).map(([k, v]) => [k, { ...v }])) as LayerSettings;
+}
+
+/**
+ * Background layers that drift against the pointer. Nothing here reads the
+ * window; it listens to the stage. The overlay is built but not added — the
+ * scene places it above the art and below the UI, wherever that is.
  */
 export class ParallaxBackdrop extends Container {
-  private readonly layers: { sprite: Sprite; dx: number; dy: number }[] = [];
+  /** Watercolour marks, for the scene to put in its own stack. */
+  readonly overlay: Container | null = null;
+
+  private readonly layers: { name: LayerName; sprite: Sprite }[] = [];
+  private settings: LayerSettings;
   private target = { x: 0, y: 0 };
   private readonly tick: () => void;
 
-  constructor(textures: { far: Texture; mid?: Texture; near?: Texture }, private readonly stage: Stage) {
+  constructor(textures: BackgroundTextures, stage: Stage, settings: LayerSettings = DEFAULT_LAYERS) {
     super({ label: 'parallax' });
-    const add = (tex: Texture | undefined, scale: number, dx: number, dy: number) => {
-      if (!tex) return;
+    this.settings = copyLayers(settings);
+
+    const make = (name: LayerName, tex: Texture | undefined): Sprite | null => {
+      if (!tex) return null;
       const sprite = new Sprite(tex);
       sprite.anchor.set(0.5);
       sprite.position.set(DESIGN.width / 2, DESIGN.height / 2);
-      sprite.scale.set(scale);
-      this.addChild(sprite);
-      this.layers.push({ sprite, dx, dy });
+      this.layers.push({ name, sprite });
+      return sprite;
     };
-    add(textures.far, 1.04, 12, 6);
-    add(textures.mid, 1.06, 22, 10);
-    add(textures.near, 1.08, 34, 14);
+    for (const name of ['back', 'far', 'mid', 'near'] as const) {
+      const sprite = make(name, textures[name]);
+      if (sprite) this.addChild(sprite);
+    }
+    const over = make('overlay', textures.overlay);
+    if (over) {
+      this.overlay = new Container({ label: 'parallax-overlay' });
+      this.overlay.eventMode = 'none';
+      this.overlay.addChild(over);
+    }
+    this.apply();
+
     this.eventMode = 'none';
     stage.app.stage.on('globalpointermove', (e) => {
       const p = stage.root.toLocal(e.global);
@@ -34,11 +77,28 @@ export class ParallaxBackdrop extends Container {
     this.tick = () => {
       const k = 0.04;
       for (const l of this.layers) {
-        l.sprite.x += (DESIGN.width / 2 - this.target.x * l.dx - l.sprite.x) * k;
-        l.sprite.y += (DESIGN.height / 2 - this.target.y * l.dy - l.sprite.y) * k;
+        const s = this.settings[l.name];
+        const toX = DESIGN.width / 2 - this.target.x * s.drift;
+        const toY = DESIGN.height / 2 - this.target.y * s.drift * 0.45;
+        l.sprite.x += (toX - l.sprite.x) * k;
+        l.sprite.y += (toY - l.sprite.y) * k;
       }
     };
     stage.app.ticker.add(this.tick);
     this.once('destroyed', () => stage.app.ticker.remove(this.tick));
+  }
+
+  /** Re-read the settings; the dev page tunes these live. */
+  set(settings: LayerSettings): void {
+    this.settings = copyLayers(settings);
+    this.apply();
+  }
+
+  private apply(): void {
+    for (const l of this.layers) {
+      const s = this.settings[l.name];
+      l.sprite.scale.set(s.scale);
+      l.sprite.visible = s.visible;
+    }
   }
 }

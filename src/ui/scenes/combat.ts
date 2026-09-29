@@ -650,7 +650,12 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
 
       view.addChild(shakeRoot);
       shakeRoot.addChild(layers.bg, layers.table, layers.enemies);
-      layers.bg.addChild(bg ? new ParallaxBackdrop(bg, ctx.stage) : backdrop(0x161a24, 0x0b0a0f));
+      // The watercolour overlay, when the art has one, sits over the table and the
+      // enemies but under every piece of interface.
+      const parallax = bg ? new ParallaxBackdrop(bg, ctx.stage) : null;
+      layers.bg.addChild(parallax ?? backdrop(0x161a24, 0x0b0a0f));
+      // Above the table and the enemies, below the hand and every other piece of interface.
+      if (parallax?.overlay) shakeRoot.addChild(parallax.overlay);
       const floor = new Graphics();
       floor.ellipse(LAYOUT.enemyCenterX, LAYOUT.enemyBaseY + 10, 520, 60).fill({ color: 0x000000, alpha: 0.25 });
       layers.table.addChild(floor);

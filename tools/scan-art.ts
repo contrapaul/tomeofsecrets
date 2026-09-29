@@ -13,7 +13,7 @@
  *   relics/<id>.png|webp        256×256, drawn inside the circle
  *   vials/<id>.png|webp         256×336
  *   portraits/<id>.png|webp     700×900
- *   backgrounds/<key>/far.png   1920×1080, optional mid.png and near.png (transparent)
+ *   backgrounds/<key>/far.png   1920×1080; optional back, mid, near, overlay (all but back transparent)
  * Every artist id must exist in src/content/credits.json.
  */
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -133,12 +133,20 @@ for (const key of listDirs(join(ART, 'backgrounds'))) {
   if (d.width !== 1920 || d.height !== 1080) note(`backgrounds/${key}/${far} is ${d.width}×${d.height}; a background is 1920×1080`);
   const near = ['near.png', 'near.webp'].find((f) => existsSync(join(dir, f)));
   const mid = ['mid.png', 'mid.webp'].find((f) => existsSync(join(dir, f)));
-  for (const layer of [near, mid]) {
+  const back = ['back.png', 'back.webp'].find((f) => existsSync(join(dir, f)));
+  const overlay = ['overlay.png', 'overlay.webp'].find((f) => existsSync(join(dir, f)));
+  for (const layer of [near, mid, back, overlay]) {
     if (!layer) continue;
     const ld = await dims(join(dir, layer));
     if (ld.width !== 1920 || ld.height !== 1080) note(`backgrounds/${key}/${layer} is ${ld.width}×${ld.height}; a background layer is 1920×1080`);
   }
-  manifest.backgrounds[key] = { far: `art/backgrounds/${key}/${far}`, ...(mid ? { mid: `art/backgrounds/${key}/${mid}` } : {}), ...(near ? { near: `art/backgrounds/${key}/${near}` } : {}) };
+  manifest.backgrounds[key] = {
+    ...(back ? { back: `art/backgrounds/${key}/${back}` } : {}),
+    far: `art/backgrounds/${key}/${far}`,
+    ...(mid ? { mid: `art/backgrounds/${key}/${mid}` } : {}),
+    ...(near ? { near: `art/backgrounds/${key}/${near}` } : {}),
+    ...(overlay ? { overlay: `art/backgrounds/${key}/${overlay}` } : {}),
+  };
 }
 
 ArtManifest.parse(manifest);

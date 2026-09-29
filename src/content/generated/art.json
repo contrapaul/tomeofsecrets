@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-28",
+  "generated": "2026-09-29",
   "enemies": {
     "bookwyrm": {
       "idle": "art/enemies/bookwyrm/idle.png",
@@ -105,6 +105,13 @@
     "chapter1": {
       "far": "art/backgrounds/chapter1/far.png",
       "near": "art/backgrounds/chapter1/near.png"
+    },
+    "moss-halls": {
+      "back": "art/backgrounds/moss-halls/back.webp",
+      "far": "art/backgrounds/moss-halls/far.webp",
+      "mid": "art/backgrounds/moss-halls/mid.webp",
+      "near": "art/backgrounds/moss-halls/near.webp",
+      "overlay": "art/backgrounds/moss-halls/overlay.webp"
     }
   }
 }
