@@ -2,6 +2,7 @@ import type { Spritesheet} from 'pixi.js';
 import { Assets, Rectangle, Texture } from 'pixi.js';
 import manifestJson from '../content/generated/art.json';
 import { ArtManifest } from '../content/schema/art';
+import type { Artwork } from './settings';
 
 /**
  * What art exists (from the generated manifest) and how to load it. Nothing
@@ -123,6 +124,17 @@ export interface BackgroundTextures {
   near?: Texture;
   /** Over the art, under the UI. */
   overlay?: Texture;
+}
+
+/**
+ * Backgrounds that have finished art, by the key the game asks for. On
+ * `development` the game keeps asking for the placeholder, so both sets stay
+ * side by side and the difference is one setting rather than one commit.
+ */
+const ALPHA_BACKGROUNDS: Record<string, string> = { chapter1: 'moss-halls' };
+
+export function backgroundFor(key: string, artwork: Artwork): string {
+  return artwork === 'alpha' ? ALPHA_BACKGROUNDS[key] ?? key : key;
 }
 
 export async function loadBackground(key: string): Promise<BackgroundTextures | null> {

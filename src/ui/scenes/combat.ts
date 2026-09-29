@@ -1,6 +1,6 @@
 import { Container, Graphics, type Texture } from 'pixi.js';
 import gsap from 'gsap';
-import { loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
+import { backgroundFor, loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
 import { openBackgroundPanel } from '../../dev/bgPanel';
 import { audio } from '../../app/audio';
 import { DESIGN } from '../../app/fit';
@@ -114,7 +114,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let drag: DragController;
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
-  let bgKey = setup.background ?? 'chapter1';
+  // The art set is a setting, so a fight picks it up the next time it starts.
+  let bgKey = setup.background ?? backgroundFor('chapter1', ctx.settings.get().artwork);
   let overlayInFront = true;
   const tuning = copyLayers(DEFAULT_LAYERS);
   let closeTuner: (() => void) | null = null;

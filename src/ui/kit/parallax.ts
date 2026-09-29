@@ -20,11 +20,11 @@ export type LayerSettings = Record<LayerName, LayerSetting>;
  * it does not drift — moving it would slide the floor out from under them.
  */
 export const DEFAULT_LAYERS: LayerSettings = {
-  back: { drift: 4, scale: 1.02, visible: true },
-  far: { drift: 14, scale: 1.04, visible: true },
-  mid: { drift: 30, scale: 1.06, visible: true },
+  back: { drift: 2, scale: 1.02, visible: true },
+  far: { drift: 6, scale: 1.04, visible: true },
+  mid: { drift: 10, scale: 1.06, visible: true },
   near: { drift: 0, scale: 1, visible: true },
-  overlay: { drift: 8, scale: 1.03, visible: true },
+  overlay: { drift: 0, scale: 1, visible: true },
 };
 
 export function copyLayers(s: LayerSettings): LayerSettings {

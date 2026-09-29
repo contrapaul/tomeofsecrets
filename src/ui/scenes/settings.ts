@@ -1,12 +1,17 @@
 import { Container, Graphics } from 'pixi.js';
 import { DESIGN } from '../../app/fit';
 import type { Scene, SceneContext } from '../../app/router';
-import type { EnemyPace, Motion } from '../../app/settings';
+import type { Artwork, EnemyPace, Motion } from '../../app/settings';
 import { resetTutorials } from '../../app/tutorial';
 import { backdrop } from '../kit/backdrop';
 import { Button } from '../kit/button';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
+
+const ARTWORKS: { id: Artwork; label: string; blurb: string }[] = [
+  { id: 'alpha', label: 'Alpha', blurb: 'The drawn artwork, as it arrives. Some of it is still rough.' },
+  { id: 'development', label: 'Development', blurb: 'The placeholder shapes the game was built against.' },
+];
 
 const PACES: { id: EnemyPace; label: string; blurb: string }[] = [
   { id: 'measured', label: 'Measured', blurb: 'The enemies take their time, so you can see what each one does.' },
@@ -34,7 +39,7 @@ export function settingsScene(ctx: SceneContext): Scene {
       view.addChild(title);
 
       const panel = new Graphics();
-      panel.roundRect(460, 220, 1000, 740, 16).fill({ color: PALETTE.parchment, alpha: 0.06 }).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
+      panel.roundRect(460, 220, 1000, 790, 16).fill({ color: PALETTE.parchment, alpha: 0.06 }).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
       view.addChild(panel);
 
       const heading = (label: string, x: number, y: number) => {
@@ -44,10 +49,11 @@ export function settingsScene(ctx: SceneContext): Scene {
       };
       heading('Motion', 520, 250);
       heading('Enemy turn', 520, 470);
-      heading('Screen shake', 520, 640);
-      heading('Tutorial', 520, 780);
-      heading('Music', 1000, 640);
-      heading('Sound', 1000, 780);
+      heading('Artwork', 520, 650);
+      heading('Screen shake', 520, 830);
+      heading('Music', 1000, 470);
+      heading('Sound', 1000, 650);
+      heading('Tutorial', 1000, 830);
 
       const rows = new Container();
       view.addChild(rows);
@@ -100,9 +106,29 @@ export function settingsScene(ctx: SceneContext): Scene {
           b.position.set(520 + 110 + i * 240, 550);
           rows.addChild(b);
         });
-        const paceBlurb = makeText(PACES.find((p) => p.id === s.enemyPace)!.blurb, { ...STYLE.body(20), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 420 });
-        paceBlurb.position.set(1000, 520);
+        const paceBlurb = makeText(PACES.find((p) => p.id === s.enemyPace)!.blurb, { ...STYLE.body(19), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 450 });
+        paceBlurb.position.set(520, 595);
         rows.addChild(paceBlurb);
+
+        ARTWORKS.forEach((a, i) => {
+          const on = s.artwork === a.id;
+          const b = new Button({
+            label: a.label,
+            width: 250,
+            height: 60,
+            fontSize: 24,
+            variant: on ? 'gold' : 'ghost',
+            onPress: () => {
+              ctx.settings.set({ artwork: a.id });
+              repaint();
+            },
+          });
+          b.position.set(520 + 125 + i * 265, 730);
+          rows.addChild(b);
+        });
+        const artBlurb = makeText(`${ARTWORKS.find((a) => a.id === s.artwork)!.blurb} Takes effect on the next fight.`, { ...STYLE.body(20), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 420 });
+        artBlurb.position.set(520, 775);
+        rows.addChild(artBlurb);
 
         const shake = new Button({
           label: s.shake ? 'On' : 'Off',
@@ -114,7 +140,7 @@ export function settingsScene(ctx: SceneContext): Scene {
             repaint();
           },
         });
-        shake.position.set(520 + 110, 720);
+        shake.position.set(520 + 110, 900);
         rows.addChild(shake);
 
         const replay = new Button({
@@ -128,17 +154,17 @@ export function settingsScene(ctx: SceneContext): Scene {
             repaint();
           },
         });
-        replay.position.set(520 + 110, 860);
+        replay.position.set(1000 + 110, 900);
         rows.addChild(replay);
-        const hint = makeText('The map and first-fight walkthroughs play again on the next run.', { ...STYLE.body(18), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 420 });
-        hint.position.set(520, 910);
+        const hint = makeText('The map and first-fight walkthroughs play again on the next run.', { ...STYLE.body(16), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 430 });
+        hint.position.set(1000, 945);
         rows.addChild(hint);
 
-        levelRow(s.volume.music, 1000, 720, (v) => {
+        levelRow(s.volume.music, 1000, 550, (v) => {
           ctx.settings.set({ volume: { ...s.volume, music: v } });
           repaint();
         });
-        levelRow(s.volume.sfx, 1000, 860, (v) => {
+        levelRow(s.volume.sfx, 1000, 730, (v) => {
           ctx.settings.set({ volume: { ...s.volume, sfx: v } });
           repaint();
         });
@@ -146,7 +172,7 @@ export function settingsScene(ctx: SceneContext): Scene {
       repaint();
 
       const back = new Button({ label: 'Back', variant: 'ghost', width: 240, onPress: () => ctx.router.go('/') });
-      back.position.set(DESIGN.width / 2, 1010);
+      back.position.set(DESIGN.width / 2, 1050);
       view.addChild(back);
     },
     exit() {},

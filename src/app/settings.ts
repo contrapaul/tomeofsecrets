@@ -5,11 +5,14 @@
 export type Motion = 'full' | 'fast' | 'reduced';
 
 export type EnemyPace = 'measured' | 'fast';
+/** Which set of pictures to play with: the drawn art, or the placeholder shapes. */
+export type Artwork = 'alpha' | 'development';
 
 export interface Settings {
   motion: Motion;
   /** How long the enemies' turn takes. New players need to see what hit them. */
   enemyPace: EnemyPace;
+  artwork: Artwork;
   shake: boolean;
   volume: { master: number; music: number; sfx: number };
 }
@@ -25,6 +28,7 @@ export function defaultSettings(prefersReducedMotion = false): Settings {
   return {
     motion: prefersReducedMotion ? 'reduced' : 'full',
     enemyPace: 'measured',
+    artwork: 'alpha',
     shake: !prefersReducedMotion,
     volume: { master: 0.8, music: 0.7, sfx: 0.9 },
   };
@@ -59,6 +63,7 @@ export function parseSettings(raw: string | null, defaults: Settings): Settings 
   return {
     motion: isMotion(d.motion) ? d.motion : defaults.motion,
     enemyPace: d.enemyPace === 'fast' || d.enemyPace === 'measured' ? d.enemyPace : defaults.enemyPace,
+    artwork: d.artwork === 'alpha' || d.artwork === 'development' ? d.artwork : defaults.artwork,
     shake: typeof d.shake === 'boolean' ? d.shake : defaults.shake,
     volume: {
       master: clamp01(vol.master, defaults.volume.master),
