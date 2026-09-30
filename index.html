@@ -16,9 +16,32 @@
     html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0a0f; }
     body { position: fixed; inset: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
     canvas { display: block; }
+
+    /* A phone held upright shows the stage as a thin strip; ask for landscape
+       instead. CSS only, so it is up before the game has loaded a byte. */
+    #rotate { display: none; }
+    @media (orientation: portrait) and (max-width: 550px) and (pointer: coarse) {
+      #rotate {
+        position: fixed; inset: 0; z-index: 10; display: flex;
+        flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+        background: #0b0a0f; color: #efe4c8; text-align: center; padding: 0 32px;
+      }
+      #rotate .phone {
+        width: 76px; height: 124px; border: 4px solid #d4a83b; border-radius: 12px;
+        animation: tip 2.4s ease-in-out infinite;
+      }
+      #rotate h1 { font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; margin: 0; color: #d4a83b; letter-spacing: 2px; }
+      #rotate p { font-family: 'Alegreya', serif; font-size: 18px; margin: 0; color: #bfb193; }
+      @keyframes tip { 0%, 40% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+    }
   </style>
 </head>
 <body>
+  <div id="rotate" aria-hidden="true">
+    <div class="phone"></div>
+    <h1>TURN SIDEWAYS</h1>
+    <p>The Tome is read in landscape.</p>
+  </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

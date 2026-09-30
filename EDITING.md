@@ -337,6 +337,39 @@ the real number so the text can never drift from the rules.
 and a list of what it `unlocks`. `requires` chains one page behind another.
 Anything not named by a page is unlocked from the start.
 
+### Change how the game looks on a phone
+
+A phone draws the whole 1920×1080 table at about a third of its size, so a
+15-pixel number lands at 5 pixels and nobody can read it. The game keeps the
+one layout and draws the parts that carry information larger. Nothing here
+touches what a desktop sees.
+
+`src/app/device.ts` decides, once at boot: a touch screen whose short side is
+500 pixels or less is a phone. Add `?layout=phone` to the address to see the
+phone version on a computer (`?layout=desktop` turns it off on a phone), for
+example `https://tome.contrapaul.com/?layout=phone#/`.
+
+| What | Where to change it |
+|---|---|
+| Which screens count as a phone | `PHONE_SHORT_SIDE` in `src/app/device.ts` |
+| The portrait "turn sideways" card | `#rotate` in `index.html` |
+| How far the map zooms in, and the tap radius | `PHONE_ZOOM`, `TAP_R` in `src/ui/run/map.ts` |
+| The hero's corner: which parts grow, and by how much | `PHONE_CORNER` in `src/ui/combat/PlayerPanel.ts` |
+| An enemy's name, bar and statuses | `PHONE_HUD`, `PHONE_PLATE` in `src/ui/combat/EnemyView.ts` |
+| The size of an enemy's intent badge | `PHONE_ZOOM` in `src/ui/combat/IntentBadge.ts` |
+| Relics and vials along the top | `zoom` in `src/ui/combat/CombatBar.ts` |
+| Everything else on the table (piles, End Turn, where things sit) | `PHONE` in `src/ui/scenes/combat.ts` |
+| The deck grid, and how long a hold reads instead of picks | `isPhone()` and `HOLD_MS` in `src/ui/run/DeckOverlay.ts` |
+
+Reading a card on a phone is a hold, not a tap: pressing a card in the hand,
+in a prompt or in the deck shows it big until the finger lifts. `HOLD_MS`
+(400ms) is the line between reading a card and choosing it.
+
+Screens that are mostly text — events, the shop, the Tome of Knowledge — are
+still drawn at their desktop size on a phone. They are readable but small.
+
+---
+
 ### Wording that is not content
 
 Menu labels, tutorial steps and screen copy live in the interface code. They

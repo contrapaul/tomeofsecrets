@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import type { Enemy } from '../../content/schema';
 import type { EnemyInstance, Intent } from '../../engine/rules';
 import type { EnemyTextures } from '../../app/art';
+import { isPhone } from '../../app/device';
 import { FONT } from '../../app/fonts';
 import { hitIntensity, impactBurst } from '../fx/impact';
 import { floatNumber } from '../fx/numbers';
@@ -19,6 +20,15 @@ const SIZE_W = { small: 200, medium: 260, large: 330 } as const;
 /** Real art is drawn at the spec size, 1:1 in design pixels. */
 const ART_H = { small: 400, medium: 600, large: 640 } as const;
 const ART_W = { small: 400, medium: 600, large: 700 } as const;
+/**
+ * On a phone the name, the bar and the intent are the fight's only numbers and
+ * they land at about 6 CSS pixels, so they are drawn larger. The art is not:
+ * it is already the right size against the table.
+ */
+const PHONE_HUD = 1.8;
+/** Where the bigger plate sits under the feet, and the badge above the head. */
+const PHONE_PLATE = { name: 26, hp: 66, statuses: 116, intent: 54 };
+const PLATE = { name: 28, hp: 54, statuses: 100, intent: 40 };
 
 /**
  * An enemy on the table: the puppet, its bars and badges. Positioned at its
@@ -81,24 +91,28 @@ export class EnemyView extends Container {
     this.body.filters = [this.matrix];
     this.addChild(this.body);
 
+    const hud = isPhone() ? PHONE_HUD : 1;
+    const plate = isPhone() ? PHONE_PLATE : PLATE;
     const name = makeText(def.name, { fontFamily: FONT.display, fontWeight: '700', fontSize: 18, fill: PALETTE.parchment, stroke: { color: 0x000000, width: 3 } });
     name.anchor.set(0.5, 0);
-    name.position.set(0, 28);
+    name.scale.set(hud);
+    name.position.set(0, plate.name);
     this.addChild(name);
 
-    this.hp = new HpBar(Math.max(150, this.bodyW * 0.7));
-    this.hp.position.set(-this.hp.width / 2 + 8, 54);
-    this.hp.pivot.set(0, 0);
-    this.addChild(this.hp);
+    const barW = Math.max(150, this.bodyW * 0.7);
+    this.hp = new HpBar(barW);
     // HpBar pivots at its top-left; centre it under the name.
-    this.hp.position.set(-Math.max(150, this.bodyW * 0.7) / 2, 54);
+    this.hp.scale.set(hud);
+    this.hp.position.set((-barW * hud) / 2, plate.hp);
+    this.addChild(this.hp);
 
     this.statuses = new StatusRow(explainer);
-    this.statuses.position.set(0, 100);
+    this.statuses.scale.set(hud);
+    this.statuses.position.set(0, plate.statuses);
     this.addChild(this.statuses);
 
     this.intent = new IntentBadge(explainer, def);
-    this.intent.position.set(0, -this.bodyH - 40);
+    this.intent.position.set(0, -this.bodyH - plate.intent);
     this.addChild(this.intent);
 
     this.hp.set(inst.hp, inst.maxHp, inst.block);

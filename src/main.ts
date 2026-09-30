@@ -1,6 +1,7 @@
 import { Graphics } from 'pixi.js';
 import gsap from 'gsap';
 import { initAssets, loadBundle } from './app/assets';
+import { initLayout } from './app/device';
 import { DESIGN } from './app/fit';
 import { loadFonts } from './app/fonts';
 import { Router } from './app/router';
@@ -38,6 +39,8 @@ import * as runApi from './engine/run/run';
 import * as eventApi from './engine/run/events';
 
 async function boot(): Promise<void> {
+  // Before any scene is built: a phone draws the same scenes at a different size.
+  initLayout();
   const stage = await Stage.create(PALETTE.letterbox);
   bindTextToStage(stage);
   gsap.ticker.lagSmoothing(0);

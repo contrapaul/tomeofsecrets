@@ -2,6 +2,7 @@ import { Container, FillGradient, Graphics } from 'pixi.js';
 import gsap from 'gsap';
 import type { ClassId } from '../../content/schema';
 import type { HeroState } from '../../engine/rules';
+import { isPhone } from '../../app/device';
 import { FONT } from '../../app/fonts';
 import { hitIntensity } from '../fx/impact';
 import { floatNumber, shake } from '../fx/numbers';
@@ -14,6 +15,14 @@ import { StatusRow } from './StatusRow';
 
 const CLASS_NAME: Record<ClassId, string> = { paladin: 'Paladin', tracker: 'Tracker', mage: 'Mage' };
 
+/**
+ * The hero's corner, and the same corner on a phone. Only the parts that carry
+ * a number grow: the portrait is decoration and stays the size it is, or the
+ * corner would swallow the table.
+ */
+const CORNER = { name: 1, hp: 1, statuses: 1, resource: 1, orb: 1, nameY: 104, hpY: 136, statusY: 190, resourceY: 236 };
+const PHONE_CORNER = { name: 1.4, hp: 2, statuses: 1.6, resource: 1.5, orb: 1.35, nameY: 104, hpY: 140, statusY: 226, resourceY: 280 };
+
 /** The hero's corner: portrait, HP, block, statuses, and the energy orb. */
 export class PlayerPanel extends Container {
   readonly portrait = new Container({ label: 'portrait' });
@@ -25,10 +34,12 @@ export class PlayerPanel extends Container {
   private readonly energyText = makeText('3', { fontFamily: FONT.display, fontWeight: '900', fontSize: 44, fill: PALETTE.ink });
   private readonly energyMax = makeText('/3', { fontFamily: FONT.mono, fontSize: 16, fill: PALETTE.ink });
   private readonly classId: ClassId;
+  private readonly zoom = isPhone() ? PHONE_CORNER : CORNER;
 
   constructor(hero: HeroState, explainer: Explainer, private readonly fxLayer: Container) {
     super({ label: 'player' });
     this.classId = hero.classId;
+    const zoom = this.zoom;
     const color = PALETTE.class[hero.classId];
 
     // Portrait placeholder: a ring in the class colour.
@@ -44,18 +55,22 @@ export class PlayerPanel extends Container {
 
     const name = makeText(CLASS_NAME[hero.classId].toUpperCase(), { ...STYLE.display(22), fill: color });
     name.anchor.set(0.5, 0);
-    name.position.set(0, 104);
+    name.scale.set(zoom.name);
+    name.position.set(0, zoom.nameY);
     this.addChild(name);
 
     this.hp = new HpBar(220, 22);
-    this.hp.position.set(-110, 136);
+    this.hp.scale.set(zoom.hp);
+    this.hp.position.set(-110 * zoom.hp, zoom.hpY);
     this.addChild(this.hp);
 
     this.statuses = new StatusRow(explainer);
-    this.statuses.position.set(0, 190);
+    this.statuses.scale.set(zoom.statuses);
+    this.statuses.position.set(0, zoom.statusY);
     this.addChild(this.statuses);
 
-    this.resourceSlot.position.set(0, 236);
+    this.resourceSlot.scale.set(zoom.resource);
+    this.resourceSlot.position.set(0, zoom.resourceY);
     this.addChild(this.resourceSlot);
 
     // Energy orb.
@@ -67,6 +82,7 @@ export class PlayerPanel extends Container {
     this.energyMax.anchor.set(0, 0.5);
     this.energyMax.position.set(14, 10);
     this.energyOrb.addChild(orb, this.energyText, this.energyMax);
+    this.energyOrb.scale.set(zoom.orb);
     this.energyOrb.eventMode = 'static';
     explainer.attach(this.energyOrb, () => explainer.forResource('energy', Number(this.energyText.text)));
     this.addChild(this.energyOrb);
@@ -88,7 +104,7 @@ export class PlayerPanel extends Container {
 
   /** The orb flashes red when a card costs more than you have. */
   refuseEnergy(): void {
-    gsap.fromTo(this.energyOrb.scale, { x: 1.15, y: 1.15 }, { x: 1, y: 1, duration: d(0.25), ease: 'elastic.out(1, 0.4)' });
+    gsap.fromTo(this.energyOrb.scale, { x: this.zoom.orb * 1.15, y: this.zoom.orb * 1.15 }, { x: this.zoom.orb, y: this.zoom.orb, duration: d(0.25), ease: 'elastic.out(1, 0.4)' });
     void shake(this.energyOrb, 6, 2);
   }
 

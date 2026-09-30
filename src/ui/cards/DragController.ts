@@ -1,6 +1,7 @@
 import type { Container} from 'pixi.js';
 import { Graphics, type FederatedPointerEvent } from 'pixi.js';
 import gsap from 'gsap';
+import { isPhone } from '../../app/device';
 import type { Stage } from '../../app/stage';
 import { d, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
@@ -28,6 +29,8 @@ export interface DragHost {
   /** Attempt the play; false means the card comes back. */
   onPlay(cardUid: number, targetId?: string): boolean;
   onInspect(cardUid: number): void;
+  /** Phone only: the card under the finger, drawn big enough to read, or null. */
+  onPeek(view: CardView | null): void;
   onReorder(order: number[]): void;
 }
 
@@ -88,6 +91,9 @@ export class DragController {
   attach(view: CardView): void {
     view.cursor = 'grab';
     view.on('pointerdown', (e) => {
+      // Reading a card is allowed even when playing one is not: mid-prompt,
+      // or while the enemies are moving.
+      if (isPhone()) this.host.onPeek(view);
       if (!this.host.canInteract()) return;
       this.pressed = view;
       const p = this.host.stage.root.toLocal(e.global);
@@ -99,6 +105,7 @@ export class DragController {
 
   private startDrag(view: CardView): void {
     const hand = this.host.hand;
+    this.host.onPeek(null);
     this.dragging = view;
     this.originalIndex = hand.cards.indexOf(view);
     hand.setHover(null);
@@ -266,8 +273,10 @@ export class DragController {
     const pressed = this.pressed;
     const view = this.dragging;
     this.pressed = null;
+    this.host.onPeek(null);
     if (!view) {
-      if (pressed && this.host.canInteract()) this.host.onInspect(pressed.cardUid);
+      // On a phone the press has already shown the card; there is nothing a tap adds.
+      if (pressed && this.host.canInteract() && !isPhone()) this.host.onInspect(pressed.cardUid);
       return;
     }
     const p = this.host.stage.root.toLocal(e.global);

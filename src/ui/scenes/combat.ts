@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { backgroundFor, loadBackground, loadCardArtFor, loadEnemyArtFor, type EnemyTextures } from '../../app/art';
 import { openBackgroundPanel } from '../../dev/bgPanel';
 import { audio } from '../../app/audio';
+import { isPhone } from '../../app/device';
 import { DESIGN } from '../../app/fit';
 import { markTutorial } from '../../app/tutorial';
 import type { Scene, SceneContext } from '../../app/router';
@@ -55,7 +56,7 @@ export interface CombatSetup {
   tips?: boolean;
 }
 
-const LAYOUT = {
+const DESKTOP = {
   enemyBaseY: 640,
   enemyCenterX: 1330,
   player: { x: 250, y: 420 },
@@ -68,7 +69,35 @@ const LAYOUT = {
   playLineY: 730,
   center: { x: 960, y: 520 },
   powers: { x: 250, y: 660 },
+  /** Where the energy orb hangs off the hero's corner, and the traps under it. */
+  orb: { x: -130, y: 230 },
+  traps: 300,
+  /** The piles carry numbers; a phone draws them larger. */
+  zoom: { pile: 1, exhaust: 0.7 },
+  endTurnSize: { width: 240, height: 64 } as { width: number; height: number; fontSize?: number },
 };
+
+/**
+ * The same table on a phone, where the design space is drawn at about a third
+ * of its size: the hero's corner, the piles and the button that ends the turn
+ * are drawn half again as large, and moved in from the edges to make room.
+ */
+const PHONE: typeof DESKTOP = {
+  ...DESKTOP,
+  player: { x: 250, y: 380 },
+  // Beside the portrait, not under it: the bar below the hero is twice as tall.
+  orb: { x: 198, y: -18 },
+  traps: 344,
+  draw: { x: 132, y: 944 },
+  discard: { x: 1788, y: 944 },
+  exhaust: { x: 1640, y: 968 },
+  endTurn: { x: 1730, y: 796 },
+  zoom: { pile: 1.4, exhaust: 1 },
+  endTurnSize: { width: 300, height: 88, fontSize: 40 },
+};
+
+/** Past this, a press on a phone was someone reading the card, not choosing it. */
+const HOLD_MS = 400;
 
 const REASONS: Record<Unplayable, string> = {
   'not-your-turn': 'Not your turn.',
@@ -85,6 +114,9 @@ const REASONS: Record<Unplayable, string> = {
 
 /** The table. One fight, start to finish. */
 export function combatScene(ctx: SceneContext, content: Content, setup: CombatSetup): Scene {
+  // Read here, not at the top of the file: the layout is settled during boot,
+  // after this module is imported.
+  const LAYOUT = isPhone() ? PHONE : DESKTOP;
   const view = new Container({ label: 'combat' });
   let state: CombatState;
   let busy = true;
@@ -115,6 +147,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let drag: DragController;
   let endTurnBtn: Button;
   let promptBar: Container | null = null;
+  /** Closes the card a finger is holding up to read; see showPeek. */
+  let closePeek: (() => void) | null = null;
   // The art set is a setting, so a fight picks it up the next time it starts.
   let bgKey = backgroundFor(setup.background ?? 'chapter1', ctx.settings.get().artwork);
   let overlayInFront = true;
@@ -411,8 +445,18 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     promptBar.addChild(bar);
     for (const cv of picks) {
       cv.removeAllListeners('pointertap');
+      let pressedAt = 0;
+      if (isPhone()) {
+        // The cards laid out from a pile are not in the hand, so nothing else
+        // is offering to show them; and a hold is a read, not a choice.
+        cv.on('pointerdown', () => {
+          pressedAt = performance.now();
+          if (p.kind === 'retrieve') showPeek(cv);
+        });
+      }
       cv.on('pointertap', () => {
         if (!state.prompt) return;
+        if (isPhone() && performance.now() - pressedAt > HOLD_MS) return;
         const i = promptSelection.indexOf(cv.cardUid);
         if (i >= 0) promptSelection.splice(i, 1);
         else if (promptSelection.length < p.count) promptSelection.push(cv.cardUid);
@@ -422,23 +466,32 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     }
   }
 
-  function showInspector(uid: number): void {
+  /**
+   * The card, big enough to read, with its words explained beside it. A tap
+   * opens it and a tap closes it; a `transient` one belongs to the finger
+   * holding a card on a phone and is closed by letting go, so it takes no
+   * pointer events of its own and shows no closing hint. Returns its close.
+   */
+  function showInspector(uid: number, transient = false): (() => void) | null {
     const def = cardDef(uid);
     const disp = display(uid);
-    if (!def || !disp) return;
+    if (!def || !disp) return null;
     const overlay = new Container();
     const dim = new Graphics();
-    dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: 0.7 });
-    dim.eventMode = 'static';
+    dim.rect(0, 0, DESIGN.width, DESIGN.height).fill({ color: 0x000000, alpha: transient ? 0.55 : 0.7 });
+    dim.eventMode = transient ? 'none' : 'static';
     const close = () => {
       dim.eventMode = 'none';
       explainer.hide();
       gsap.to(overlay, { alpha: 0, duration: d(0.12), onComplete: () => overlay.destroy({ children: true }) });
     };
-    dim.on('pointertap', close);
+    if (!transient) dim.on('pointertap', close);
     overlay.addChild(dim);
     const big = new CardView(uid, def, disp);
-    big.position.set(DESIGN.width / 2 - 200, DESIGN.height / 2);
+    // The tap-to-open one leaves the right-hand side clear for its notes; the
+    // held one is read and let go, so it sits in the middle.
+    const cx = transient ? DESIGN.width / 2 : DESIGN.width / 2 - 200;
+    big.position.set(cx, DESIGN.height / 2);
     big.eventMode = 'none';
     overlay.addChild(big);
     // Grow in from a little smaller, over the fading dim: one motion, not a lift and a drop.
@@ -447,18 +500,31 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     gsap.fromTo(big.scale, { x: 1.9, y: 1.9 }, { x: 2.2, y: 2.2, duration: d(0.2), ease: 'power2.out' });
     // Its words, explained beside it; the same column a hover shows.
     const ex = explainCard(content, disp.resolved, { state });
-    if (ex.notes.length) explainer.showAt({ x: DESIGN.width / 2 - 200 - CARD_W * 1.1, y: DESIGN.height / 2 - CARD_H * 1.1, w: CARD_W * 2.2, h: CARD_H * 2.2 }, ex, { header: false, delayMs: 0 });
-    else {
+    if (ex.notes.length) explainer.showAt({ x: cx - CARD_W * 1.1, y: DESIGN.height / 2 - CARD_H * 1.1, w: CARD_W * 2.2, h: CARD_H * 2.2 }, ex, { header: false, delayMs: 0 });
+    else if (!transient) {
       const none = makeText('Nothing here needs explaining.', { ...STYLE.body(22), fill: PALETTE.parchmentDim });
       none.position.set(DESIGN.width / 2 + 120, DESIGN.height / 2 - 20);
       overlay.addChild(none);
     }
-    const hint = makeText('tap or click anywhere to close', STYLE.mono(16));
-    hint.alpha = 0.6;
-    hint.anchor.set(0.5);
-    hint.position.set(DESIGN.width / 2, DESIGN.height - 60);
-    overlay.addChild(hint);
+    if (!transient) {
+      const hint = makeText('tap or click anywhere to close', STYLE.mono(16));
+      hint.alpha = 0.6;
+      hint.anchor.set(0.5);
+      hint.position.set(DESIGN.width / 2, DESIGN.height - 60);
+      overlay.addChild(hint);
+    }
     layers.overlay.addChild(overlay);
+    return close;
+  }
+
+  /**
+   * Phone: a card in the fan is 70 pixels wide, so the finger landing on one
+   * shows it at a size it can be read at, until the finger leaves or starts
+   * dragging it somewhere.
+   */
+  function showPeek(view: CardView | null): void {
+    closePeek?.();
+    closePeek = view ? showInspector(view.cardUid, true) : null;
   }
 
   function openMenu(): void {
@@ -484,7 +550,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       return cv ? { x: layers.hand.x + cv.x, y: layers.hand.y + cv.y - (CARD_H * cv.scale.y) / 2 } : null;
     };
     const firstEnemy = () => [...enemies.values()].find((v) => !v.dead) ?? null;
-    const orbTop = { x: LAYOUT.player.x - 130, y: LAYOUT.player.y + 230 - 58 };
+    const orbTop = { x: LAYOUT.player.x + LAYOUT.orb.x, y: LAYOUT.player.y + LAYOUT.orb.y - 58 };
     const endTurnTop = { x: LAYOUT.endTurn.x, y: LAYOUT.endTurn.y - 36 };
     coach = new Coach(ctx.stage, [
       {
@@ -506,7 +572,9 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       },
       {
         title: 'The words in gold',
-        text: 'Anything written in gold has a meaning you can check. Rest the pointer on a card, a badge or a status for a moment (tap it on a touch screen) and its words are explained beside it.',
+        text: isPhone()
+          ? 'Anything written in gold has a meaning you can check. Hold a card down to see it large, with its words explained beside it; touch a badge or a status for the same.'
+          : 'Anything written in gold has a meaning you can check. Rest the pointer on a card, a badge or a status for a moment (tap it on a touch screen) and its words are explained beside it.',
         until: ['explain'],
         point: () => [firstCard(false) ?? firstCard(true), firstEnemy()?.top ?? null],
       },
@@ -518,7 +586,9 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       },
       {
         title: 'Your turn again',
-        text: 'A new hand of five and full energy, every turn. When the draw pile runs out, the discard pile shuffles back in. Hover anything for details. Right-click an enemy to see the moves it has shown. Now win this fight.',
+        text: isPhone()
+          ? 'A new hand of five and full energy, every turn. When the draw pile runs out, the discard pile shuffles back in. Hold any card to read it. Now win this fight.'
+          : 'A new hand of five and full energy, every turn. When the draw pile runs out, the discard pile shuffles back in. Hover anything for details. Right-click an enemy to see the moves it has shown. Now win this fight.',
         after: 'hero-turn',
       },
     ], { x: 60, y: 64 }, () => {
@@ -746,7 +816,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
 
       player = new PlayerPanel(state.hero, explainer, layers.fx);
       player.position.set(LAYOUT.player.x, LAYOUT.player.y);
-      player.energyOrb.position.set(-130, 230);
+      player.energyOrb.position.set(LAYOUT.orb.x, LAYOUT.orb.y);
       layers.ui.addChild(player);
 
       const classDef = content.classes?.[state.hero.classId];
@@ -756,7 +826,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         player.resourceSlot.addChild(resource);
       }
       traps = new TrapRow(content, tooltip);
-      traps.position.set(0, 300);
+      traps.position.set(0, LAYOUT.traps);
       player.addChild(traps);
       if (state.hero.companion) {
         companion = new CompanionView(state.hero.companion, tooltip, layers.fx);
@@ -768,14 +838,16 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       piles.draw.position.set(LAYOUT.draw.x, LAYOUT.draw.y);
       piles.discard.position.set(LAYOUT.discard.x, LAYOUT.discard.y);
       piles.exhaust.position.set(LAYOUT.exhaust.x, LAYOUT.exhaust.y);
-      piles.exhaust.scale.set(0.7);
+      piles.draw.scale.set(LAYOUT.zoom.pile);
+      piles.discard.scale.set(LAYOUT.zoom.pile);
+      piles.exhaust.scale.set(LAYOUT.zoom.exhaust);
       layers.ui.addChild(piles.draw, piles.discard, piles.exhaust);
 
       bar = new CombatBar(content, explainer, onVial, () => openMenu());
       bar.sync(state.hero);
       layers.ui.addChild(bar);
 
-      endTurnBtn = new Button({ label: 'End Turn', width: 240, height: 64, onPress: doEndTurn });
+      endTurnBtn = new Button({ label: 'End Turn', ...LAYOUT.endTurnSize, onPress: doEndTurn });
       endTurnBtn.position.set(LAYOUT.endTurn.x, LAYOUT.endTurn.y);
       layers.ui.addChild(endTurnBtn);
 
@@ -804,7 +876,8 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
         },
         playLineY: LAYOUT.playLineY,
         onPlay: (uid, targetId) => tryPlay(uid, targetId),
-        onInspect: (uid) => showInspector(uid),
+        onInspect: (uid) => void showInspector(uid),
+        onPeek: (view) => showPeek(view),
         onReorder: (order) => {
           // The hand's order is presentational; write it back so draws keep it.
           state.piles.hand.sort((a, b) => order.indexOf(a.uid) - order.indexOf(b.uid));

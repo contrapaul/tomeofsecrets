@@ -1,5 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
 import { explainVial, type Content, type HeroState } from '../../engine/rules';
+import { isPhone } from '../../app/device';
 import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
@@ -8,15 +9,22 @@ import { menuButton } from '../kit/gameMenu';
 import { makeText, STYLE } from '../kit/text';
 import type { Explainer } from '../kit/explainer';
 
-/** Relics and vials along the top of a fight. Vials are clickable. */
+/**
+ * Relics and vials along the top of a fight. Vials are clickable.
+ *
+ * A phone draws the row larger, and the row lays itself out in a space that
+ * much narrower so the right-hand end still lands on the right-hand edge.
+ */
 export class CombatBar extends Container {
   private readonly items = new Container();
+  private readonly zoom = isPhone() ? 1.6 : 1;
   selectedVial: number | null = null;
 
   constructor(private readonly content: Content, private readonly explainer: Explainer, private readonly onVial: (index: number) => void, private readonly onMenu?: () => void) {
     super({ label: 'combat-bar' });
     const bg = new Graphics();
-    bg.rect(0, 0, DESIGN.width, 56).fill({ color: 0x000000, alpha: 0.35 });
+    bg.rect(0, 0, DESIGN.width, 56 * this.zoom).fill({ color: 0x000000, alpha: 0.35 });
+    this.items.scale.set(this.zoom);
     this.addChild(bg, this.items);
   }
 
@@ -46,7 +54,7 @@ export class CombatBar extends Container {
       this.items.addChild(c);
       x += 44;
     }
-    let rx = DESIGN.width - 40;
+    let rx = DESIGN.width / this.zoom - 40;
     for (let i = hero.vialSlots - 1; i >= 0; i--) {
       const id = hero.vials[i];
       const vial = id ? this.content.vials?.[id] : undefined;
