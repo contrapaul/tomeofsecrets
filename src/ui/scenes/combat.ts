@@ -29,6 +29,7 @@ import { Button } from '../kit/button';
 import { Coach } from '../kit/coach';
 import { vignetteSprite } from '../fx/vignette';
 import { Explainer } from '../kit/explainer';
+import { openGameMenu } from '../kit/gameMenu';
 import { d, done, enemyTurn, spatial } from '../kit/motion';
 import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
@@ -119,6 +120,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   let overlayInFront = true;
   const tuning = copyLayers(DEFAULT_LAYERS);
   let closeTuner: (() => void) | null = null;
+  let menuClose: (() => void) | null = null;
   let coach: Coach | null = null;
   const shakeRoot = new Container({ label: 'shake' });
   const vignette = vignetteSprite();
@@ -162,6 +164,25 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     // Nothing left to do this turn: point at End Turn.
     endTurnBtn.setGlow(!busy && !state.prompt && state.phase === 'player' && (state.hero.energy === 0 || legal.size === 0));
     if (state.hero.energy === 0) coach?.notify('energy-zero');
+    maybeAutoEndTurn(legal.size);
+  }
+
+  /**
+   * End the turn without being asked, for players who have opted in. It waits for
+   * an empty energy orb *and* nothing playable — a 0-cost card in hand is still a
+   * turn worth taking — and never fires while the coach is talking, so the
+   * walkthrough's "end your turn" step is still the player's to do.
+   */
+  function maybeAutoEndTurn(legalPlayCount: number): void {
+    if (!ctx.settings.get().autoEndTurn || coach) return;
+    if (busy || state.prompt || state.phase !== 'player') return;
+    if (state.hero.energy > 0 || legalPlayCount > 0) return;
+    // A beat to see the board settle before it moves on.
+    gsap.delayedCall(d(0.55), () => {
+      if (busy || state.prompt || state.phase !== 'player') return;
+      if (state.hero.energy > 0 || legalPlays(state, content).length > 0) return;
+      doEndTurn();
+    });
   }
 
   function layoutEnemies(): void {
@@ -440,6 +461,11 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
     layers.overlay.addChild(overlay);
   }
 
+  function openMenu(): void {
+    if (menuClose) return;
+    menuClose = openGameMenu(layers.overlay, { router: ctx.router, onClose: () => { menuClose = null; } });
+  }
+
   function doEndTurn(): void {
     if (busy || state.prompt) return;
     coach?.notify('end-turn');
@@ -565,6 +591,11 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
   function onKey(e: KeyboardEvent): void {
     if (e.key === 'f' || e.key === 'F') toggleFps();
     if (e.key === 'Escape') {
+      if (menuClose) {
+        menuClose();
+        menuClose = null;
+        return;
+      }
       layers.hand.setHover(null);
       bar.selectedVial = null;
       bar.sync(state.hero);
@@ -740,7 +771,7 @@ export function combatScene(ctx: SceneContext, content: Content, setup: CombatSe
       piles.exhaust.scale.set(0.7);
       layers.ui.addChild(piles.draw, piles.discard, piles.exhaust);
 
-      bar = new CombatBar(content, explainer, onVial);
+      bar = new CombatBar(content, explainer, onVial, () => openMenu());
       bar.sync(state.hero);
       layers.ui.addChild(bar);
 

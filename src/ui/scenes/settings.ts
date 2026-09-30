@@ -39,7 +39,7 @@ export function settingsScene(ctx: SceneContext): Scene {
       view.addChild(title);
 
       const panel = new Graphics();
-      panel.roundRect(460, 170, 1000, 770, 16).fill({ color: PALETTE.parchment, alpha: 0.06 }).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
+      panel.roundRect(460, 170, 1000, 790, 16).fill({ color: PALETTE.parchment, alpha: 0.06 }).stroke({ color: PALETTE.gold, width: 2, alpha: 0.5 });
       view.addChild(panel);
 
       const heading = (label: string, x: number, y: number) => {
@@ -50,9 +50,11 @@ export function settingsScene(ctx: SceneContext): Scene {
       heading('Motion', 520, 200);
       heading('Enemy turn', 520, 420);
       heading('Artwork', 520, 620);
-      heading('Screen shake', 520, 840);
+      heading('Tutorial', 520, 820);
       heading('Music', 1000, 420);
       heading('Sound', 1000, 600);
+      heading('Shake', 1000, 760);
+      heading('End turn', 1245, 760);
       // No files have been recorded yet; the sliders work, they just have nothing to play.
       for (const y of [420, 600]) {
         const soon = makeText('coming soon', { ...STYLE.mono(16), fill: PALETTE.parchmentDim });
@@ -60,7 +62,6 @@ export function settingsScene(ctx: SceneContext): Scene {
         soon.alpha = 0.7;
         view.addChild(soon);
       }
-      heading('Tutorial', 1000, 780);
 
       const rows = new Container();
       view.addChild(rows);
@@ -117,6 +118,22 @@ export function settingsScene(ctx: SceneContext): Scene {
         paceBlurb.position.set(520, 545);
         rows.addChild(paceBlurb);
 
+        const auto = new Button({
+          label: s.autoEndTurn ? 'On' : 'Off',
+          width: 200,
+          height: 60,
+          variant: s.autoEndTurn ? 'gold' : 'ghost',
+          onPress: () => {
+            ctx.settings.set({ autoEndTurn: !s.autoEndTurn });
+            repaint();
+          },
+        });
+        auto.position.set(1350, 822);
+        rows.addChild(auto);
+        const autoBlurb = makeText('Ends your turn once your energy is gone and nothing in your hand can be played.', { ...STYLE.body(18), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 460 });
+        autoBlurb.position.set(1000, 866);
+        rows.addChild(autoBlurb);
+
         ARTWORKS.forEach((a, i) => {
           const on = s.artwork === a.id;
           const b = new Button({
@@ -140,7 +157,7 @@ export function settingsScene(ctx: SceneContext): Scene {
 
         const shake = new Button({
           label: s.shake ? 'On' : 'Off',
-          width: 220,
+          width: 200,
           height: 60,
           variant: s.shake ? 'gold' : 'ghost',
           onPress: () => {
@@ -148,7 +165,7 @@ export function settingsScene(ctx: SceneContext): Scene {
             repaint();
           },
         });
-        shake.position.set(520 + 110, 900);
+        shake.position.set(1110, 822);
         rows.addChild(shake);
 
         const replay = new Button({
@@ -162,10 +179,10 @@ export function settingsScene(ctx: SceneContext): Scene {
             repaint();
           },
         });
-        replay.position.set(1000 + 110, 850);
+        replay.position.set(630, 882);
         rows.addChild(replay);
         const hint = makeText('The map and first-fight walkthroughs play again on the next run.', { ...STYLE.body(16), fill: PALETTE.parchmentDim, wordWrap: true, wordWrapWidth: 430 });
-        hint.position.set(1000, 895);
+        hint.position.set(520, 926);
         rows.addChild(hint);
 
         levelRow(s.volume.music, 1000, 500, (v) => {
@@ -180,7 +197,7 @@ export function settingsScene(ctx: SceneContext): Scene {
       repaint();
 
       const back = new Button({ label: 'Back', variant: 'ghost', width: 240, onPress: () => ctx.router.go('/') });
-      back.position.set(DESIGN.width / 2, 985);
+      back.position.set(DESIGN.width / 2, 1010);
       view.addChild(back);
     },
     exit() {},

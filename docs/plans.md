@@ -886,6 +886,28 @@ Then `package.json` scripts: `dev`, `build`, `preview`, `test`, `lint`,
 
 ---
 
+### Quests (Paul's direction, 2026-09-30)
+
+Not a phase yet — the shape Paul wants the game to grow into, written down so
+Phase 7's content decisions do not paint over it.
+
+- **A quest is three chapters.** What the game currently calls a run becomes
+  Quest One; `RunState.chapter` stays 1–3 within a quest, and a quest id sits
+  above it.
+- **Quest One: deep into a haunted library.** The three existing chapters (The
+  Moss Halls, The Drowned Stacks, The Binding) are its arc, so nothing authored
+  for Phase 7 is wasted.
+- **Finishing a quest unlocks the next.** A gate in the profile beside Seals,
+  so the Tome already has the shape to hold it.
+- **Each quest has its own unlockable secrets.** Secrets are keyed to enemies
+  today, and enemies belong to chapters, so a quest's Secret pool falls out of
+  its chapters — but the Tome's Cards tab will want to group by quest rather
+  than list everything at once.
+
+Worth deciding before Phase 7's balance pass, because "a run" and "a quest"
+being the same thing is baked into the Lore formula, the seal unlocks and the
+run history. Deciding late means rewriting all three.
+
 ## Backlog (parked)
 
 - Chapter 4 "The Last Page": a true final boss unlocked by three keys found across a run.

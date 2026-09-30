@@ -1,4 +1,5 @@
 import { Container } from 'pixi.js';
+import { openGameMenu } from '../kit/gameMenu';
 import type { Scene, SceneContext } from '../../app/router';
 import { audio } from '../../app/audio';
 import { runController } from '../../app/runController';
@@ -75,7 +76,7 @@ export function runScene(ctx: SceneContext, phases: RunPhase[], build: (d: RunSc
       };
       await build(deps);
       if (opts.bar !== false) {
-        bar = new RunBar(controller.content, explainer, () => deps.showDeck());
+        bar = new RunBar(controller.content, explainer, () => deps.showDeck(), () => openGameMenu(view, { router: ctx.router }));
         bar.sync(run);
         view.addChild(bar);
         deps.bar = bar;

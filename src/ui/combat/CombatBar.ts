@@ -4,6 +4,7 @@ import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
 import { fillTokenArt } from '../kit/tokenArt';
+import { menuButton } from '../kit/gameMenu';
 import { makeText, STYLE } from '../kit/text';
 import type { Explainer } from '../kit/explainer';
 
@@ -12,7 +13,7 @@ export class CombatBar extends Container {
   private readonly items = new Container();
   selectedVial: number | null = null;
 
-  constructor(private readonly content: Content, private readonly explainer: Explainer, private readonly onVial: (index: number) => void) {
+  constructor(private readonly content: Content, private readonly explainer: Explainer, private readonly onVial: (index: number) => void, private readonly onMenu?: () => void) {
     super({ label: 'combat-bar' });
     const bg = new Graphics();
     bg.rect(0, 0, DESIGN.width, 56).fill({ color: 0x000000, alpha: 0.35 });
@@ -22,6 +23,12 @@ export class CombatBar extends Container {
   sync(hero: HeroState): void {
     this.items.removeChildren().forEach((c) => c.destroy({ children: true }));
     let x = 40;
+    if (this.onMenu) {
+      const m = menuButton(this.onMenu);
+      m.position.set(62, 28);
+      this.items.addChild(m);
+      x = 140;
+    }
     for (const id of hero.relics) {
       const relic = this.content.relics?.[id];
       if (!relic) continue;

@@ -21,6 +21,8 @@ export interface Settings {
   /** How long the enemies' turn takes. New players need to see what hit them. */
   enemyPace: EnemyPace;
   artwork: Artwork;
+  /** End the turn on its own once there is nothing left to spend energy on. */
+  autoEndTurn: boolean;
   shake: boolean;
   volume: { master: number; music: number; sfx: number };
 }
@@ -37,6 +39,7 @@ export function defaultSettings(prefersReducedMotion = false): Settings {
     motion: prefersReducedMotion ? 'reduced' : 'full',
     enemyPace: 'measured',
     artwork: 'illustrated',
+    autoEndTurn: false,
     shake: !prefersReducedMotion,
     volume: { master: 0.8, music: 0.7, sfx: 0.9 },
   };
@@ -72,6 +75,7 @@ export function parseSettings(raw: string | null, defaults: Settings): Settings 
     motion: isMotion(d.motion) ? d.motion : defaults.motion,
     enemyPace: d.enemyPace === 'fast' || d.enemyPace === 'measured' ? d.enemyPace : defaults.enemyPace,
     artwork: d.artwork === 'illustrated' || d.artwork === 'placeholder' ? d.artwork : defaults.artwork,
+    autoEndTurn: typeof d.autoEndTurn === 'boolean' ? d.autoEndTurn : defaults.autoEndTurn,
     shake: typeof d.shake === 'boolean' ? d.shake : defaults.shake,
     volume: {
       master: clamp01(vol.master, defaults.volume.master),

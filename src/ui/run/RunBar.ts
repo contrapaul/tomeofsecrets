@@ -5,6 +5,7 @@ import { DESIGN } from '../../app/fit';
 import { FONT } from '../../app/fonts';
 import { PALETTE } from '../kit/palette';
 import { fillTokenArt } from '../kit/tokenArt';
+import { menuButton } from '../kit/gameMenu';
 import { makeText, STYLE } from '../kit/text';
 import type { Explainer } from '../kit/explainer';
 
@@ -15,7 +16,7 @@ import type { Explainer } from '../kit/explainer';
 export class RunBar extends Container {
   private readonly items = new Container();
 
-  constructor(private readonly content: ContentRegistry, private readonly explainer: Explainer, private readonly onDeck: () => void) {
+  constructor(private readonly content: ContentRegistry, private readonly explainer: Explainer, private readonly onDeck: () => void, private readonly onMenu?: () => void) {
     super({ label: 'runbar' });
     const bg = new Graphics();
     bg.rect(0, 0, DESIGN.width, 64).fill({ color: 0x000000, alpha: 0.55 });
@@ -27,6 +28,12 @@ export class RunBar extends Container {
     this.items.removeChildren().forEach((c) => c.destroy({ children: true }));
     const cls = this.content.classes[run.hero.classId];
     let x = 24;
+    if (this.onMenu) {
+      const m = menuButton(this.onMenu);
+      m.position.set(x + 38, 32);
+      this.items.addChild(m);
+      x += 96;
+    }
     const put = (text: string, style = STYLE.mono(22), gap = 28) => {
       const t = makeText(text, style);
       t.position.set(x, 32);
