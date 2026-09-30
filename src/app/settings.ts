@@ -5,8 +5,16 @@
 export type Motion = 'full' | 'fast' | 'reduced';
 
 export type EnemyPace = 'measured' | 'fast';
-/** Which set of pictures to play with: the drawn art, or the placeholder shapes. */
-export type Artwork = 'alpha' | 'development';
+/**
+ * Which set of pictures to play with. `illustrated` is the hand-drawn art;
+ * `placeholder` is the generated shapes the game was built against, which Paul
+ * calls the alpha art and the setting labels that way.
+ *
+ * These ids deliberately do not reuse the old `alpha` / `development` pair: that
+ * spelling meant the opposite of what it says now, so a stored one is rejected
+ * and falls back to the default rather than silently flipping someone's art.
+ */
+export type Artwork = 'illustrated' | 'placeholder';
 
 export interface Settings {
   motion: Motion;
@@ -28,7 +36,7 @@ export function defaultSettings(prefersReducedMotion = false): Settings {
   return {
     motion: prefersReducedMotion ? 'reduced' : 'full',
     enemyPace: 'measured',
-    artwork: 'alpha',
+    artwork: 'illustrated',
     shake: !prefersReducedMotion,
     volume: { master: 0.8, music: 0.7, sfx: 0.9 },
   };
@@ -63,7 +71,7 @@ export function parseSettings(raw: string | null, defaults: Settings): Settings 
   return {
     motion: isMotion(d.motion) ? d.motion : defaults.motion,
     enemyPace: d.enemyPace === 'fast' || d.enemyPace === 'measured' ? d.enemyPace : defaults.enemyPace,
-    artwork: d.artwork === 'alpha' || d.artwork === 'development' ? d.artwork : defaults.artwork,
+    artwork: d.artwork === 'illustrated' || d.artwork === 'placeholder' ? d.artwork : defaults.artwork,
     shake: typeof d.shake === 'boolean' ? d.shake : defaults.shake,
     volume: {
       master: clamp01(vol.master, defaults.volume.master),

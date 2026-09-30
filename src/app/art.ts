@@ -127,14 +127,14 @@ export interface BackgroundTextures {
 }
 
 /**
- * Backgrounds that have finished art, by the key the game asks for. On
- * `development` the game keeps asking for the placeholder, so both sets stay
- * side by side and the difference is one setting rather than one commit.
+ * Backgrounds that have illustrated art, by the key the game asks for. On
+ * `placeholder` the game keeps asking for the generated set, so both stay side
+ * by side and the difference is one setting rather than one commit.
  */
-const ALPHA_BACKGROUNDS: Record<string, string> = { chapter1: 'moss-halls', chapter2: 'moss-halls', chapter3: 'moss-halls' };
+const ILLUSTRATED_BACKGROUNDS: Record<string, string> = { chapter1: 'moss-halls', chapter2: 'moss-halls', chapter3: 'moss-halls' };
 
 export function backgroundFor(key: string, artwork: Artwork): string {
-  return artwork === 'alpha' ? ALPHA_BACKGROUNDS[key] ?? key : key;
+  return artwork === 'illustrated' ? ILLUSTRATED_BACKGROUNDS[key] ?? key : key;
 }
 
 export async function loadBackground(key: string): Promise<BackgroundTextures | null> {

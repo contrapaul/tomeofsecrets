@@ -9,8 +9,8 @@ import { PALETTE } from '../kit/palette';
 import { makeText, STYLE } from '../kit/text';
 
 const ARTWORKS: { id: Artwork; label: string; blurb: string }[] = [
-  { id: 'alpha', label: 'Alpha', blurb: 'The drawn artwork, as it arrives. Some of it is still rough.' },
-  { id: 'development', label: 'Dev art', blurb: 'The placeholder shapes the game was built against.' },
+  { id: 'illustrated', label: 'Illustrated', blurb: 'Drawn by Mr K and the class, as it arrives.' },
+  { id: 'placeholder', label: 'Alpha', blurb: 'The generated shapes the game was built against.' },
 ];
 
 const PACES: { id: EnemyPace; label: string; blurb: string }[] = [
@@ -123,6 +123,8 @@ export function settingsScene(ctx: SceneContext): Scene {
             label: a.label,
             width: 220,
             height: 60,
+            // The same button as Motion and Enemy turn; "Illustrated" just needs a smaller word.
+            fontSize: 25,
             variant: on ? 'gold' : 'ghost',
             onPress: () => {
               ctx.settings.set({ artwork: a.id });
